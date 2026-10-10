@@ -1,0 +1,5 @@
+do i push the .claude, .codex and . entire also in the repo or do i ignore that and leave it local only?
+
+---
+
+This is a project for a hackathon. as part of the challenge is a starting checkpoint for interacting with the challenge. Add the checkpoint form this repo: https://github.com/tacto-ai/negotiation-arena-kit to this repo
