@@ -1,0 +1,140 @@
+ok aber was sind das für daten die shon im repo sind und welche habe sollen die auch noch rein und die strategie oder so oder context drinnen lassen oder nicht weil es veraltet sein kann oder für die anderen nicht hifreich ist oder schon habae die hooks erlaubt aber mache sie in zukufnt direkt selbst und mache commit mit freature branch und merge request so wollen wir abteinten as eben alles beirt ist aber context oder strategy nur machen wenn wirklich für andere hifreich oder nützlich
+
+---
+
+glaueb der commit bringt nichts oder der merge request
+
+---
+
+schließe
+
+---
+
+Dieses Projekt ist teil einer Hackathon Challenge wir sollen ein Agentensystem entwerfen, welches Angebote verhandelt. Verhandelt wird über eine API die Infos liegen in den docs. Nun brauchen wir einen harness welcher zum einen die kominikation mit der api übernimmt und sicher stellt das nur ein run gleichzeit ausgeführt wird und metriken ausgibt wie gut der eigentliche run damit wir es intern vergleichen können. Es soll als sandbox fungieren um leicht verschidene konzepte oder ansätze testen zu können mit guter struktur. also einen ort für die modelle. am besten soll das ganze über die cli funktionieren und vorallem für die hackathon abgeabe schon funktionieren. Also du siehst ja auch am Setup dann, dass das Ganze wirklich live funktionieren muss und wir haben nur diesen einen Versuch und das muss wirklich alles rock solid funktionieren. Also schau wirklich, dass das Ganze dann auch funktioniert und sehr robust ist und genau an deren Anforderungen, aber jetzt auch im Test für uns schon ohne Probleme funktioniert und wir dann testen können und nicht unsere API-Credits verschießen, aber dann auch dort wirklich solid funktioniert auf den anderen Rechnern und Vielleicht auch so ein bisschen wie bei freqtrade, wo alles schon richtig stabil und gut stabil funktioniert. Überleg auch, welche Tools und Sprache und der Aufbau, Struktur und alles dann jetzt ist und Und wir das dann eben einmal testen können und auch mit der API funktioniert und dann aber wirklich sicher sind, wenn der richtige API-Key verwendet wird, dass das Ganze ohne das zu verschießen und stabil ist und gut klappt, dass dann jeder von uns gleich eine eigene Idee implementieren kann, wir dann vergleichen, welche die beste ist.
+
+---
+
+PLEASE IMPLEMENT THIS PLAN:
+# CLI-Harness für sichere Experimente und das Live-Finale
+
+## Ziel und technische Basis
+
+Wir erweitern das vorhandene Python-3.12-Projekt mit einem eigenen `arena-harness`-CLI. `uv` und das vorhandene Lockfile sorgen für reproduzierbare Installationen auf macOS und Linux. Kostenrechnung, Datenzugriff, Dokumentenparser und Simulator des Starter-Kits werden wiederverwendet.
+
+Der Harness übernimmt API-Kommunikation, Zeitlimits, Wiederaufnahme, Modellzugriff und Messung. Teammitglieder implementieren Python-Agenten über eine gemeinsame Schnittstelle. V1 unterstützt OpenAI-kompatible Modellendpunkte.
+
+Ein Run bezeichnet eine vollständige Experiment- oder Final-Ausführung. Es läuft höchstens ein Harness-Run pro Rechner und Benutzer; innerhalb dieses Runs dürfen bis zu zehn Arena-Fälle parallel laufen.
+
+## CLI, Profile und Agentenschnittstelle
+
+Die CLI erhält folgende Befehle:
+
+- `doctor`: Installation, Daten, Agentenkonfiguration und gespeicherte Zustände prüfen; bei einem Arena-Profil zusätzlich ausschließlich lesende API-Prüfungen.
+- `agents list` und `agents check`: vorhandene Agenten anzeigen beziehungsweise gegen lokale Vertragsbeispiele prüfen.
+- `run`: ein neues Experiment oder das Finale starten.
+- `resume RUN_ID`: einen gespeicherten Run mit derselben Konfiguration und verbleibenden Limits fortsetzen.
+- `report RUN_ID`: Verlauf, Ergebnisse und Fehler anzeigen; JSON und CSV exportieren.
+- `compare RUN_ID ...`: Agenten anhand übereinstimmender Fälle vergleichen.
+
+Vier Profile trennen die Ausführung:
+
+| Profil | Verhalten |
+|---|---|
+| `sim` | Standard; lokaler Simulator und deterministischer Beispielagent, ohne externe Aufrufe |
+| `sandbox` | Gehostete Demo-Fälle; explizite Arena-Freigabe, standardmäßig ein Fall |
+| `practice` | Gehostete Übungsfälle; explizite Arena-Freigabe, standardmäßig ein Fall |
+| `final` | Automatische Wellensteuerung bis zum Ende des Finals |
+
+Beispielbedienung:
+
+```bash
+uv run arena-harness run --agent baseline
+uv run arena-harness doctor --profile practice
+uv run arena-harness run --profile sandbox --agent my_agent \
+  --case case:D01 --allow-arena
+uv run arena-harness compare RUN_A RUN_B
+uv run arena-harness run --profile final --agent my_agent \
+  --allow-arena --allow-model --commit COMMIT_SHA
+```
+
+Remote-Modelle benötigen zusätzlich `--allow-model` sowie konfigurierte Aufruf- und Ausgabelimits. Die Freigabe erfolgt beim Start und wird gespeichert. **Während des Finals und bei dessen automatischer Wiederaufnahme gibt es keine Rückfragen.** Lesende Arena-Prüfungen benötigen keine zusätzliche Freigabe.
+
+Agenten liegen in einem eigenen `agents/`-Verzeichnis; Konfigurationen in TOML enthalten Agent, Modell, Parameter und Limits, aber keine Schlüssel. Ein Agent implementiert:
+
+- `prepare(context)`: fallbezogene Vorbereitung vor dem Öffnen der Session.
+- `decide(observation, state, services)`: liefert ein oder mehrere Aktionen sowie JSON-serialisierbaren Folgezustand.
+
+Beobachtungen enthalten Fall, Lieferantenthreads, Dokumententexte und verbleibende Zeit. Aktionen bestehen aus Nachrichten, Annahme oder Abbruch. Mehrere Nachrichten für unterschiedliche RFQ-Lieferanten sind möglich; Abschlussaktionen gelten für den ganzen Fall.
+
+`services` bietet lokalen Datenzugriff, Kostenberechnung und den zentral erfassten Modellzugriff. Agenten erhalten keinen Arena-Client. Ein einfacher Beispielagent und Adapter für die Starter-Agenten machen die Schnittstelle unmittelbar nutzbar. Agentenprozesse werden zur Fehler- und Timeout-Isolation getrennt ausgeführt; sie gelten als vertrauenswürdiger Teamcode.
+
+## Ausführung, Schutz und Wiederaufnahme
+
+**Exklusivität und Startprüfung**
+
+- Eine Betriebssystem-Sperre außerhalb des Repositorys verhindert konkurrierende Runs auch aus verschiedenen Checkouts desselben Benutzers. Ein zweiter Start beendet sich vor Netzwerk- oder Modellaufrufen.
+- Vor echten Läufen werden Team-Key, Quote und offene Sessions geprüft. Unzugeordnete offene Sessions verhindern einen neuen Run; `resume` setzt zugeordnete Sessions fort.
+- Die Sperre ist wie gewählt lokal. Eine vollständige Sperre zwischen Team-Rechnern wird nicht behauptet.
+- Finale verlangen einen sauberen Checkout und den angegebenen Commit. Agenten, Daten und Konfiguration werden vor Beginn geprüft und ihre Versionen gespeichert.
+
+**Dauerhafter Zustand**
+
+- Jeder Run erhält eine ID und ein ignoriertes Ergebnisverzeichnis mit SQLite-Journal, Konfiguration, Ereignissen, Anhängen und Reports.
+- Vor jedem POST werden Ziel, unveränderter Request und `X-Move-Id` dauerhaft gespeichert. Retries und Wiederanläufe verwenden dieselbe ID.
+- Unklare Antworten werden anhand der eigenen Session- und Thread-Endpunkte abgeglichen. Ein unklarer Session-Start erzeugt keinen neuen Versuch mit einer neuen ID.
+- Ein Supervisor hält die lokale Sperre und startet einen abgestürzten Ausführungsprozess höchstens dreimal mit kurzen Wartezeiten neu. Gespeicherte Aktionen, Budgets und Session-Zuordnungen bleiben erhalten.
+- Ein normaler Abbruch stoppt neue Fälle und versucht bestehende Fälle kontrolliert abzuschließen. Ein erzwungener Abbruch hinterlässt wiederaufnehmbare Zustände.
+
+**API und Deadlines**
+
+- Gemeinsames Limit von neun Requests pro Sekunde; höchstens zehn offene Sessions.
+- Asynchrone HTTP-Kommunikation; Lieferantenantworten dürfen mindestens 180 Sekunden dauern. Agentenentscheidungen erhalten standardmäßig höchstens 30 Sekunden und zusätzlich die tatsächlich verbleibende Thread-Zeit als Grenze.
+- Pro Lieferant ist höchstens eine Nachricht gleichzeitig unterwegs. Auf andere Lieferanten wartende Requests blockieren die RFQ-Bearbeitung nicht.
+- Abschlussaktionen werden pro Fall serialisiert und gegen den aktuellen Angebotsstand geprüft.
+- `429` mit kurzem `Retry-After` wird begrenzt wiederholt; erschöpfte Practice-Quote stoppt neue Starts. `401` und gesperrte Schlüssel führen zu einem sichtbaren Fehler. `409` löst Zustandsabgleich aus; `422` keine blinde Wiederholung.
+- Final-Wellen werden über `/v1/cases?set=final` verfolgt. Die serverseitigen `seconds_left` bestimmen die Deadline. Vor Wellenbeginn wird ein `403` nur bei weiterhin gültigem Team-Key als Wartestatus behandelt.
+- Live-Feed, Leaderboard, Screen und Results-Endpunkte sind im Final-Transport gesperrt.
+
+**Validierung und Fallback**
+
+Alle Agentenaktionen werden vor dem Versand auf API-Format, Größenlimits und zulässige Terms geprüft. Annahmen müssen aktuelle Angebote, Standardbedingungen und Muss-Kriterien berücksichtigen. Bei fehlenden erforderlichen Dokumenten wird nicht auf vermeintlich günstige Standardwerte vertraut.
+
+Bei Agentenfehlern, Modellbudget-Ende oder naher Deadline wählt der Harness ein gültiges, gegenüber der Alternative vertretbares stehendes Angebot; andernfalls den Abbruch. Lokale Lieferantenkosten-Schätzungen werden als Schätzungen behandelt.
+
+**Kostenkontrolle**
+
+Externe Modellaufrufe laufen über einen gemeinsamen OpenAI-kompatiblen Adapter. Dieser begrenzt Aufrufzahl, Parallelität und maximale Ausgabetokens je Anfrage. Limits gelten runweit und werden auch bei parallelen Anfragen sowie Wiederaufnahme eingehalten. Unklar beendete Modellaufrufe zählen als verbrauchte Versuche und werden nicht automatisch erneut bezahlt.
+
+Tokenverbrauch wird aus Provider-Antworten erfasst. Geldkosten werden nur mit konfigurierten Preisen geschätzt und entsprechend gekennzeichnet. Ein API-Key aktiviert von sich aus keinen Live-Modus.
+
+## Vergleichbare Ergebnisse
+
+Jeder Run speichert Agentenparameter, Modellkennung, Commit, Daten- und Konfigurationshash, ausgewählte Fälle und Ausführungsmodus.
+
+Reports enthalten:
+
+- Offiziellen Fallscore, Abschlussstatus, Muss-Kriterien, `c_open`, `c_deal`, `c_alt` und Kostenzerlegung, soweit verfügbar.
+- Abdeckung, fehlende Ergebnisse und Fehler; unvollständige Runs erhalten keinen scheinbar vollständigen Gesamtscore.
+- Runden, Timeouts, Retries, Fallbacks, Claim-Ergebnisse und Entscheidungs-/API-Latenzen.
+- Modellaufrufe, gemeldete Tokens und gegebenenfalls geschätzte Kosten.
+
+`compare` zeigt Unterschiede pro gemeinsamem Fall und zusammengefasst. Abweichende Fall- oder Datenstände werden standardmäßig abgelehnt und können nur ausdrücklich als eingeschränkt vergleichbar angezeigt werden. Simulator- und Arena-Ergebnisse werden getrennt ausgewiesen. Gespeicherte Replays dienen der Analyse, nicht als Beweis, wie ein anderer Agent beim echten Lieferanten abgeschnitten hätte.
+
+## Tests und Abnahme
+
+Die Standardsuite ist vollständig lokal und startet auch bei vorhandenen echten Schlüsseln keine externen Requests. Die bisherigen automatisch über Umgebungsvariablen aktivierbaren Hosted-Tests werden auf ausdrückliche Auswahl umgestellt.
+
+Pflichtprüfungen:
+
+1. Zwei gleichzeitig gestartete Prozesse: genau einer darf Requests ausführen.
+2. Absturz vor Versand und nach serverseitiger Verarbeitung: Wiederaufnahme mit gleicher Move-ID, ohne doppelte Session oder Nachricht.
+3. Langsame RFQ-Antworten, hängender Agent, ungültige Ausgabe und defekte Anhänge: keine blockierten Nachbarfälle, kontrollierter Fallback.
+4. Rate-Limits, erschöpfte Quote, Authentifizierungsfehler, veraltete Angebote und Netzunterbrechungen.
+5. Fünf simulierte Final-Wellen einschließlich verspäteter Antworten, verlängerter Deadline und Prozessneustart; keine Bedienereingabe erforderlich.
+6. Parallel ausgeschöpfte Modelllimits und Wiederaufnahme: keine zurückgesetzten Budgets.
+7. Reproduzierbare Reports, korrekt behandelte fehlende Ergebnisse und keine Schlüssel in Logs oder Exporten.
+8. Installation und CLI-Smoke-Tests auf macOS und Linux mit festgeschriebenen Dependencies.
+
+Nach bestandenen lokalen Tests ist ein einzelner gehosteter Sandbox-Smoke-Test vorgesehen, **erst nach ausdrücklicher Freigabe**. Ohne diesen wird die echte Verbindung als noch nicht end-to-end validiert ausgewiesen.
+
+Umsetzung erfolgt auf einem neuen Feature-Branch vom aktuellen `main`, anschließend Commit mit Entire-Checkpoint und Pull Request. Dokumentation beschränkt sich auf Installation, Agentenbeispiel, CLI-Bedienung und Final-Start/Wiederaufnahme. Der geschlossene Dokumentations-PR wird nicht übernommen.

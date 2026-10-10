@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K3M9B1FF6MVY26YJCNYP63",
+  "strategy": "manual-commit",
+  "branch": "codex/arena-harness",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "starter-kit/arena_kit/harness/cli.py",
+    "starter-kit/arena_kit/harness/engine.py",
+    "starter-kit/arena_kit/harness/report.py",
+    "starter-kit/tests/test_harness.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 404574,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 9958528,
+    "output_tokens": 68785,
+    "api_call_count": 83
+  }
+}

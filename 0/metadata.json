@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K3M9B1FF6MVY26YJCNYP63",
+  "session_id": "01a125f4-e71b-75d3-80b9-1b2e455f85a8",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T14:31:48.781808Z",
+  "branch": "codex/arena-harness",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "starter-kit/arena_kit/harness/cli.py",
+    "starter-kit/arena_kit/harness/engine.py",
+    "starter-kit/arena_kit/harness/report.py",
+    "starter-kit/tests/test_harness.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6-astra",
+  "turn_id": "5d8cc73973fd",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 404574,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 9958528,
+    "output_tokens": 68785,
+    "api_call_count": 83
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T14:31:48.701971Z",
+    "agent_lines": 1552,
+    "agent_removed": 0,
+    "human_added": 1068,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 2620,
+    "total_lines_changed": 2620,
+    "agent_percentage": 59.23664122137404,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
