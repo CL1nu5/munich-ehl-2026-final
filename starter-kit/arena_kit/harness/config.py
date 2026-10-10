@@ -97,6 +97,7 @@ def load(args):
         "max_output_tokens",
         "parallel",
         "timeout",
+        "reasoning_effort",
         "input_usd_per_million",
         "output_usd_per_million",
     }:
@@ -117,6 +118,8 @@ def load(args):
         for name in ("max_calls", "max_output_tokens"):
             if not isinstance(model.get(name), int) or model[name] <= 0:
                 raise ValueError(f"Model requires positive {name}")
+        if model.get("reasoning_effort", "medium") not in ("none", "minimal", "low", "medium", "high", "xhigh"):
+            raise ValueError("Model reasoning_effort must be none, minimal, low, medium, high or xhigh")
         if not 1 <= model.get("parallel", 2) <= 10 or not 0 < model.get("timeout", 20) <= 25:
             raise ValueError("Model parallel must be 1..10 and timeout >0 and <=25")
     if cfg["agent"] == "starter_llm" and not model:

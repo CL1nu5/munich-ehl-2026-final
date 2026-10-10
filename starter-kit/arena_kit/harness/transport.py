@@ -137,6 +137,16 @@ class Models:
     async def close(self):
         await self.http.aclose()
 
+    def payload(self, messages):
+        model = self.cfg["model"]
+        body = {"model": model["name"], "messages": messages}
+        # Reasoning models reject max_tokens; plain endpoints keep the original field.
+        if "reasoning_effort" in model:
+            body |= {"reasoning_effort": model["reasoning_effort"], "max_completion_tokens": model["max_output_tokens"]}
+        else:
+            body["max_tokens"] = model["max_output_tokens"]
+        return body
+
     async def complete(self, messages):
         model = self.cfg["model"]
         if not model:
@@ -156,7 +166,7 @@ class Models:
                 r = await self.http.post(
                     model["base_url"].rstrip("/") + "/chat/completions",
                     headers={"Authorization": "Bearer " + os.environ.get("LLM_API_KEY", "")},
-                    json={"model": model["name"], "messages": messages, "max_tokens": model["max_output_tokens"]},
+                    json=self.payload(messages),
                 )
                 r.raise_for_status()
                 data = r.json()
