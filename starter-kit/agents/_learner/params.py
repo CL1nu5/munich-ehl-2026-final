@@ -19,8 +19,8 @@ def load(parameters):
     for key, value in (parameters or {}).items():
         if key in DEFAULTS:
             p[key] = value
-    p["decision_seconds"] = max(1.0, min(30.0, float(p["decision_seconds"])))
-    p["model_timeout"] = max(1.0, min(25.0, float(p["model_timeout"])))
+    p["decision_seconds"] = max(1.0, min(45.0, float(p["decision_seconds"])))
+    p["model_timeout"] = max(1.0, min(35.0, float(p["model_timeout"])))
     p["round_budget"] = max(2, int(p["round_budget"]))
     p["anchor_drop"] = max(0.0, min(0.4, float(p["anchor_drop"])))
     return p

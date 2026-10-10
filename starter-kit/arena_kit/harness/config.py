@@ -78,8 +78,8 @@ def load(args):
         parsed = urlparse(cfg["url"])
         if parsed.scheme != "https" or parsed.username or parsed.password or parsed.query or parsed.fragment:
             raise ValueError("Arena URL must be HTTPS without credentials, query or fragment")
-    if not 1 <= cfg["parallel"] <= 10 or not 0 < cfg["decision_seconds"] <= 30:
-        raise ValueError("parallel must be 1..10; decision_seconds must be >0 and <=30")
+    if not 1 <= cfg["parallel"] <= 10 or not 0 < cfg["decision_seconds"] <= 45:
+        raise ValueError("parallel must be 1..10; decision_seconds must be >0 and <=45")
     if cfg["max_cases"] < 1 or cfg["poll_seconds"] < 1:
         raise ValueError("max_cases and poll_seconds must be positive")
     agent_path(cfg["agent"])
@@ -120,8 +120,8 @@ def load(args):
                 raise ValueError(f"Model requires positive {name}")
         if model.get("reasoning_effort", "medium") not in ("none", "minimal", "low", "medium", "high", "xhigh"):
             raise ValueError("Model reasoning_effort must be none, minimal, low, medium, high or xhigh")
-        if not 1 <= model.get("parallel", 2) <= 10 or not 0 < model.get("timeout", 20) <= 25:
-            raise ValueError("Model parallel must be 1..10 and timeout >0 and <=25")
+        if not 1 <= model.get("parallel", 2) <= 10 or not 0 < model.get("timeout", 20) <= 35:
+            raise ValueError("Model parallel must be 1..10 and timeout >0 and <=35")
     if cfg["agent"] == "starter_llm" and not model:
         raise ValueError("starter_llm requires a [model] configuration")
     cfg["source"] = git_state()

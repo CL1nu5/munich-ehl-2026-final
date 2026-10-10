@@ -2,14 +2,15 @@
 # Needs LLM_API_KEY in the environment and --allow-model; no keys in this file.
 agent = "learner"
 parallel = 2   # small "waves": later cases learn from the cases finished before them
-decision_seconds = 30
+decision_seconds = 45   # a 35 s model call + margin; the arena allows 60 s per message
 max_cases = 3
 
 [parameters]
 round_budget = 4   # practice: suppliers sent their final offer in rounds 2-4
 llm = true
 two_call = true
-model_timeout = 25   # keep equal to [model].timeout
+model_timeout = 35   # keep equal to [model].timeout
+decision_seconds = 45   # keep equal to the top-level decision_seconds
 
 [model]
 name = "gpt-6-luna"
@@ -18,4 +19,4 @@ reasoning_effort = "medium"
 max_calls = 150
 max_output_tokens = 16000   # reasoning tokens count against this limit
 parallel = 10
-timeout = 25   # the harness maximum
+timeout = 35   # the harness maximum

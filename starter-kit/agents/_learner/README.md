@@ -70,9 +70,10 @@ Configs:
 | `learner_openai.toml` | Simulator with `gpt-6-luna` (reasoning effort medium), 2 cases in parallel. |
 | `learner_final.toml` | Practice batches and the Live Final: 10 in parallel, 1500 model calls. |
 
-Every config has `model_timeout = 25` in `[parameters]`, equal to `[model].timeout` (25 s is the harness maximum). A
-decision only starts a model call that can finish inside its 30 s budget; otherwise it plays the
-deterministic policy.
+The model configs have `model_timeout = 35` in `[parameters]`, equal to `[model].timeout` (35 s is the harness
+maximum), and `decision_seconds = 45` both at the top level and in `[parameters]` (the agent does not read
+the top-level value). A decision only starts a model call that can finish inside its budget, which is also
+capped by the thread's 60 s answer window; otherwise it plays the deterministic policy.
 
 Parameters (`[parameters]` in the TOML; defaults in `params.py`):
 
@@ -81,6 +82,7 @@ Parameters (`[parameters]` in the TOML; defaults in `params.py`):
 | `llm` | Use the model at all. |
 | `two_call` | Allow strategist + writer when the clock fits two calls. |
 | `model_timeout` | Mirror of `[model].timeout`; the agent only starts a call that can finish in time. |
+| `decision_seconds` | Mirror of the top-level `decision_seconds` (default 30); keep both equal. |
 | `memory` | Learn from finished cases of this run. |
 | `anchor_drop` | First ask below the standing value, before priors and lessons. |
 | `round_budget` | Rounds we plan to use per thread. |
