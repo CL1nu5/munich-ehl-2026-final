@@ -1,19 +1,8 @@
-> Aktueller Stand: **285 Tests bestanden**, nur der echte Arena-Test gesperrt.
-> MCP als separater Prozess mit Neustart, Parallelität und externen Testdaten geprüft;
-> Datengrenzen korrigiert. Details: `MCP_DEEP_REVIEW.txt`. Frühere Stände folgen unten.
-
-> Neueste Nachprüfung: **271 Tests bestanden, nur der gesperrte Arena-Test übersprungen**.
-> MCP installiert und geprüft; unklare Indexklauseln und widersprüchliche Belege abgesichert.
-> Details: `SKIPPED_TESTS_FOLLOWUP.txt`. Ältere Messstände unten bleiben historische Befunde.
-
-> Latest robustness review: **250 tests passed**, 600 mutation cases passed again.
-> Includes 100 unseen-case variants and 12 negotiations over real local HTTP.
-> See `LIVE_READINESS_REVIEW.txt` for fixes, evidence and remaining final-start gaps.
-
-> Current verified default: **GPT-6 Luna**, reasoning none, JSON mode. See
-> `MODEL_EVALUATION.txt` for the five-model comparison, 1,480 synthetic scenarios
-> (2,960 negotiations), 600 input perturbations and 109 passing regression tests.
-> Historical GPT-4.1 measurements below are retained as previous baselines.
+> Aktueller Prüfstand: **286 Tests bestanden**, nur der echte Arena-Test gesperrt.
+> Neuer lokaler Gesamtscore: **75,60/100** (drei Simulatorfälle, kein Arena-Ergebnis).
+> Mail-/HTTP-Integration und Team-Basis geprüft: `INTEGRATION_SCORE_REVIEW.txt`.
+> MCP-Fehlerbefunde: `MCP_DEEP_REVIEW.txt`; Modellvergleich: `MODEL_EVALUATION.txt`.
+> Ältere Messwerte im folgenden Text bleiben historische Befunde.
 
 # Evidence Buyer
 

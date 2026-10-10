@@ -1,19 +1,8 @@
-> Aktueller Stand: **285 Tests bestanden**, nur der echte Arena-Test gesperrt.
-> MCP als separater Prozess mit Neustart, Parallelität und externen Testdaten geprüft;
-> Datengrenzen korrigiert. Details: `MCP_DEEP_REVIEW.txt`. Frühere Stände folgen unten.
-
-> Neueste Nachprüfung: **271 Tests bestanden, nur der gesperrte Arena-Test übersprungen**.
-> MCP installiert und geprüft; unklare Indexklauseln und widersprüchliche Belege abgesichert.
-> Details: `SKIPPED_TESTS_FOLLOWUP.txt`. Ältere Messstände unten bleiben historische Befunde.
-
-> Neuer Prüfstand: **250 Tests bestanden**, erneut 600 Störvarianten bestanden.
-> Unbekannte Fälle, Fehlerwiederaufnahme und paralleles lokales HTTP zusätzlich geprüft.
-> Details und verbleibende Grenzen: `LIVE_READINESS_REVIEW.txt`.
-
-> Aktueller Stand nach erweitertem Modellvergleich: **GPT-6 Luna**, 109 bestandene
-> reguläre Tests, 600 bestandene Störfälle und 2.960 lokale Verhandlungen über
-> 1.480 Szenarien. Der vollständige aktuelle Bericht steht in `MODEL_EVALUATION.txt`.
-> Die unten dokumentierten früheren Modellstände und Messreihen bleiben historische Befunde.
+> Aktueller Prüfstand: **286 Tests bestanden**, nur der echte Arena-Test gesperrt.
+> Neuer lokaler Gesamtscore: **75,60/100** (drei Simulatorfälle, kein Arena-Ergebnis).
+> Mail-/HTTP-Integration und Team-Basis geprüft: `INTEGRATION_SCORE_REVIEW.txt`.
+> MCP-Fehlerbefunde: `MCP_DEEP_REVIEW.txt`; Modellvergleich: `MODEL_EVALUATION.txt`.
+> Ältere Messwerte im folgenden Text bleiben historische Befunde.
 
 # Professionelle Verhandlungspolitik und vertiefte Bewertung
 

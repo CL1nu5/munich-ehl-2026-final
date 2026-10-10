@@ -1,0 +1,94 @@
+EHL – Integration, Mail-Nachrichten und Score
+Stand: 10. Oktober 2026
+
+ABSCHLUSS DER GESAMTPRÜFUNG
+
+286 Tests bestanden, ein echter Arena-Test gemäß Vorgabe gesperrt; Laufzeit
+121,16 Sekunden. Der neue HTTP-Mail-Integrationstest bestand. Die statische
+Prüfung über Anwendung, Agenten und Tests sowie die Diff-Prüfung bestanden.
+In dieser Prüfrunde wurde kein neuer Anwendungsfehler gefunden; ergänzt wurde
+ein dauerhafter Integrationstest. Es wurden keine Modellaufrufe verwendet.
+
+AKTUELLER SCORE
+
+Neuer vollständiger lokaler Lauf: 20261010T165222Z-7a7232f1.
+Gesamtscore: 75,6003 von 100 normalisierten Punkten, also gerundet 75,60/100.
+Drei Fälle, drei Abschlüsse; alle Pflichtbedingungen erfüllt. Keine Harness-
+Notfallentscheidung und keine beobachtete Antwortfrist-Verletzung. Dieser Lauf
+verwendete keine Modell-API. Der frühere lokale GPT-6-Luna-Lauf vom selben Tag
+hatte denselben Score. Daraus folgt kein Nachweis gleicher Leistung gegenüber
+den echten Lieferantenbots: Der lokale Gegner ist ein vereinfachtes Skript.
+
+Einzelfälle (Score; Kosten des günstigsten Einstiegs; Abschlusskosten; Referenz):
+case:S01: 79.48/100; 119491.07 EUR; 108743.46 EUR; 105969.08 EUR.
+case:S02: 78.13/100; 652603.76 EUR; 593911.81 EUR; 577486.85 EUR.
+case:S03: 69.18/100; 4342556.33 EUR; 3854063.80 EUR; 3636482.08 EUR.
+
+Gesamte simulierte Kostenverbesserung gegenüber den Einstiegsangeboten:
+557932.09 EUR über die jeweiligen Fallhorizonte. Das ist fiktiver Einkaufswert,
+kein real erzielter Umsatz, Gewinn oder Preisnachlass in Prozent.
+
+Die Formel aus brief/brief.md und arena_kit/cost.py lautet:
+(C_open - C_deal) / (C_open - C_best), begrenzt auf 0 bis 1.
+Sie misst den erreichten Anteil des im Fall definierten Kostenverbesserungsraums.
+75,60 Punkte bedeuten NICHT 75,60 % Preisrabatt und NICHT 75,60 % Gewinnchance.
+Jeder Fall zählt im Mittel gleich; es ist kein umsatzgewichteter Mittelwert.
+Die drei Werte wurden separat aus den gespeicherten Kosten neu berechnet und
+mit dem Laufbericht abgeglichen. Sie stimmen überein.
+
+Im echten Finale werden laut lokaler Aufgabenbeschreibung fünf Wellen separat
+auf 0–100 Punkte bewertet und addiert: maximal 500 Punkte. Es liegt kein echter
+Arena-Score dieses Agenten vor. Die 75,60/100 werden nicht auf einen vermeintlichen
+Finalscore hochgerechnet. Die Jurygewichtung ist im lokalen Abgabedokument noch
+als offener Punkt gekennzeichnet; ein Gesamtrang lässt sich nicht bestimmen.
+
+WAS MIT MAILS GEMEINT IST
+
+Die Aufgabe beschreibt E-Mail-artige Verhandlungen über die Arena-API. Der Agent
+sendet Betreff, Nachrichtentext, Angebotsblätter und gegebenenfalls Belegverweise
+an den Nachrichtenendpunkt der jeweiligen Sitzung und des Lieferanten. Antworten
+und Angebotsdokumente kommen ebenfalls über diese API. Eine separate Verbindung
+zu Gmail, Outlook oder SMTP wird hierfür nicht verlangt. Private Postfächer wurden
+nicht geöffnet, und es wurden keine echten E-Mails verschickt.
+
+Die neue Probe verwendet echtes lokales HTTP und zwei gleichzeitig existierende
+Sitzungen mit jeweils zwei Lieferanten. Drei Nachrichten prüfen deutsche Umlaute,
+mehrzeiligen Text, englischen Geschäftstext, Sonderzeichen und zitierte Anweisungen.
+Jede Nachricht wird mit derselben Aktionskennung erneut zugestellt. Nachgewiesen:
+- Betreff und Text bleiben unverändert erhalten.
+- Pro Nachricht wird nur eine Runde verbraucht, obwohl sie zweimal zugestellt wird.
+- Der andere Lieferant und die zweite Sitzung erhalten keine fremde Nachricht.
+- Ein ungültiger Team-Schlüssel erhält keinen Lesezugriff.
+- Freitext löst keine strukturierte bindende Annahme aus.
+Die Szenarien werden anschließend lokal geschlossen. Dieser Test überprüft die
+Transport-/Protokollschicht, nicht die Überzeugungskraft einer Mail gegenüber
+menschlichen Einkäufern oder den echten KI-Lieferanten.
+
+TEAM- UND GITHUB-ABGLEICH
+
+Der GitHub-Hauptbranch steht beim Abruf auf
+18db44bfb22973fecd00597f450a4a3cfc4588ae. Dieser Commit ist im Agentenbranch
+enthalten. Die Team-PRs 3 und 4 sind gemergt. PR 5 ist offen und laut GitHub ohne
+Merge-Konflikt zusammenführbar. Es gibt dort beim Abruf keine Reviews und keine
+Kommentare. Damit ist die technische Basis abgeglichen; eine menschliche
+Teamfreigabe liegt dadurch nicht vor. Nach der Klarstellung des Nutzers wurden
+keine Mates angeschrieben. Die PR wurde nicht gemergt und nichts eingereicht.
+
+STARTBEREITSCHAFT UND GRENZEN
+
+Der lokale Verhandlungsweg funktioniert in den dokumentierten Proben. Die echte
+Arena wurde nicht genutzt. Die 200 Übungsversuche bleiben unangetastet. Ein guter
+lokaler Score belegt weder den späteren Rang noch dieselben Abschlüsse im Finale.
+
+Vor dem Finale fehlen weiterhin: gültiger Arena-Schlüssel samt Finalberechtigung,
+vollständige offizielle Sonntagsdaten und die tatsächliche Abgabe/Bewertungsfreigabe.
+Die lokale Abgabebeschreibung verlangt außerdem Repository-Zugriff, eingefrorenen
+Commit, kurze Vorgehensbeschreibung und Pitch-Folien. Ein Laptop mit laufendem
+Runner reicht für die technische Ausführung; öffentliche Web-Hosting-Infrastruktur
+ist keine Voraussetzung dieses Runners. Aktuelle Veranstalteränderungen außerhalb
+der gelesenen Repository-Unterlagen wurden in dieser Runde nicht bestätigt.
+
+Die MCP-Prozessprüfungen, HTTP-Verhandlungen und Regressionstests werden in der
+Gesamtsuite erneut ausgeführt. Frühere Prüfrunden stehen in MCP_DEEP_REVIEW.txt
+und LIVE_READINESS_REVIEW.txt. Die aktuelle Runde ergänzt einen Integrationstest;
+sie behauptet keine neue Verbesserung der wirtschaftlichen Strategie.
