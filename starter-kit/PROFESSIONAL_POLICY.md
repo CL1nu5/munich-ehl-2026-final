@@ -1,3 +1,7 @@
+> Neueste Nachprüfung: **271 Tests bestanden, nur der gesperrte Arena-Test übersprungen**.
+> MCP installiert und geprüft; unklare Indexklauseln und widersprüchliche Belege abgesichert.
+> Details: `SKIPPED_TESTS_FOLLOWUP.txt`. Ältere Messstände unten bleiben historische Befunde.
+
 > Neuer Prüfstand: **250 Tests bestanden**, erneut 600 Störvarianten bestanden.
 > Unbekannte Fälle, Fehlerwiederaufnahme und paralleles lokales HTTP zusätzlich geprüft.
 > Details und verbleibende Grenzen: `LIVE_READINESS_REVIEW.txt`.

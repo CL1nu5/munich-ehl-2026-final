@@ -1,3 +1,7 @@
+AKTUALISIERUNG: Die nachfolgende Nachprüfung steht in SKIPPED_TESTS_FOLLOWUP.txt:
+271 Tests bestanden, nur der echte Arena-Test bleibt gesperrt. MCP wurde installiert
+und erfolgreich geprüft. Der folgende Bericht dokumentiert den vorherigen Stand.
+
 EHL – Codeprüfung und lokale Live-Probe
 Stand: 10. Oktober 2026
 

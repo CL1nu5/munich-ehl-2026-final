@@ -327,3 +327,96 @@ def test_practice_plays_the_hosted_cases():
     out = play_all(Used, ["case:P01", "case:P02", "case:P03"], NaiveAgent, parallel=1)
     assert all(isinstance(e, ArenaError) and e.status == 429 for e in out.values())
     assert "not started" in out["case:P03"].detail
+
+
+@pytest.mark.parametrize(
+    "name,args,expected",
+    [
+        ("list_tables", {}, "documents"),
+        ("query", {"sql": "SELECT id FROM documents"}, "doc:L1"),
+        ("lookup", {"id": "idx:S1@2026-09"}, "110.0"),
+        ("list_ids", {"prefix": "idx:S1@"}, "idx:S1@2026-09"),
+        ("read_document", {"ref": "doc:L1"}, "We raise prices by 8%."),
+        ("get_case", {"case_id": "case:T01"}, "Test RFQ"),
+    ],
+)
+def test_mcp_tools_execute_real_data_operations(package, name, args, expected):
+    pytest.importorskip("mcp")
+    import asyncio
+
+    from arena_kit.mcp_server import build
+
+    async def run():
+        server = build(package.root)
+        result = await server.call_tool(name, args)
+        assert not result.is_error
+        assert expected in "".join(getattr(c, "text", "") for c in result.content)
+
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "DELETE FROM documents",
+        "DROP TABLE documents",
+        "WITH x AS (SELECT 1) INSERT INTO documents VALUES ('bad','bad')",
+    ],
+)
+def test_mcp_cannot_modify_data(package, sql):
+    pytest.importorskip("mcp")
+    import asyncio
+
+    from arena_kit.mcp_server import build
+
+    async def run():
+        from mcp.server.mcpserver.exceptions import UnexpectedToolError
+
+        server = build(package.root)
+        with pytest.raises(UnexpectedToolError):
+            await server.call_tool("query", {"sql": sql})
+        assert package.query("SELECT id FROM documents") == [{"id": "doc:L1"}]
+
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize(
+    "clause",
+    [
+        "unknown",
+        "not specified",
+        "S1, 101% material, deadband 3 %, base 2026-09",
+        "S1, 35% material, deadband 101 %, base 2026-09",
+        "S1, 35% material, deadband 3 %, base 2026-13",
+        "S1, 35% material, deadband 3 %, base 2026-09 plus surcharge",
+        "S1, 35% material, deadband .. %, base 2026-09",
+    ],
+)
+def test_unrecognized_index_clauses_reject_quote(clause):
+    from arena_kit.harness.validation import documented
+
+    text = "Offered terms\nUnit price (EUR) 40\nOur standard terms\nIndex clause " + clause
+    with pytest.raises(ValueError):
+        quote_terms(text)
+    assert not documented([{"attachments": [{"name": "quote.pdf", "text": text}]}])
+
+
+def test_explicit_no_index_clause_and_valid_clause():
+    assert quote_terms("Our standard terms\nIndex clause none")["standard"]["index_clause"] is None
+    assert (
+        quote_terms("Our standard terms\nIndex clause S1, 35% material, deadband 3 %, base 2026-09")["standard"][
+            "index_clause"
+        ]["material_share"]
+        == 0.35
+    )
+
+
+@pytest.mark.parametrize(
+    "field,first,second",
+    [("Unit price (EUR)", "40", "50"), ("Payment terms (days net)", "30", "90"), ("Incoterm", "DAP", "EXW")],
+)
+def test_conflicting_duplicate_document_terms_fail_closed(field, first, second):
+    text = f"Offered terms\n{field} {first}\n{field} {second}"
+    with pytest.raises(ValueError, match="Conflicting"):
+        quote_terms(text)
+    assert quote_terms(f"Offered terms\n{field} {first}\n{field} {first}")

@@ -1,0 +1,83 @@
+EHL – Nachprüfung der übersprungenen Tests
+Stand: 10. Oktober 2026
+
+ABSCHLIESSENDES ERGEBNIS
+
+271 Tests bestanden, 1 übersprungen, Laufzeit 113,46 Sekunden. Der einzige
+übersprungene Test ist die ausdrücklich gesperrte echte Arena-Variante.
+Die gesamte Suite umfasst erneut die zwölf Verhandlungen über lokales HTTP
+mit echter Uhr sowie Wiederaufnahme- und Parallelitätstests. Zusätzlich wurden
+600 Eingabestörvarianten erneut bestanden. Ruff, Diff- und Abhängigkeitsprüfung
+bestanden ebenfalls. Es gab keine OpenAI-Aufrufe oder Arena-Nutzungen.
+
+WARUM ZWEI TESTS ÜBERSPRUNGEN WURDEN
+
+Ein übersprungener Test ist weder bestanden noch fehlgeschlagen. Seine Bedingungen
+waren nicht erfüllt; darüber muss ausdrücklich berichtet werden.
+
+1. Hosted-Arena-Test
+Dieser Test eröffnet echte Übungsverhandlungen auf dem Arena-Server. Er ist hinter
+einem ausdrücklichen Schalter gesperrt. Der Nutzer hat untersagt, die 200 verfügbaren
+Arena-Nutzungen zu verbrauchen. Deshalb wird dieser Test weiterhin nicht aktiviert.
+Die entsprechende lokale Variante läuft dagegen gegen den Simulator. Eine lokale
+Probe kann echte Serverberechtigungen, Latenzen und gegnerische Bots nicht beweisen.
+Die allgemeine Bitte nach mehr Tests hebt das konkrete Verbot nicht eindeutig auf.
+
+2. MCP-Test
+MCP ist die optionale Schnittstelle, über die ein Agent lokale Firmendaten abfragen
+kann. Das Projekt hatte deren Python-Abhängigkeit deklariert, sie war in der
+Projektumgebung aber nicht installiert. pytest übersprang den Test deshalb.
+Die Abhängigkeit wurde jetzt in der bestehenden Projektumgebung installiert:
+mcp 2.3.0 entsprechend der Projektvorgabe >=2.3,<3. Der bisher übersprungene Test
+wurde tatsächlich ausgeführt und bestand. Die Abhängigkeitsprüfung meldet keine
+inkompatiblen installierten Anforderungen. Die Kernverhandlung benötigt diesen
+optionalen MCP-Server nicht; trotzdem ist seine zusätzliche Prüfung sinnvoll.
+
+WEITERE FUNKTIONSPRÜFUNGEN UND VERBESSERUNGEN
+
+20 zusätzliche Testinstanzen wurden ergänzt:
+- Alle sechs MCP-Werkzeuge werden direkt über die Server-Schnittstelle mit echten
+  lokalen Testdaten aufgerufen: Tabellen, SQL-Abfrage, Belegsuche, Kennungen,
+  Dokumentlesen und Falldaten. Es wird nicht nur die Namensliste überprüft.
+- Drei Schreibversuche werden abgewiesen: DELETE, DROP und ein INSERT hinter WITH.
+  Anschließend wird geprüft, dass die ursprünglichen Daten unverändert sind.
+- Sieben ungültige Indexklauseln werden erkannt: unbekannter Inhalt, unklare Angabe,
+  Prozentsätze außerhalb 0–100, ungültiger Monat, unerwarteter Textzusatz und
+  fehlerhafte Dezimalzahl. Die Bindungsprüfung akzeptiert diese Belege nicht.
+- Ein positiver Test erhält sowohl die ausdrückliche Angabe „none“ als auch eine
+  vollständig bekannte Klausel als unterstützte Fälle.
+- Drei widersprüchliche Doppelangaben bei Preis, Zahlungsziel und Incoterm werden
+  zurückgewiesen; identische Wiederholungen bleiben erlaubt.
+
+Vor der Korrektur konnte die Klauselauswertung unbekannten Text als keine Klausel
+interpretieren und zusätzlichen Text hinter einer bekannten Klausel ignorieren.
+Bei doppelten Feldern gewann still der letzte Wert. Das wurde behoben: unbekannte
+oder widersprüchliche Bedingungen führen zu einem ungültigen Beleg, statt durch
+eine günstige Interpretation einen Abschluss zu ermöglichen.
+
+GRENZEN
+
+MCP-Werkzeugaufrufe wurden innerhalb des Prozesses geprüft; das ist kein Test einer
+externen Chat-Anwendung oder einer MCP-Verbindung über das Netzwerk. Die lokale
+HTTP-Verhandlungsprobe verwendet echte Prozesse und Uhrzeit, aber weiterhin einen
+simulierten Lieferanten. Das ersetzt keine Arena-Produktionserfahrung.
+
+Die Änderungen sind normale nachvollziehbare Codeverbesserungen aus Testbefunden.
+Der Agent trainiert sich dadurch nicht selbst um, verändert keine eigenen Regeln
+im laufenden Finale und gibt keine Garantie, jeden unbekannten Fall zu lösen.
+Neue Kostenmodelle oder Vertragsformate können weitere Anpassungen erfordern.
+
+Diese Runde verwendet keine OpenAI-Aufrufe und keine Arena-Versuche. Arena-Schlüssel,
+offizielle Sonntagsdaten, Berechtigung und Teamabgabe bleiben vor dem Finalstart zu
+prüfen. Die Details der vorherigen umfassenden Prüfung stehen weiterhin in
+LIVE_READINESS_REVIEW.txt.
+
+WIEDERHOLUNG
+
+Optionales Modul in der Projektumgebung installieren:
+.venv/bin/python -m pip install -e './starter-kit[mcp]'
+
+Lokale Tests mit Begründung der verbleibenden Auslassung:
+.venv/bin/python -m pytest starter-kit/tests -q -rs
+
+Die Arena-Sperre wird dabei nicht aufgehoben.

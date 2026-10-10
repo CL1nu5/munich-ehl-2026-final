@@ -1,3 +1,7 @@
+> Neueste Nachprüfung: **271 Tests bestanden, nur der gesperrte Arena-Test übersprungen**.
+> MCP installiert und geprüft; unklare Indexklauseln und widersprüchliche Belege abgesichert.
+> Details: `SKIPPED_TESTS_FOLLOWUP.txt`. Ältere Messstände unten bleiben historische Befunde.
+
 > Latest robustness review: **250 tests passed**, 600 mutation cases passed again.
 > Includes 100 unseen-case variants and 12 negotiations over real local HTTP.
 > See `LIVE_READINESS_REVIEW.txt` for fixes, evidence and remaining final-start gaps.

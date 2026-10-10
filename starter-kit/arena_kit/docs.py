@@ -46,10 +46,16 @@ def read_document(name, data):
 
 def _value(field, text):
     if field == "index_clause":
-        m = CLAUSE.match(text)
-        if not m:
+        if text.casefold() == "none":
             return None
+        m = CLAUSE.fullmatch(text)
+        if not m:
+            raise ValueError("Unrecognized index clause")
         series, share, deadband, base = m.groups()
+        if not 0 <= int(share) <= 100 or not 0 <= float(deadband) <= 100:
+            raise ValueError("Invalid index clause percentages")
+        if not re.fullmatch(r"\d{4}-(?:0[1-9]|1[0-2])", base):
+            raise ValueError("Invalid index clause base month")
         return {
             "series": series,
             "material_share": int(share) / 100,
@@ -76,7 +82,12 @@ def quote_terms(text):
         section = next((key for head, key in SECTIONS.items() if line.startswith(head)), section)
         label = next((lab for lab in LABELS if line.startswith(lab + " ")), None)
         if section and label:
-            out.setdefault(section, {})[LABELS[label]] = _value(LABELS[label], line[len(label) :].strip())
+            field = LABELS[label]
+            value = _value(field, line[len(label) :].strip())
+            terms = out.setdefault(section, {})
+            if field in terms and terms[field] != value:
+                raise ValueError("Conflicting duplicate quote field")
+            terms[field] = value
     return out
 
 
