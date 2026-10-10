@@ -242,6 +242,7 @@ class Agent:
                 and moves_left(case, events) > 0
                 and not state["suppliers"].get(sid, {}).get("final_repair")
                 and finite_number(quote.get("unit_price"))
+                and math.isfinite(policy.cost(sid, quote, std))
                 and not must_haves_ok(case, quote, std)
                 and not acceptable(case, events, policy, sid)
             ):
@@ -252,6 +253,7 @@ class Agent:
         ):
             return {"actions": [close_action(case, threads, policy)], "state": state}
         plans, tasks = {}, {}
+        incomplete = set()
         for sid in ready:
             events = threads[sid]
             if sid not in repairable and latest(events).get("status") in ("agreed", "final_offer"):
@@ -262,10 +264,18 @@ class Agent:
             _, current = standing(events)
             std = standard_terms(events)
             current = closing_terms(case, current, std)
-            if not finite_number(current.get("unit_price")):
+            if not finite_number(current.get("unit_price")) or current["unit_price"] <= 0:
+                incomplete.add(sid)
                 plans[sid] = []
                 continue
-            c = total_cost(case, current, std)
+            try:
+                c = total_cost(case, current, std)
+            except (ValueError, TypeError, KeyError, ZeroDivisionError, OverflowError):
+                c = math.inf
+            if not math.isfinite(c):
+                incomplete.add(sid)
+                plans[sid] = []
+                continue
             supplier_state.setdefault("opening_cost", c)
             turn = sum(m.get("from") == "buyer" for m in events)
             # Gradual concession schedule, never repeat an increasingly aggressive percentage
@@ -302,8 +312,18 @@ class Agent:
         actions = []
         for sid, offers in plans.items():
             if not offers:
-                body = "Thank you. Please send a complete proposal meeting the requested requirements."
-                actions.append({"supplier_id": sid, "message": {"subject": "Complete proposal", "body": body}})
+                body = (
+                    "Thank you. We need a complete, readable commercial proposal before we can assess it. "
+                    "Please confirm the unit price, payment terms and delivery conditions, "
+                    "including the requested requirements."
+                )
+                if sid not in incomplete:
+                    body = (
+                        "Thank you. We cannot support the current combination of commercial terms. "
+                        "Please propose an alternative package meeting the requested requirements."
+                    )
+                subject = "Complete proposal" if sid in incomplete else "Alternative commercial package"
+                actions.append({"supplier_id": sid, "message": {"subject": subject, "body": body}})
                 continue
             selected = choices.get(sid, {})
             if not isinstance(selected, dict):

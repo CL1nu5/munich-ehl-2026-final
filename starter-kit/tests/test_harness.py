@@ -724,3 +724,33 @@ def test_new_release_is_consumed_frozen_and_rejects_overwritten_facts(tmp_path, 
     (release / "facts.json").write_text(json.dumps({"sc:old": {"otd_pct": 99}}))
     with pytest.raises(ValueError, match="reuses"):
         DataPackage(root)
+
+
+def test_luna_uses_bounded_completion_tokens_and_json(journal):
+    cfg = config(
+        allow_model=True,
+        model={
+            "name": "gpt-6-luna",
+            "base_url": "https://mock.invalid/v1",
+            "max_calls": 1,
+            "max_output_tokens": 512,
+            "reasoning_effort": "none",
+            "json_mode": True,
+        },
+    )
+    seen = []
+
+    def handle(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "{}"}}]})
+
+    async def scenario():
+        broker = Models(cfg, journal, transport=httpx.MockTransport(handle))
+        assert await broker.complete([{"role": "user", "content": "Return JSON"}]) == "{}"
+        await broker.close()
+
+    execute(scenario())
+    assert seen[0]["max_completion_tokens"] == 512
+    assert "max_tokens" not in seen[0]
+    assert seen[0]["reasoning_effort"] == "none"
+    assert seen[0]["response_format"] == {"type": "json_object"}

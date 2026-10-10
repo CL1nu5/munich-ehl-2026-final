@@ -316,3 +316,27 @@ def test_new_supplier_missing_history_is_not_invented():
     case.update(case_id="case:UNSEEN", suppliers=["sup:UNSEEN"], parts=["part:UNSEEN"], refs=[])
     result = mod.dossier(case, "sup:UNSEEN", None)
     assert result == {"supplier": "sup:UNSEEN", "facts": {}, "context": {}}
+
+
+@pytest.mark.parametrize("status", ["open", "final_offer", "agreed"])
+@pytest.mark.parametrize("bad", [{"unexpected": "object"}, "thirty", float("nan"), float("inf")])
+def test_corrupt_payment_terms_never_crash_or_bind(status, bad):
+    from arena_kit.harness.economics import Economics
+
+    obs = opened()
+    for events in obs["threads"].values():
+        events[-1]["status"] = status
+        for sheet in events[-1].get("term_sheets", []):
+            sheet["terms"]["payment_days"] = bad
+    agent = mod.Agent()
+    result = agent.decide(obs, agent.prepare({}), services())
+    validate(obs["case"], obs["threads"], result["actions"], Economics(obs["case"]))
+    assert all(a["message"].get("action", {}).get("type") != "accept" for a in result["actions"])
+
+
+def test_unacceptable_price_is_not_described_as_missing_data():
+    obs = opened()
+    agent = mod.Agent()
+    result = agent.decide(obs, agent.prepare({"parameters": {"max_total_cost": 0.01}}), services())
+    assert all("cannot support" in a["message"].get("body", "") for a in result["actions"])
+    assert all("readable" not in a["message"].get("body", "") for a in result["actions"])

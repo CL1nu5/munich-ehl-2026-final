@@ -1,0 +1,3021 @@
+{
+  "seed": 20261013,
+  "count": 600,
+  "passed": 600,
+  "failure_types": {
+    "missing_price": 0,
+    "null_price": 0,
+    "text_price": 0,
+    "negative_price": 0,
+    "nan_price": 0,
+    "bad_payment": 0,
+    "missing_attachment": 0,
+    "unreadable_attachment": 0,
+    "injection": 0,
+    "short_deadline": 0,
+    "duplicate_ready": 0,
+    "empty_ready": 0
+  },
+  "rows": [
+    {
+      "id": 0,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 1,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 2,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 3,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 4,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 5,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 6,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 7,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 8,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 9,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 10,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 11,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 12,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 13,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 14,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 15,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 16,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 17,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 18,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 19,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 20,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 21,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 22,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 23,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 24,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 25,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 26,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 27,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 28,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 29,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 30,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 31,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 32,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 33,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 34,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 35,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 36,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 37,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 38,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 39,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 40,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 41,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 42,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 43,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 44,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 45,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 46,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 47,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 48,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 49,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 50,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 51,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 52,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 53,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 54,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 55,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 56,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 57,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 58,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 59,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 60,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 61,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 62,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 63,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 64,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 65,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 66,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 67,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 68,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 69,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 70,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 71,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 72,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 73,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 74,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 75,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 76,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 77,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 78,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 79,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 80,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 81,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 82,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 83,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 84,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 85,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 86,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 87,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 88,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 89,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 90,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 91,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 92,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 93,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 94,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 95,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 96,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 97,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 98,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 99,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 100,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 101,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 102,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 103,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 104,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 105,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 106,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 107,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 108,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 109,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 110,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 111,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 112,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 113,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 114,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 115,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 116,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 117,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 118,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 119,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 120,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 121,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 122,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 123,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 124,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 125,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 126,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 127,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 128,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 129,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 130,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 131,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 132,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 133,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 134,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 135,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 136,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 137,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 138,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 139,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 140,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 141,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 142,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 143,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 144,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 145,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 146,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 147,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 148,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 149,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 150,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 151,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 152,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 153,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 154,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 155,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 156,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 157,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 158,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 159,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 160,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 161,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 162,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 163,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 164,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 165,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 166,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 167,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 168,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 169,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 170,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 171,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 172,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 173,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 174,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 175,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 176,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 177,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 178,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 179,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 180,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 181,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 182,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 183,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 184,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 185,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 186,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 187,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 188,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 189,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 190,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 191,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 192,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 193,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 194,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 195,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 196,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 197,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 198,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 199,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 200,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 201,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 202,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 203,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 204,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 205,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 206,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 207,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 208,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 209,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 210,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 211,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 212,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 213,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 214,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 215,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 216,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 217,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 218,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 219,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 220,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 221,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 222,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 223,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 224,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 225,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 226,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 227,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 228,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 229,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 230,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 231,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 232,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 233,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 234,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 235,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 236,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 237,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 238,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 239,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 240,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 241,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 242,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 243,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 244,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 245,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 246,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 247,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 248,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 249,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 250,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 251,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 252,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 253,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 254,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 255,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 256,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 257,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 258,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 259,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 260,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 261,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 262,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 263,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 264,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 265,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 266,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 267,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 268,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 269,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 270,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 271,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 272,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 273,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 274,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 275,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 276,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 277,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 278,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 279,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 280,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 281,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 282,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 283,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 284,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 285,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 286,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 287,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 288,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 289,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 290,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 291,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 292,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 293,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 294,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 295,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 296,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 297,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 298,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 299,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 300,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 301,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 302,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 303,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 304,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 305,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 306,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 307,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 308,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 309,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 310,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 311,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 312,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 313,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 314,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 315,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 316,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 317,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 318,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 319,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 320,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 321,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 322,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 323,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 324,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 325,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 326,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 327,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 328,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 329,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 330,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 331,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 332,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 333,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 334,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 335,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 336,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 337,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 338,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 339,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 340,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 341,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 342,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 343,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 344,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 345,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 346,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 347,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 348,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 349,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 350,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 351,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 352,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 353,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 354,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 355,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 356,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 357,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 358,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 359,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 360,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 361,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 362,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 363,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 364,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 365,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 366,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 367,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 368,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 369,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 370,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 371,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 372,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 373,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 374,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 375,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 376,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 377,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 378,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 379,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 380,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 381,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 382,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 383,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 384,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 385,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 386,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 387,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 388,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 389,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 390,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 391,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 392,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 393,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 394,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 395,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 396,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 397,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 398,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 399,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 400,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 401,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 402,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 403,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 404,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 405,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 406,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 407,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 408,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 409,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 410,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 411,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 412,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 413,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 414,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 415,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 416,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 417,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 418,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 419,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 420,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 421,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 422,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 423,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 424,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 425,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 426,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 427,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 428,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 429,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 430,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 431,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 432,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 433,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 434,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 435,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 436,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 437,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 438,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 439,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 440,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 441,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 442,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 443,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 444,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 445,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 446,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 447,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 448,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 449,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 450,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 451,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 452,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 453,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 454,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 455,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 456,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 457,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 458,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 459,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 460,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 461,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 462,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 463,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 464,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 465,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 466,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 467,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 468,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 469,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 470,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 471,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 472,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 473,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 474,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 475,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 476,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 477,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 478,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 479,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 480,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 481,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 482,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 483,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 484,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 485,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 486,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 487,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 488,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 489,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 490,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 491,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 492,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 493,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 494,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 495,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 496,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 497,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 498,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 499,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 500,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 501,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 502,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 503,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 504,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 505,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 506,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 507,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 508,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 509,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 510,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 511,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 512,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 513,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 514,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 515,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 516,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 517,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 518,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 519,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 520,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 521,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 522,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 523,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 524,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 525,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 526,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 527,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 528,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 529,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 530,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 531,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 532,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 533,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 534,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 535,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 536,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 537,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 538,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 539,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 540,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 541,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 542,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 543,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 544,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 545,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 546,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 547,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 548,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 549,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 550,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 551,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 552,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 553,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 554,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 555,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 556,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 557,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 558,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 559,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 560,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 561,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 562,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 563,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 564,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 565,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 566,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 567,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 568,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 569,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 570,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 571,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 572,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 573,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 574,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 575,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 576,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 577,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 578,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 579,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 580,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 581,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 582,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 583,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 584,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 585,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 586,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 587,
+      "kind": "empty_ready",
+      "passed": true
+    },
+    {
+      "id": 588,
+      "kind": "missing_price",
+      "passed": true
+    },
+    {
+      "id": 589,
+      "kind": "null_price",
+      "passed": true
+    },
+    {
+      "id": 590,
+      "kind": "text_price",
+      "passed": true
+    },
+    {
+      "id": 591,
+      "kind": "negative_price",
+      "passed": true
+    },
+    {
+      "id": 592,
+      "kind": "nan_price",
+      "passed": true
+    },
+    {
+      "id": 593,
+      "kind": "bad_payment",
+      "passed": true
+    },
+    {
+      "id": 594,
+      "kind": "missing_attachment",
+      "passed": true
+    },
+    {
+      "id": 595,
+      "kind": "unreadable_attachment",
+      "passed": true
+    },
+    {
+      "id": 596,
+      "kind": "injection",
+      "passed": true
+    },
+    {
+      "id": 597,
+      "kind": "short_deadline",
+      "passed": true
+    },
+    {
+      "id": 598,
+      "kind": "duplicate_ready",
+      "passed": true
+    },
+    {
+      "id": 599,
+      "kind": "empty_ready",
+      "passed": true
+    }
+  ]
+}

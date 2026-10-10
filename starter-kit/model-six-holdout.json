@@ -1,0 +1,2859 @@
+{
+  "warning": "Synthetic priority-selection benchmark, not negotiation success.",
+  "summary": {
+    "gpt-6-luna": {
+      "requests": 48,
+      "completed": 48,
+      "valid": 48,
+      "correct_supplier_questions": 72,
+      "supplier_questions": 72,
+      "mean_seconds": 1.037471140583231,
+      "p95_seconds": 1.4816967500009923,
+      "estimated_usd_uncached": 0.0016776
+    },
+    "gpt-6.1-sol": {
+      "requests": 48,
+      "completed": 48,
+      "valid": 48,
+      "correct_supplier_questions": 72,
+      "supplier_questions": 72,
+      "mean_seconds": 1.5632432847293103,
+      "p95_seconds": 1.912486125000214,
+      "estimated_usd_uncached": 0.034332
+    }
+  },
+  "rows": [
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-0",
+      "status": "done",
+      "expected": {
+        "sup:000": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:000\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 155,
+        "completion_tokens": 19,
+        "total_tokens": 174,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.0264752080001927
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-1",
+      "status": "done",
+      "expected": {
+        "sup:010": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:010\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 160,
+        "completion_tokens": 19,
+        "total_tokens": 179,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8776133329993172
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-2",
+      "status": "done",
+      "expected": {
+        "sup:020": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:020\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 157,
+        "completion_tokens": 19,
+        "total_tokens": 176,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.0287036659992737
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-3",
+      "status": "done",
+      "expected": {
+        "sup:030": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:030\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 173,
+        "completion_tokens": 19,
+        "total_tokens": 192,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.0356646250002086
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-4",
+      "status": "done",
+      "expected": {
+        "sup:040": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:040\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 178,
+        "completion_tokens": 19,
+        "total_tokens": 197,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.0319737499994517
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-5",
+      "status": "done",
+      "expected": {
+        "sup:050": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:050\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 175,
+        "completion_tokens": 19,
+        "total_tokens": 194,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.1881898329993419
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-6",
+      "status": "done",
+      "expected": {
+        "sup:060": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:060\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 196,
+        "completion_tokens": 19,
+        "total_tokens": 215,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.028948583001693
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-7",
+      "status": "done",
+      "expected": {
+        "sup:070": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:070\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 201,
+        "completion_tokens": 19,
+        "total_tokens": 220,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8665319159990759
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-8",
+      "status": "done",
+      "expected": {
+        "sup:080": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:080\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 198,
+        "completion_tokens": 19,
+        "total_tokens": 217,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.815497540999786
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-9",
+      "status": "done",
+      "expected": {
+        "sup:090": "cash",
+        "sup:091": "capacity",
+        "sup:092": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:090\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:091\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:092\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 348,
+        "completion_tokens": 45,
+        "total_tokens": 393,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 2.0684969169997203
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-10",
+      "status": "done",
+      "expected": {
+        "sup:100": "cash",
+        "sup:101": "capacity",
+        "sup:102": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:100\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:101\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:102\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 419,
+        "completion_tokens": 45,
+        "total_tokens": 464,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.020573499999955
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "cash-11",
+      "status": "done",
+      "expected": {
+        "sup:110": "cash",
+        "sup:111": "capacity",
+        "sup:112": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:110\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:111\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:112\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 289,
+        "completion_tokens": 45,
+        "total_tokens": 334,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 0.9826255000007222
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-0",
+      "status": "done",
+      "expected": {
+        "sup:000": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:000\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 19,
+        "total_tokens": 178,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8907460829996126
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-1",
+      "status": "done",
+      "expected": {
+        "sup:010": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:010\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 155,
+        "completion_tokens": 19,
+        "total_tokens": 174,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.9036463749998802
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-2",
+      "status": "done",
+      "expected": {
+        "sup:020": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:020\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 19,
+        "total_tokens": 178,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8769164580007782
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-3",
+      "status": "done",
+      "expected": {
+        "sup:030": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:030\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 177,
+        "completion_tokens": 19,
+        "total_tokens": 196,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.0459042090005823
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-4",
+      "status": "done",
+      "expected": {
+        "sup:040": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:040\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 173,
+        "completion_tokens": 19,
+        "total_tokens": 192,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8791789999995672
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-5",
+      "status": "done",
+      "expected": {
+        "sup:050": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:050\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 177,
+        "completion_tokens": 19,
+        "total_tokens": 196,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.0366354580000916
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-6",
+      "status": "done",
+      "expected": {
+        "sup:060": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:060\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 19,
+        "total_tokens": 219,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.0458732080005575
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-7",
+      "status": "done",
+      "expected": {
+        "sup:070": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:070\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 196,
+        "completion_tokens": 19,
+        "total_tokens": 215,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.9018484160005755
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-8",
+      "status": "done",
+      "expected": {
+        "sup:080": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:080\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 19,
+        "total_tokens": 219,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8444294590008212
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-9",
+      "status": "done",
+      "expected": {
+        "sup:090": "capacity",
+        "sup:091": "quality",
+        "sup:092": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:090\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:091\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:092\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 349,
+        "completion_tokens": 46,
+        "total_tokens": 395,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.3985584580004797
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-10",
+      "status": "done",
+      "expected": {
+        "sup:100": "capacity",
+        "sup:101": "quality",
+        "sup:102": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:100\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:101\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:102\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 418,
+        "completion_tokens": 46,
+        "total_tokens": 464,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.4816967500009923
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "capacity-11",
+      "status": "done",
+      "expected": {
+        "sup:110": "capacity",
+        "sup:111": "quality",
+        "sup:112": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:110\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:111\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:112\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 285,
+        "completion_tokens": 46,
+        "total_tokens": 331,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 0.9656936669998686
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-0",
+      "status": "done",
+      "expected": {
+        "sup:000": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:000\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 158,
+        "completion_tokens": 19,
+        "total_tokens": 177,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.9001411249992088
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-1",
+      "status": "done",
+      "expected": {
+        "sup:010": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:010\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 19,
+        "total_tokens": 178,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8454097909998382
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-2",
+      "status": "done",
+      "expected": {
+        "sup:020": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:020\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 151,
+        "completion_tokens": 19,
+        "total_tokens": 170,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8492027499996766
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-3",
+      "status": "done",
+      "expected": {
+        "sup:030": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:030\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 176,
+        "completion_tokens": 19,
+        "total_tokens": 195,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8203345830006583
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-4",
+      "status": "done",
+      "expected": {
+        "sup:040": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:040\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 177,
+        "completion_tokens": 19,
+        "total_tokens": 196,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8772562920003111
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-5",
+      "status": "done",
+      "expected": {
+        "sup:050": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:050\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 169,
+        "completion_tokens": 19,
+        "total_tokens": 188,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8400614169986511
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-6",
+      "status": "done",
+      "expected": {
+        "sup:060": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:060\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 199,
+        "completion_tokens": 19,
+        "total_tokens": 218,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.9919575000003533
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-7",
+      "status": "done",
+      "expected": {
+        "sup:070": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:070\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 19,
+        "total_tokens": 219,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8498943329996109
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-8",
+      "status": "done",
+      "expected": {
+        "sup:080": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:080\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 192,
+        "completion_tokens": 19,
+        "total_tokens": 211,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.7673205000010057
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-9",
+      "status": "done",
+      "expected": {
+        "sup:090": "quality",
+        "sup:091": "priorities",
+        "sup:092": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:090\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:091\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:092\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 345,
+        "completion_tokens": 46,
+        "total_tokens": 391,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.1279770419987472
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-10",
+      "status": "done",
+      "expected": {
+        "sup:100": "quality",
+        "sup:101": "priorities",
+        "sup:102": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:100\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:101\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:102\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 423,
+        "completion_tokens": 46,
+        "total_tokens": 469,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.1495920420002221
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "quality-11",
+      "status": "done",
+      "expected": {
+        "sup:110": "quality",
+        "sup:111": "priorities",
+        "sup:112": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:110\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:111\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:112\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 283,
+        "completion_tokens": 46,
+        "total_tokens": 329,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.3558662499999627
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-0",
+      "status": "done",
+      "expected": {
+        "sup:000": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:000\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 156,
+        "completion_tokens": 20,
+        "total_tokens": 176,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.9356448749986157
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-1",
+      "status": "done",
+      "expected": {
+        "sup:010": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:010\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 20,
+        "total_tokens": 179,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.9224044999991747
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-2",
+      "status": "done",
+      "expected": {
+        "sup:020": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:020\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 153,
+        "completion_tokens": 20,
+        "total_tokens": 173,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8755140419998497
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-3",
+      "status": "done",
+      "expected": {
+        "sup:030": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:030\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 174,
+        "completion_tokens": 20,
+        "total_tokens": 194,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.9898759170009725
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-4",
+      "status": "done",
+      "expected": {
+        "sup:040": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:040\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 177,
+        "completion_tokens": 20,
+        "total_tokens": 197,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.8716349589994934
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-5",
+      "status": "done",
+      "expected": {
+        "sup:050": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:050\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 171,
+        "completion_tokens": 20,
+        "total_tokens": 191,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 0.9203608749994601
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-6",
+      "status": "done",
+      "expected": {
+        "sup:060": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:060\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 197,
+        "completion_tokens": 20,
+        "total_tokens": 217,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.9548959160001687
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-7",
+      "status": "done",
+      "expected": {
+        "sup:070": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:070\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 20,
+        "total_tokens": 220,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.2568605420001404
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-8",
+      "status": "done",
+      "expected": {
+        "sup:080": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:080\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 194,
+        "completion_tokens": 20,
+        "total_tokens": 214,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.1596047919992998
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-9",
+      "status": "done",
+      "expected": {
+        "sup:090": "priorities",
+        "sup:091": "cash",
+        "sup:092": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:090\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:091\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:092\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 346,
+        "completion_tokens": 46,
+        "total_tokens": 392,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.0801130839990947
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-10",
+      "status": "done",
+      "expected": {
+        "sup:100": "priorities",
+        "sup:101": "cash",
+        "sup:102": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:100\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:101\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:102\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 419,
+        "completion_tokens": 46,
+        "total_tokens": 465,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.21380762499939
+    },
+    {
+      "model": "gpt-6-luna",
+      "case": "priorities-11",
+      "status": "done",
+      "expected": {
+        "sup:110": "priorities",
+        "sup:111": "cash",
+        "sup:112": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:110\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:111\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:112\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 291,
+        "completion_tokens": 46,
+        "total_tokens": 337,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.000462082998638
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-0",
+      "status": "done",
+      "expected": {
+        "sup:000": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:000\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 155,
+        "completion_tokens": 19,
+        "total_tokens": 174,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.3540006250004808
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-1",
+      "status": "done",
+      "expected": {
+        "sup:010": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:010\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 160,
+        "completion_tokens": 19,
+        "total_tokens": 179,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.2976160000016534
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-2",
+      "status": "done",
+      "expected": {
+        "sup:020": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:020\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 157,
+        "completion_tokens": 19,
+        "total_tokens": 176,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4680804590007028
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-3",
+      "status": "done",
+      "expected": {
+        "sup:030": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:030\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 173,
+        "completion_tokens": 19,
+        "total_tokens": 192,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.3987272919985116
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-4",
+      "status": "done",
+      "expected": {
+        "sup:040": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:040\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 178,
+        "completion_tokens": 19,
+        "total_tokens": 197,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4568974580015492
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-5",
+      "status": "done",
+      "expected": {
+        "sup:050": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:050\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 175,
+        "completion_tokens": 19,
+        "total_tokens": 194,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.5935419580000598
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-6",
+      "status": "done",
+      "expected": {
+        "sup:060": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:060\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 196,
+        "completion_tokens": 19,
+        "total_tokens": 215,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4938961250009015
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-7",
+      "status": "done",
+      "expected": {
+        "sup:070": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:070\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 201,
+        "completion_tokens": 37,
+        "total_tokens": 238,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 12,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.7037544169998
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-8",
+      "status": "done",
+      "expected": {
+        "sup:080": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:080\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 198,
+        "completion_tokens": 19,
+        "total_tokens": 217,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4716508330002398
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-9",
+      "status": "done",
+      "expected": {
+        "sup:090": "cash",
+        "sup:091": "capacity",
+        "sup:092": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:090\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:091\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:092\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 348,
+        "completion_tokens": 45,
+        "total_tokens": 393,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.6601699589991767
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-10",
+      "status": "done",
+      "expected": {
+        "sup:100": "cash",
+        "sup:101": "capacity",
+        "sup:102": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:100\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:101\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:102\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 419,
+        "completion_tokens": 45,
+        "total_tokens": 464,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.6446981659992161
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "cash-11",
+      "status": "done",
+      "expected": {
+        "sup:110": "cash",
+        "sup:111": "capacity",
+        "sup:112": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:110\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:111\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:112\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 289,
+        "completion_tokens": 45,
+        "total_tokens": 334,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.6799688339997374
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-0",
+      "status": "done",
+      "expected": {
+        "sup:000": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:000\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 19,
+        "total_tokens": 178,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4084335000006831
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-1",
+      "status": "done",
+      "expected": {
+        "sup:010": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:010\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 155,
+        "completion_tokens": 19,
+        "total_tokens": 174,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4718433750003896
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-2",
+      "status": "done",
+      "expected": {
+        "sup:020": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:020\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 19,
+        "total_tokens": 178,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4188699169990286
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-3",
+      "status": "done",
+      "expected": {
+        "sup:030": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:030\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 177,
+        "completion_tokens": 19,
+        "total_tokens": 196,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4331270419988869
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-4",
+      "status": "done",
+      "expected": {
+        "sup:040": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:040\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 173,
+        "completion_tokens": 19,
+        "total_tokens": 192,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.3607450840008823
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-5",
+      "status": "done",
+      "expected": {
+        "sup:050": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:050\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 177,
+        "completion_tokens": 19,
+        "total_tokens": 196,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4187779170006252
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-6",
+      "status": "done",
+      "expected": {
+        "sup:060": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:060\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 19,
+        "total_tokens": 219,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.562126040998919
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-7",
+      "status": "done",
+      "expected": {
+        "sup:070": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:070\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 196,
+        "completion_tokens": 19,
+        "total_tokens": 215,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4229897919994983
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-8",
+      "status": "done",
+      "expected": {
+        "sup:080": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:080\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 19,
+        "total_tokens": 219,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.5690776250012277
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-9",
+      "status": "done",
+      "expected": {
+        "sup:090": "capacity",
+        "sup:091": "quality",
+        "sup:092": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:090\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:091\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:092\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 349,
+        "completion_tokens": 46,
+        "total_tokens": 395,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.722016875000918
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-10",
+      "status": "done",
+      "expected": {
+        "sup:100": "capacity",
+        "sup:101": "quality",
+        "sup:102": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:100\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:101\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:102\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 418,
+        "completion_tokens": 46,
+        "total_tokens": 464,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.7540705829997023
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "capacity-11",
+      "status": "done",
+      "expected": {
+        "sup:110": "capacity",
+        "sup:111": "quality",
+        "sup:112": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:110\":{\"opening\":\"capacity\",\"question\":\"capacity\"},\"sup:111\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:112\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 285,
+        "completion_tokens": 46,
+        "total_tokens": 331,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.7386066250001022
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-0",
+      "status": "done",
+      "expected": {
+        "sup:000": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:000\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 158,
+        "completion_tokens": 19,
+        "total_tokens": 177,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.409942874999615
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-1",
+      "status": "done",
+      "expected": {
+        "sup:010": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:010\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 41,
+        "total_tokens": 200,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 16,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.878429792001043
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-2",
+      "status": "done",
+      "expected": {
+        "sup:020": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:020\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 151,
+        "completion_tokens": 19,
+        "total_tokens": 170,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.5562585829993623
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-3",
+      "status": "done",
+      "expected": {
+        "sup:030": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:030\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 176,
+        "completion_tokens": 19,
+        "total_tokens": 195,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.3676943749997008
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-4",
+      "status": "done",
+      "expected": {
+        "sup:040": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:040\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 177,
+        "completion_tokens": 40,
+        "total_tokens": 217,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 15,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.912486125000214
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-5",
+      "status": "done",
+      "expected": {
+        "sup:050": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:050\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 169,
+        "completion_tokens": 19,
+        "total_tokens": 188,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.220107833001748
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-6",
+      "status": "done",
+      "expected": {
+        "sup:060": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:060\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 199,
+        "completion_tokens": 19,
+        "total_tokens": 218,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.1929556249997404
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-7",
+      "status": "done",
+      "expected": {
+        "sup:070": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:070\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 36,
+        "total_tokens": 236,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 11,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 2.4380052910000813
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-8",
+      "status": "done",
+      "expected": {
+        "sup:080": "quality"
+      },
+      "http_status": 200,
+      "response": "{\"sup:080\":{\"opening\":\"quality\",\"question\":\"quality\"}}",
+      "usage": {
+        "prompt_tokens": 192,
+        "completion_tokens": 19,
+        "total_tokens": 211,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 2.1200931660005153
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-9",
+      "status": "done",
+      "expected": {
+        "sup:090": "quality",
+        "sup:091": "priorities",
+        "sup:092": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:090\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:091\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:092\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 345,
+        "completion_tokens": 46,
+        "total_tokens": 391,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.6606870420000632
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-10",
+      "status": "done",
+      "expected": {
+        "sup:100": "quality",
+        "sup:101": "priorities",
+        "sup:102": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:100\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:101\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:102\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 423,
+        "completion_tokens": 46,
+        "total_tokens": 469,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.5894115419996524
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "quality-11",
+      "status": "done",
+      "expected": {
+        "sup:110": "quality",
+        "sup:111": "priorities",
+        "sup:112": "cash"
+      },
+      "http_status": 200,
+      "response": "{\"sup:110\":{\"opening\":\"quality\",\"question\":\"quality\"},\"sup:111\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:112\":{\"opening\":\"cash\",\"question\":\"cash\"}}",
+      "usage": {
+        "prompt_tokens": 283,
+        "completion_tokens": 46,
+        "total_tokens": 329,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.6690674159999617
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-0",
+      "status": "done",
+      "expected": {
+        "sup:000": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:000\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 156,
+        "completion_tokens": 20,
+        "total_tokens": 176,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.3666527920013323
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-1",
+      "status": "done",
+      "expected": {
+        "sup:010": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:010\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 20,
+        "total_tokens": 179,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.5073711660006666
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-2",
+      "status": "done",
+      "expected": {
+        "sup:020": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:020\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 153,
+        "completion_tokens": 20,
+        "total_tokens": 173,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.5749823749993084
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-3",
+      "status": "done",
+      "expected": {
+        "sup:030": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:030\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 174,
+        "completion_tokens": 20,
+        "total_tokens": 194,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.5884275420012273
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-4",
+      "status": "done",
+      "expected": {
+        "sup:040": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:040\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 177,
+        "completion_tokens": 20,
+        "total_tokens": 197,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.5229582499996468
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-5",
+      "status": "done",
+      "expected": {
+        "sup:050": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:050\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 171,
+        "completion_tokens": 20,
+        "total_tokens": 191,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.442572541998743
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-6",
+      "status": "done",
+      "expected": {
+        "sup:060": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:060\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 197,
+        "completion_tokens": 20,
+        "total_tokens": 217,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4767826670013164
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-7",
+      "status": "done",
+      "expected": {
+        "sup:070": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:070\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 20,
+        "total_tokens": 220,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4482460409999476
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-8",
+      "status": "done",
+      "expected": {
+        "sup:080": "priorities"
+      },
+      "http_status": 200,
+      "response": "{\"sup:080\":{\"opening\":\"neutral\",\"question\":\"priorities\"}}",
+      "usage": {
+        "prompt_tokens": 194,
+        "completion_tokens": 20,
+        "total_tokens": 214,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 1,
+      "seconds": 1.4607383749989822
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-9",
+      "status": "done",
+      "expected": {
+        "sup:090": "priorities",
+        "sup:091": "cash",
+        "sup:092": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:090\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:091\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:092\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 346,
+        "completion_tokens": 46,
+        "total_tokens": 392,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.748475625001447
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-10",
+      "status": "done",
+      "expected": {
+        "sup:100": "priorities",
+        "sup:101": "cash",
+        "sup:102": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:100\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:101\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:102\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 419,
+        "completion_tokens": 46,
+        "total_tokens": 465,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.7348654999987048
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "priorities-11",
+      "status": "done",
+      "expected": {
+        "sup:110": "priorities",
+        "sup:111": "cash",
+        "sup:112": "capacity"
+      },
+      "http_status": 200,
+      "response": "{\"sup:110\":{\"opening\":\"neutral\",\"question\":\"priorities\"},\"sup:111\":{\"opening\":\"cash\",\"question\":\"cash\"},\"sup:112\":{\"opening\":\"capacity\",\"question\":\"capacity\"}}",
+      "usage": {
+        "prompt_tokens": 291,
+        "completion_tokens": 46,
+        "total_tokens": 337,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "valid": true,
+      "correct": 3,
+      "seconds": 1.6447786250009813
+    }
+  ]
+}

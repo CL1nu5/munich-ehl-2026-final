@@ -150,16 +150,30 @@ def run(case, style, parameters, agent):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--validation", action="store_true")
+    parser.add_argument("--count", type=int)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--output")
+    parser.add_argument("--all-types", action="store_true")
     args = parser.parse_args()
     seed = 20261011 if args.validation else 20261010
-    count = 120 if args.validation else 60
+    seed = args.seed if args.seed is not None else seed
+    count = args.count if args.count is not None else (120 if args.validation else 60)
+    if not 1 <= count <= 2000:
+        parser.error("count must be 1..2000")
     rng = random.Random(seed)
     base_cases = list(load_cases().values())
     rows = []
     feasibility = {}
     for i in range(count):
         case = copy.deepcopy(rng.choice(base_cases) if args.validation else base_cases[i % 3])
-        factor = rng.uniform(0.75, 1.25)
+        factor = rng.uniform(0.4, 2.0) if args.count else rng.uniform(0.75, 1.25)
+        if args.count:
+            case["buyer"]["need_per_year"] = rng.choice([500, 2500, 12000, 40000])
+            case["buyer"]["interest_rate"] = rng.choice([0, 0.03, 0.08, 0.15])
+            for field in ("payment_days", "lead_time_days", "contract_months"):
+                options = case.get("term_options", {}).get(field, [])
+                if len(options) > 1:
+                    case["term_options"][field] = rng.sample(options, rng.randint(1, len(options)))
         for key in ("current_unit_price", "fallback_unit_price"):
             case["buyer"][key] = round(case["buyer"][key] * factor, 2)
         case["case_id"] = f"case:stress-{i:02}"
@@ -180,6 +194,32 @@ def main():
                 "price_unit": 1,
                 "confidence_pct": 10,
             }
+        if args.all_types:
+            case["type"] = ["price_increase", "renewal", "rfq", "bundling", "raw_material", "capacity", "quality"][
+                i % 7
+            ]
+
+            def add(field, options, case=case):
+                if field not in case["negotiable"]:
+                    case["negotiable"].append(field)
+                case["fixed_terms"].pop(field, None)
+                case["term_options"][field] = options
+
+            if case["type"] == "bundling":
+                case["parts"] = ["part:synthetic-A", "part:synthetic-B"]
+                need = case["buyer"]["need_per_year"]
+                add("volume_per_year", [need, round(need * 1.1)])
+                add("tooling_eur", [0, 1000, 5000])
+            elif case["type"] == "raw_material":
+                add("index_clause", [None, {"series": "CU-NOTATION", "material_share": 0.3, "deadband_pct": 5}])
+                case["buyer"]["index_paths"] = {"CU-NOTATION": rng.choice([-0.2, 0.1, 0.25])}
+            elif case["type"] == "capacity":
+                add("lead_time_days", [14, 28, 42])
+                case["buyer"]["must_haves"].append({"field": "lead_time_days", "op": "<=", "value": 28})
+            elif case["type"] == "quality":
+                add("ppm_commitment", [500, 1000, 2000])
+                add("chargeback_eur_per_complaint", [0, 25, 50])
+                case["buyer"]["must_haves"].append({"field": "ppm_commitment", "op": "<=", "value": 1000})
         styles = ["cooperative", "firm", "cash", "stalled", "hostile"]
         style = rng.choice(styles) if args.validation else styles[i % 5]
         feasibility[case["case_id"]] = feasible_agreement(case, style, parameters)
@@ -187,6 +227,7 @@ def main():
             rows.append(
                 {
                     "agent": label,
+                    "case_type": case["type"],
                     "feasible_at_final_threshold": feasibility[case["case_id"]],
                     **run(case, style, parameters, agent),
                 }
@@ -214,7 +255,7 @@ def main():
         "summary": summary,
         "scenarios": rows,
     }
-    (ROOT / ("evidence-validation.json" if args.validation else "evidence-stress.json")).write_text(
+    (ROOT / (args.output or ("evidence-validation.json" if args.validation else "evidence-stress.json"))).write_text(
         json.dumps(result, indent=2) + "\n"
     )
     print(json.dumps(summary, indent=2))

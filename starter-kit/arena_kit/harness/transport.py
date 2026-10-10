@@ -153,10 +153,19 @@ class Models:
             call_id = self.journal.reserve_model(model["max_calls"])
             start = time.monotonic()
             try:
+                payload = {"model": model["name"], "messages": messages}
+                if "reasoning_effort" in model:
+                    payload.update(
+                        max_completion_tokens=model["max_output_tokens"], reasoning_effort=model["reasoning_effort"]
+                    )
+                else:
+                    payload["max_tokens"] = model["max_output_tokens"]
+                if model.get("json_mode"):
+                    payload["response_format"] = {"type": "json_object"}
                 r = await self.http.post(
                     model["base_url"].rstrip("/") + "/chat/completions",
                     headers={"Authorization": "Bearer " + os.environ.get("LLM_API_KEY", "")},
-                    json={"model": model["name"], "messages": messages, "max_tokens": model["max_output_tokens"]},
+                    json=payload,
                 )
                 r.raise_for_status()
                 data = r.json()

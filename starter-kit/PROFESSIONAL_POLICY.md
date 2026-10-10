@@ -1,3 +1,8 @@
+> Aktueller Stand nach erweitertem Modellvergleich: **GPT-6 Luna**, 109 bestandene
+> reguläre Tests, 600 bestandene Störfälle und 2.960 lokale Verhandlungen über
+> 1.480 Szenarien. Der vollständige aktuelle Bericht steht in `MODEL_EVALUATION.txt`.
+> Die unten dokumentierten früheren Modellstände und Messreihen bleiben historische Befunde.
+
 # Professionelle Verhandlungspolitik und vertiefte Bewertung
 
 Stand: 10. Oktober 2026. Diese Ergänzung beschreibt den implementierten Agenten,
@@ -195,7 +200,7 @@ laufenden Finales unkontrolliert nachgeladen.
 
 ### Modell und Kosten
 
-Konfiguriert ist `gpt-4.1-mini-2025-04-14`, nicht ein Luna-Modell. Die Auswahl wurde mit
+Im damaligen Stand war `gpt-4.1-mini-2025-04-14` konfiguriert. Die Auswahl wurde mit
 unserer konkreten kleinen Aufgabe getestet: situationsgerechte Gesprächsbausteine
 wählen. Preise und Annahmeentscheidungen bleiben in der geprüften Berechnung.
 Ein größeres Modell ist dafür bislang nicht durch einen gemessenen Vorteil begründet.

@@ -1,3 +1,8 @@
+> Current verified default: **GPT-6 Luna**, reasoning none, JSON mode. See
+> `MODEL_EVALUATION.txt` for the five-model comparison, 1,480 synthetic scenarios
+> (2,960 negotiations), 600 input perturbations and 109 passing regression tests.
+> Historical GPT-4.1 measurements below are retained as previous baselines.
+
 # Evidence Buyer
 
 Research-backed negotiation agent for the existing team harness. Developed on top of
@@ -206,10 +211,10 @@ Old run journals from before this data-hash change cannot be resumed; start a ne
 local experiment after updating, never start a duplicate final for this reason.
 
 Both model configs now enforce 16,384 input bytes per request in addition to call
-and output-token limits. GPT-4.1 mini prices are recorded for usage estimates:
-$0.40/M input, $1.60/M output (official model page, checked 2026-10-10).
+and output-token limits. GPT-6 Luna prices are recorded for usage estimates:
+$0.10/M input, $0.50/M output (official model page, checked 2026-10-10).
 Latest bounded local test: 12 calls, 24,616 input / 243 output tokens, estimated
 $0.0102352 before cache discounts. These are per-run request limits, not a shared
 account spending cap. Budget exhaustion uses deterministic negotiation text.
-Current verification: 95 offline tests passed; 2 hosted tests deliberately skipped.
+Previous verification: 95 offline tests passed; 2 hosted tests deliberately skipped.
 See PROFESSIONAL_POLICY.md for detailed research, costs, new-data tests and limits.

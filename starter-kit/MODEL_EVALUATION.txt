@@ -1,0 +1,182 @@
+EHL – Modellvergleich und umfangreiche lokale Prüfung
+Stand: 10.10.2026
+
+ERGEBNIS
+
+Der aktuelle Agent verwendet GPT-6 Luna mit reasoning_effort="none" und JSON-Modus.
+Die Entscheidung beruht auf direkten API-Tests mit fünf Modellen. GPT-6.1 Sol wurde
+auf ausdrücklichen Wunsch ebenfalls getestet. Beide GPT-6-Modelle lösten sämtliche
+Zuordnungen in der gemeinsamen Gegenprüfung korrekt. Luna war für diese eng
+begrenzte Aufgabe günstiger und schneller. Ein teureres Modell hat hier keinen
+zusätzlichen Nutzen gezeigt. Bei einer späteren Erweiterung um freie Recherche,
+komplexes Vertragsverständnis oder offene Strategieplanung muss die Auswahl neu
+getestet werden; der heutige Vergleich beantwortet diese anderen Aufgaben nicht.
+
+WAS DAS MODELL TATSÄCHLICH MACHT
+
+Das Modell liest lokale Lieferanteninformationen und aktuelle Dialogauszüge und
+wählt passende Gesprächsbausteine: allgemeine Prioritäten, Zahlung/Liquidität,
+Kapazität/Lieferplanung oder Qualität. Es darf keine eigenen Preisentscheidungen,
+Vertragsannahmen oder unbelegten Zahlen erzeugen. Paketoptimierung, Belegzitate,
+Preisgrenzen, Pflichtbedingungen und Abschlussprüfung bleiben im überprüften Code.
+Ein besseres Modell kann dadurch die Kommunikation verbessern, aber nicht allein
+einen höheren Verhandlungsscore garantieren. Die Skriptgegner in den lokalen
+Verhandlungstests reagieren auf Konditionen, nicht auf Charme oder Humor.
+
+MODELLVERGLEICH
+
+Erster Satz: 48 Dialoge für GPT-4.1 mini, GPT-4.1 und GPT-5.6 Luna, ohne JSON-Modus.
+Gegenprüfung: 48 neu formulierte Dialoge für dieselben drei sowie GPT-6 Luna und
+GPT-6.1 Sol, mit JSON-Modus für alle. Jeder Satz enthält 72 Lieferantenzuordnungen,
+weil einige Dialoge drei Lieferanten gleichzeitig behandeln. Insgesamt 384
+Modellanfragen in den Vergleichsreihen. Deutsch/Englisch, offene Prioritäten,
+verneinte Anliegen, alte Gesprächsinhalte und eingeschleuste Fremdanweisungen sind
+enthalten. Die erwarteten Kategorien wurden vor der Auswertung im Prüfcode definiert.
+
+Gemeinsame Gegenprüfung (je 48 Anfragen / 72 Lieferanten):
+
+Modell | gültiges Schema | richtige Priorität | Ø Sekunden | p95 Sekunden | geschätzte USD
+gpt-4.1-mini-2025-04-14 | 48/48 | 60/72 | 0.721 | 0.893 | 0.006348
+gpt-4.1-2025-04-14 | 25/48 | 33/72 | 0.775 | 1.244 | 0.036308
+gpt-5.6-luna | 48/48 | 72/72 | 0.966 | 1.268 | 0.003604
+gpt-6-luna | 48/48 | 72/72 | 1.037 | 1.482 | 0.001678
+gpt-6.1-sol | 48/48 | 72/72 | 1.563 | 1.912 | 0.034332
+
+Ein gültiges JSON-Objekt allein reicht nicht: Felder müssen die vorgegebenen
+Kategorien enthalten. GPT-4.1 schrieb beispielsweise häufig eine vollständige Frage
+statt des geforderten Kategorienamens. Das ist ein Fehler für diesen Schnittstellen-
+vertrag, kein Beweis, dass GPT-4.1 allgemein schlechter argumentiert. Im Produkt
+werden solche Werte nicht als neue Anweisung übernommen, sondern durch sichere
+Standardformulierungen ersetzt. In der Gegenprüfung wurde das Antwortformat für
+alle Modelle zugleich verbessert; Unterschiede zwischen den beiden Testsätzen
+können daher nicht allein auf neue Formulierungen zurückgeführt werden.
+
+GPT-6.1 Sol: reasoning_effort="low", maximal 2.048 Completion-Tokens, da laut
+Dokumentation kein "none" unterstützt wird. Luna-Modelle: "none", maximal 512 Tokens.
+GPT-4.1-Modelle: maximal 512 Tokens. Alle: 15 Sekunden Netz-Timeout, vier parallele
+Anfragen, keine automatischen Wiederholungen. Sol bekam damit ausreichend Raum für
+interne Denktokens; der Kostenvergleich bezieht diesen Verbrauch ein. Aufrufe wurden
+pro Modell nacheinander gruppiert, nicht in randomisierter Reihenfolge. Latenzen
+sind Momentaufnahmen, keine langfristige Leistungszusage. Die synthetischen Dialoge
+nutzen eine begrenzte Zahl von Formulierungsmustern; 100 Prozent sind keine Garantie
+für beliebige echte Nachrichten. Der Benchmark wertet die Fragekategorie aus und
+prüft das Format des Einstiegs, nicht dessen unabhängige stilistische Qualität.
+
+Offizielle Quellen, am 10.10.2026 abgerufen:
+https://developers.openai.com/api/docs/models/gpt-6-luna
+https://developers.openai.com/api/docs/models/gpt-6.1-sol
+https://developers.openai.com/api/docs/models/gpt-5.6-luna
+https://developers.openai.com/api/docs/models/gpt-4.1-mini
+https://developers.openai.com/api/docs/models/gpt-4.1
+
+Standardpreise je Million Tokens (Eingabe / Ausgabe):
+GPT-6 Luna: 0,10 / 0,50 USD. GPT-6.1 Sol: 2 / 10 USD.
+GPT-5.6 Luna: 0,20 / 1,20 USD. GPT-4.1 mini: 0,40 / 1,60 USD.
+GPT-4.1: 2 / 8 USD. Die Schätzungen berücksichtigen keinen Cache-Rabatt, keine
+Steuern und keine separaten kontospezifischen Bedingungen; sie sind keine Rechnungen.
+
+VOLLSTÄNDIGE VERHANDLUNGEN
+
+Zwei neue Testmengen mit je 600 unterschiedlichen Konditionskombinationen und eine
+weitere mit 280 Fällen wurden jeweils mit Basisagent und Evidence Buyer ausgeführt:
+1.480 Szenarien, insgesamt 2.960 vollständige lokale Verhandlungen. Preise, Mengen,
+Zinsen, verfügbare Konditionen, Rundenzahlen und harte Limits variieren. Die ersten
+1.200 Fälle gehen von den drei gelieferten Simulatorfällen aus. Die zusätzlichen
+280 erweitern sie synthetisch um alle sieben Falltypen, je 40 Fälle: Preiserhöhung,
+Vertragsverlängerung, RFQ, Bündelung, Rohmaterial, Kapazität und Qualität. Hinzu kommen
+passende Mengen-/Werkzeugbedingungen, Indexklauseln, Lieferfristen und Qualitätsgrenzen.
+Das sind synthetische Erweiterungen, keine angeblich vorab bekannten Finalfälle.
+
+Satz | Szenarien | bekannte erfüllbare Fälle | Basis-Abschlüsse | Evidence-Abschlüsse | verpasste erfüllbare Fälle | geprüfte Grenzverstöße
+evidence-600.json | 600 | 404 | 370 | 390 | 14 | 0
+evidence-600-holdout.json | 600 | 398 | 369 | 390 | 8 | 0
+evidence-all-types.json | 280 | 184 | 170 | 180 | 4 | 0
+
+Zusammen: Evidence Buyer 960 Abschlüsse, Basisagent 909. Der neue Agent hat noch
+26 nachweislich erfüllbare Szenarien nicht abgeschlossen. Es gibt somit weiterhin
+Optimierungspotenzial; der Agent ist weder mathematisch optimal noch unbesiegbar.
+Durchschnittliche Kostenänderung in gemeinsam abgeschlossenen Fällen: +0,156 Prozent,
++0,057 Prozent und +0,406 Prozent in den drei Sätzen. Mehr Abschlüsse können einen
+kleinen Kostennachteil begleiten. Der Vergleich erfindet für Abbrüche keine Ersparnis.
+Beide Agenten hatten in diesen Sätzen null Verletzungen der geprüften Abschlussgrenzen.
+
+Die fünf Gegnerfamilien sind kooperativ, preisfest, zahlungsorientiert, unbeweglich
+und mit feindlichem Anweisungstext. Sie bleiben programmierte Gegner mit vereinfachter
+Annahmeregel. Die zusätzlichen Konditionen verändern unsere Kosten-/Grenzprüfung;
+sie bilden nicht automatisch alle echten Lieferantenpräferenzen ab. Zahlen sind
+keine Prognose für die echten Arena-Bots oder Kunden. Die Feasibility-Prüfung sucht
+bestimmte erfüllbare Schlussangebote und ist kein globaler Optimalitätsbeweis.
+
+FEHLERFÄLLE UND KONKRETE VERBESSERUNGEN
+
+Weitere 600 einzelne Angebots-/Beobachtungstests, jeweils 50 pro Fehlerfamilie:
+fehlender Preis, Nullpreis, Preis als Text, negativer Preis, NaN-Preis, fehlerhafte
+Zahlungsbedingungen, fehlender Anhang, unlesbarer Anhang, Fremdanweisungen,
+kurze Restzeit, doppelte Lieferantenbenachrichtigung und leere Bereitschaftsliste.
+Fallvorlagen und Preislimits variieren. Alle 600 bestehen nach der Korrektur.
+
+Gefundener Fehler: ein Objekt oder unbrauchbarer Wert statt numerischer Zahlungstage
+konnte die Kostenberechnung abbrechen. Jetzt wird das Angebot nicht verbindlich
+angenommen; der Agent fordert verständliche vollständige Konditionen an. Das gilt
+auch bei Schlussangeboten. Normale, aber wirtschaftlich nicht akzeptable Angebote
+werden inzwischen als solche beantwortet, statt fälschlich fehlende Daten zu behaupten.
+Die erste Fehlermenge nutzte noch eine einfachere Vorlagenverteilung; anschließend
+wurde zusätzlich die Fallvorlage zufällig gewählt. Ein gesonderter Regressionstest
+prüft die konkrete Ursache mit vier fehlerhaften Werten und drei Angebotsstatus.
+
+Reguläre Testsuite: 109 bestanden, zwei externe Live-Tests bewusst ausgelassen.
+Die Mutationstests brechen bei verbleibenden Fehlern mit Fehlerstatus ab.
+Der Code unterstützt jetzt explizite Reasoning-Einstellungen und JSON-Modus bei
+unverändert begrenzten Ausgaben. Die GPT-4.1-Schnittstelle bleibt für alte
+Konfigurationen kompatibel. Neue Modellanforderungen wurden mit einem lokalen
+Netzwerk-Mock und anschließend dem echten, genehmigten OpenAI-Zugriff geprüft.
+
+VOLLSTÄNDIGER LOKALER LAUF MIT GPT-6 LUNA
+
+Lauf: 20261010T155900Z-8a68901e. Alle drei Simulatorfälle abgeschlossen, zwölf
+Modellanfragen erfolgreich, keine unklare Nutzung und kein Harness-Notfallwechsel.
+Mittlerer lokaler Score 0,756003. 24.529 Eingabetokens + 255 Ausgabetokens:
+geschätzt 0,0025804 USD, also rund ein Viertel US-Cent für diesen kleinen Test.
+Der Score bleibt gegenüber dem bisherigen Modell gleich, weil die Skriptgegner
+auf Konditionen reagieren. Ein früherer zusätzlicher GPT-5.6-Luna-Integrationslauf
+war ebenfalls erfolgreich. Alle Modellvergleichsreihen zusammen: etwa 0,1274 USD;
+inklusive beider zusätzlicher vollständiger KI-Testläufe etwa 0,1352 USD bekannte
+Nutzung vor möglichen Cache-Rabatten. Alle lokalen Skripttests benötigen keine API.
+
+BUDGET UND BETRIEB
+
+Final weiterhin höchstens 500 Modellaufrufe je Lauf, 16.384 Eingabebytes und
+512 Completion-Tokens pro Aufruf, 15 Sekunden Timeout. Beim Fortsetzen desselben
+Laufs bleibt der Aufrufverbrauch erhalten. Neue eigenständige Läufe haben ein neues
+Budget. GPT-6 Luna verwendet keinen zusätzlichen Denkmodus. Grobe maximale
+Rechenreserve aus diesen Textgrenzen: etwa 1 USD pro finalem Lauf bei heutigen
+Preisen und konservativer Token-/Nachrichtenreserve; kein erzwungenes Kontolimit.
+Guthaben, EHL-Gutschriften und Verbrauch anderer Anwendungen bleiben ungeprüft.
+Bei Modellfehlern oder ausgeschöpftem Aufrufbudget nutzt der Agent weiterhin die
+sichere regelbasierte Verhandlung. Größere Modelle werden nicht automatisch und
+unbegrenzt zugeschaltet. Der Modellname ist der dokumentierte Alias, kein erfundener
+Versions-Snapshot; Anbieteränderungen am Alias können neue Prüfungen nötig machen.
+
+REPRODUKTION
+
+Alle Befehle vom Repository-Hauptordner:
+.venv/bin/python -m pytest starter-kit/tests -q
+.venv/bin/python starter-kit/evaluations/mutation_evidence.py
+.venv/bin/python starter-kit/evaluations/stress_evidence.py --validation --count 600 --seed 20261012 --output evidence-600.json
+.venv/bin/python starter-kit/evaluations/stress_evidence.py --validation --count 600 --seed 20261014 --output evidence-600-holdout.json
+.venv/bin/python starter-kit/evaluations/stress_evidence.py --validation --count 280 --seed 20261015 --all-types --output evidence-all-types.json
+
+Nur der folgende ausdrücklich freigegebene Vergleich sendet Daten an OpenAI:
+.venv/bin/python starter-kit/evaluations/model_benchmark.py --allow-model --holdout --models gpt-6-luna gpt-6.1-sol --output model-six-holdout.json
+Bestehende protokollierte Versuche werden nicht automatisch erneut versendet.
+Ein neuer Dateiname würde einen neuen kostenpflichtigen Vergleich starten.
+.venv/bin/python starter-kit/run_evidence.py model
+
+STARTSTATUS
+
+Implementierung und OpenAI-Anbindung lokal geprüft. Kein gehosteter Arena-Versuch
+und keine echte Finalverhandlung gestartet. Noch extern erforderlich: Arena-Teamkey
+und Berechtigungsprüfung, offizielles Sonntags-Datenpaket, endgültiger Code-/Datenstand,
+Jury-Zugriff, Einreichung und rechtzeitiger Runner-Start. Der Agent benötigt keinen
+öffentlich erreichbaren Webserver. Er ist ein geprüfter Hackathon-Agent; beliebige
+reale Verträge erfordern zusätzliche geschäftliche Freigaben und Integrationsprüfung.

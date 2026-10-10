@@ -7,12 +7,14 @@ poll_seconds = 3
 use_model = true
 light_humor = true
 [model]
-name = "gpt-4.1-mini-2025-04-14"
+name = "gpt-6-luna"
 base_url = "https://api.openai.com/v1"
 max_calls = 500
 max_output_tokens = 512
 max_input_bytes = 16384
-input_usd_per_million = 0.40
-output_usd_per_million = 1.60
+input_usd_per_million = 0.10
+output_usd_per_million = 0.50
 parallel = 10
 timeout = 15
+reasoning_effort = "none"
+json_mode = true

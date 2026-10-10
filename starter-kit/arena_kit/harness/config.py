@@ -109,6 +109,8 @@ def load(args):
         "max_calls",
         "max_output_tokens",
         "max_input_bytes",
+        "reasoning_effort",
+        "json_mode",
         "parallel",
         "timeout",
         "input_usd_per_million",
@@ -128,6 +130,16 @@ def load(args):
             or (p.scheme != "https" and not (local and p.scheme == "http"))
         ):
             raise ValueError("Model URL must be HTTPS, or loopback HTTP, without embedded secrets")
+        if "reasoning_effort" in model and model["reasoning_effort"] not in (
+            "none",
+            "minimal",
+            "low",
+            "medium",
+            "high",
+        ):
+            raise ValueError("Invalid model reasoning_effort")
+        if "json_mode" in model and type(model["json_mode"]) is not bool:
+            raise ValueError("json_mode must be boolean")
         model.setdefault("max_input_bytes", 128 * 1024)
         for name in ("max_calls", "max_output_tokens", "max_input_bytes"):
             if type(model.get(name)) is not int or model[name] <= 0:
