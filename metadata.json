@@ -1,0 +1,62 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4KBYDPK1P0T6DJH3KBBV5Y8",
+  "strategy": "manual-commit",
+  "branch": "linus-implementation",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "starter-kit/agents/_learner/README.md",
+    "starter-kit/agents/_learner/__init__.py",
+    "starter-kit/agents/_learner/budget.py",
+    "starter-kit/agents/_learner/claims.py",
+    "starter-kit/agents/_learner/core.py",
+    "starter-kit/agents/_learner/dossier.py",
+    "starter-kit/agents/_learner/graph.py",
+    "starter-kit/agents/_learner/inspect.py",
+    "starter-kit/agents/_learner/ledger.py",
+    "starter-kit/agents/_learner/llm.py",
+    "starter-kit/agents/_learner/memory/__init__.py",
+    "starter-kit/agents/_learner/memory/consolidate.py",
+    "starter-kit/agents/_learner/memory/diagnose.py",
+    "starter-kit/agents/_learner/memory/episodes.py",
+    "starter-kit/agents/_learner/memory/runlocate.py",
+    "starter-kit/agents/_learner/offers.py",
+    "starter-kit/agents/_learner/params.py",
+    "starter-kit/agents/_learner/policy.py",
+    "starter-kit/agents/_learner/priors.py",
+    "starter-kit/agents/_learner/prompts.py",
+    "starter-kit/agents/_learner/state.py",
+    "starter-kit/agents/_learner/writer.py",
+    "starter-kit/agents/learner.py",
+    "starter-kit/configs/learner.toml",
+    "starter-kit/configs/learner_final.toml",
+    "starter-kit/configs/learner_openai.toml",
+    "starter-kit/pyproject.toml",
+    "starter-kit/tests/test_learner_agent.py",
+    "starter-kit/tests/test_learner_memory.py",
+    "starter-kit/uv.lock"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 294,
+    "cache_creation_tokens": 429261,
+    "cache_read_tokens": 40023931,
+    "output_tokens": 215670,
+    "api_call_count": 145,
+    "subagent_tokens": {
+      "input_tokens": 138,
+      "cache_creation_tokens": 430657,
+      "cache_read_tokens": 4947242,
+      "output_tokens": 58444,
+      "api_call_count": 69
+    }
+  }
+}
