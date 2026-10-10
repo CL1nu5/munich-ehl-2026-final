@@ -34,10 +34,19 @@ def build(case, threads, models=None):
         offer_id, terms = standing(events)
         model = (models or {}).get(sid)
         ranked = ranked_offers(case, events, model)
-        eligible = [s for s in ranked if s["beats_alternative"]]
-        if eligible or ranked:
-            best = (eligible or ranked)[0]
+        # Only the standing (first) sheet can be accepted; a cheaper alternative is mirrored back instead.
+        primary = [s for s in ranked if s.get("primary", True)]
+        eligible = [s for s in primary if s["beats_alternative"]]
+        best = None
+        if eligible or primary:
+            best = (eligible or primary)[0]
             offer_id, terms = best["term_sheet_id"], best["terms"]
+        alts = [s for s in ranked if not s.get("primary", True) and s["beats_alternative"]]
+        led["alt_better"] = (
+            {"term_sheet_id": alts[0]["term_sheet_id"], "terms": alts[0]["terms"], "cost": alts[0]["cost"]}
+            if alts and best is not None and alts[0]["cost"] < best["cost"] - 1.0
+            else None
+        )
         led["offers"] = ranked
         led["model"] = model
         led.update(offer_id=offer_id, terms=terms, price=terms.get("unit_price"), status=last.get("status"))

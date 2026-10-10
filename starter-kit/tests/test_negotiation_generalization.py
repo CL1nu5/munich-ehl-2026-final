@@ -74,16 +74,24 @@ def scenario(seed):
 
 
 @pytest.mark.parametrize("seed", DEV_SEEDS + HOLDOUT_SEEDS)
-def test_offer_choice_is_invariant_to_order_ids_and_price_scale(seed):
+def test_only_the_standing_sheet_is_accepted_and_a_cheaper_alternative_is_mirrored(seed):
+    # The first sheet is the supplier's standing offer; the arena rejects an alternative's ID (422).
     case, threads = scenario(seed)
     sid = case["suppliers"][0]
-    for reverse in (False, True):
-        if reverse:
-            threads[sid][-1]["term_sheets"].reverse()
+    for best_first in (True, False):
+        sheets = sorted(threads[sid][-1]["term_sheets"], key=lambda x: x["term_sheet_id"] != "offer:best")
+        threads[sid][-1]["term_sheets"] = sheets if best_first else sheets[::-1]
+        standing = threads[sid][-1]["term_sheets"][0]["term_sheet_id"]
         action = close_action(case, threads)
-        assert action["message"]["action"]["term_sheet_id"] == "offer:best"
-        assert ledger.build(case, threads)[sid]["offer_id"] == "offer:best"
+        assert action["message"]["action"]["term_sheet_id"] == standing
+        led = ledger.build(case, threads)[sid]
+        assert led["offer_id"] == standing
+        assert (led["alt_better"] or {}).get("term_sheet_id") == (None if best_first else "offer:best")
         validate(case, threads, [action])
+        if not best_first:
+            other = {"type": "accept", "term_sheet_id": "offer:best"}
+            with pytest.raises(ValueError, match="stale"):
+                validate(case, threads, [{"supplier_id": sid, "message": {"action": other}}])
     stale = copy.deepcopy(action)
     threads[sid].append(
         {**threads[sid][-1], "term_sheets": [threads[sid][-1]["term_sheets"][0] | {"term_sheet_id": "offer:new"}]}
@@ -93,17 +101,30 @@ def test_offer_choice_is_invariant_to_order_ids_and_price_scale(seed):
 
 
 @pytest.mark.parametrize("seed", DEV_SEEDS + HOLDOUT_SEEDS)
-def test_diverse_packages_preserve_index_protection_and_observed_preferences(seed):
+def test_packages_cost_us_the_same_and_an_insisted_index_clause_is_repriced(seed):
     case, threads = scenario(seed)
     sid = case["suppliers"][0]
     led = ledger.build(case, threads)[sid]
     model = offers.supplier_model(case, led, [], {}, {})
     v = offers._value(case, led["terms"], model)
     menu = offers.build_menu(case, led, model, led["std"], v * 0.8, v, {"step": 0}, led["c"])
-    assert {bool(m["terms"]["index_clause"]) for m in graph.within_band(menu)} == {False, True}
-    pref = {"fields": {"index_clause": {"values": [case["term_options"]["index_clause"][1]]}}}
-    chosen = preferences.rank(menu, pref)[0]
-    assert chosen["terms"]["index_clause"] is not None
+    banded = graph.within_band(menu)
+    floor = min(m["c"] for m in menu)
+    assert banded and all(m["c"] <= floor * (1 + graph.MENU_BAND) for m in banded)
+    clause = case["term_options"]["index_clause"][1]
+    pref = {"fields": {"index_clause": {"values": [clause]}}}
+    with_pref = graph.within_band(menu, case, led["std"], model, pref, led["price"])
+    indexed = [m for m in with_pref if m["terms"]["index_clause"] == clause]
+    assert indexed and all(m["c"] <= floor * (1 + graph.MENU_BAND) for m in indexed)
+    for m in indexed:  # the clause costs us index risk: it comes with a lower price than the same terms without
+        same = [
+            x
+            for x in menu
+            if x["terms"]["index_clause"] is None and x["terms"]["payment_days"] == m["terms"]["payment_days"]
+        ]
+        assert all(m["price"] < x["price"] for x in same if x["level"] == m["level"])
+    chosen = preferences.rank(with_pref, pref)[0]
+    assert chosen["terms"]["index_clause"] == clause
     validate(case, threads, [{"supplier_id": sid, "message": {"term_sheets": [{"terms": chosen["terms"]}]}}])
 
 
@@ -178,12 +199,15 @@ def test_time_horizon_uses_available_moves_and_wave_time():
     assert Budget({**obs, "wave_seconds_left": 160}, p).horizon(2, 8, [45]) < 10
 
 
-def test_final_acceptance_does_not_wait_for_reflection():
+@pytest.mark.parametrize("best_first", [True, False])
+def test_final_offer_is_closed_without_a_model(best_first):
     from agents.learner import Agent
 
     case, threads = scenario(307)
     sid = case["suppliers"][0]
     threads[sid][0]["status"] = "final_offer"
+    sheets = sorted(threads[sid][0]["term_sheets"], key=lambda x: x["term_sheet_id"] != "offer:best")
+    threads[sid][0]["term_sheets"] = sheets if best_first else sheets[::-1]
     agent = Agent()
     state = agent.prepare({"case": case, "parameters": {"llm": True, "memory": False}})
 
@@ -191,12 +215,18 @@ def test_final_acceptance_does_not_wait_for_reflection():
         cost = staticmethod(total_cost)
 
         def complete(self, messages):
-            raise AssertionError("A final acceptance must not call a model")
+            raise AssertionError("Closing on a final offer must not call a model")
 
     out = agent.decide(
         {"case": case, "threads": threads, "ready_suppliers": [sid], "seconds_left": {sid: 60}}, state, NeverCall()
     )
-    assert out["actions"][0]["message"]["action"]["type"] == "accept"
+    message = out["actions"][0]["message"]
+    if best_first:
+        assert message["action"] == {"type": "accept", "term_sheet_id": "offer:best"}
+    else:  # its cheaper alternative: we send exactly its terms back
+        assert not message.get("action")
+        best = next(x for x in sheets if x["term_sheet_id"] == "offer:best")["terms"]
+        assert [s["terms"] for s in message["term_sheets"]] == [{f: best[f] for f in case["negotiable"]}]
     assert out["state"]["llm"]["calls"] == 0 and not out["state"].get("closed")
 
 

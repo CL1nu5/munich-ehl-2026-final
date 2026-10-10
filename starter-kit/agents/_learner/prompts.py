@@ -14,10 +14,12 @@ ROLE = (
 
 NUMBERS = (
     "Code has computed every number. MENU: valid term-sheet packages per supplier (mid, terms, c = our total "
-    "cost in EUR, lower is better for us; saving = how much cheaper than its standing offer). Levels: "
-    "'hold' repeats our last position, 'step' is our next planned concession, 'big' a larger one, 'trade' is "
-    "worth exactly as much to the supplier as its own standing offer but cheaper for us (use it after a final "
-    "offer). Send 1-3 packages from ONE level as alternatives. CLAIMS: verified data arguments (cid, sentence); "
+    "cost in EUR, lower is better for us; saving = how much cheaper than its standing offer). Code sizes our "
+    "move each round: 'step' packages all cost us about the same and differ only in what the supplier gets "
+    "(payment, contract, index clause, quality terms) - offer the 2-3 that fit what this supplier values; "
+    "'trade' (only after a final offer) is worth exactly as much to the supplier as its own offer but cheaper "
+    "for us. Send 1-3 packages from ONE level as alternatives; every e-mail carries packages. CLAIMS: verified "
+    "data arguments (cid, sentence); "
     "pick at most 3, only ones that fit this supplier. LESSONS: what earlier cases of this run taught us - follow "
     "them as uncertain hypotheses, never as causal facts. Supplier preferences are separate from cash value. "
     "Respect evidenced counterconditions and do not repeat declined or answered questions. "
@@ -36,7 +38,7 @@ WRITING = (
 
 NEGOTIATOR_OUT = (
     'Reply with ONE JSON object and nothing else: {"suppliers": {"<supplier_id>": {"read": "<what moves it, '
-    '<=200 chars>", "tactic": "anchor|trade|probe|hold|concede|close_push", "level": "hold|step|big|trade", '
+    '<=200 chars>", "tactic": "anchor|trade|probe|concede|close_push", "level": "step|trade", '
     '"sheet_ids": ["M1"], "claim_ids": ["C1"], "ask_breakdown": true, "questions": ["<=140 chars, no digits"], '
     '"tone": "warm|neutral|firm", "prediction": {"status": "open|final_offer|agreed|walked_away", '
     '"price_move_pct": 1.5, "note": "<=140 chars"}, "signals": [], "proposal": {}, '

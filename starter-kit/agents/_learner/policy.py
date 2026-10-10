@@ -80,6 +80,9 @@ def route(case, ledgers, ready, c_alt, knobs, last_round):
             return accept_best("agreed")
         if led["status"] != "final_offer":
             continue
+        if led.get("alt_better") and led["moves_left"] >= 1:
+            pushes[sid] = True  # its cheaper alternative: we send its own terms back (graph._mirror), no push
+            continue
         others_open = open_rivals(sid)
         pushable = knobs.get("allow_final_push", True) and led["pushes_after_final"] == 0 and led["moves_left"] >= 2
         # push only when its walking costs us nothing: our alternative is at least as good, or a cheaper

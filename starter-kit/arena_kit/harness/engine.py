@@ -236,6 +236,7 @@ class Engine:
 
             force_close = False
             close_attempts = 0
+            rejected = set()  # term sheet IDs the arena refused to accept
             while live_threads(threads):
                 for supplier, task in list(pending.items()):
                     if task.done():
@@ -267,7 +268,7 @@ class Engine:
                     if snapshot["status"] == "ended":
                         self.record_result(cid, snapshot)
                         return
-                    actions = [close_action(case, threads)]
+                    actions = [close_action(case, threads, rejected)]
                 elif not ready:
                     await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)
                     continue
@@ -312,9 +313,11 @@ class Engine:
                     threads = fresh
                     try:
                         validate(case, threads, actions)
+                        if (actions[0]["message"]["action"].get("term_sheet_id") or "") in rejected:
+                            raise ValueError("Rejected before")
                     except ValueError:
                         self.journal.event("fallback", case=cid, phase="close", reason="StaleOrUnsafeOffer")
-                        actions = [close_action(case, threads)]
+                        actions = [close_action(case, threads, rejected)]
                     close_attempts += 1
                     if close_attempts > 3:
                         self.journal.case(cid, error="Closure repeatedly rejected; session retained")
@@ -335,6 +338,12 @@ class Engine:
                     except ArenaError as e:
                         if e.status not in (409, 422):
                             raise
+                        offer = a["message"]["action"].get("term_sheet_id")
+                        self.journal.event(
+                            "close_rejected", case=cid, status=e.status, offer=offer, detail=str(e.detail)[:300]
+                        )
+                        if offer and e.status == 422:  # invalid, never accepted: 409 (late, ended) may resolve
+                            rejected.add(offer)
                     snapshot, threads, deadlines = await self.snapshot(sid)
                     if snapshot["status"] == "ended":
                         self.record_result(cid, snapshot)

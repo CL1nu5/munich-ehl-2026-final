@@ -13,20 +13,32 @@ result:  persist Arena result -> background reflection
 
 ## Decisions and evidence
 
-Every term sheet in the supplier's latest message is considered. Older sheets
-are not accepted. The ledger, offer builder and last-ask comparison share the
+Every term sheet in the supplier's latest message is valued, but only the
+standing (first) sheet can be accepted: the Arena rejects an alternative's ID.
+A cheaper alternative is mirrored back as our own sheet, which the supplier
+answers with "agreed". Older sheets are not accepted. The ledger, offer builder and last-ask comparison share the
 same valuation function. Known buyer costs and the estimated relationship
 penalty are exposed separately. Supplier costs, financing and effort remain
 assumptions; the public data cannot reveal the Arena's hidden economics. The
 generic harness fallback evaluates known costs when it has no supplier model.
 
-Menus retain different payment, index and other nonprice terms even when those
-packages cost more than the cheapest candidate. Repeated counteroffers and
+The packages of one round cost us within 0.3 % of each other and differ only
+in what the supplier gets, because a supplier takes whichever package is
+dearest for us. A lever the supplier has insisted on is repriced to the same
+cost for us (an index clause comes with a lower base price). Code sizes every
+step: we always move (a share of the remaining gap, more when the supplier
+moved, most in the end game) and never jump to its offer; the model chooses
+among equally priced packages, arguments and wording. Repeated counteroffers and
 verbatim, model-interpreted statements create preferences with source evidence.
 These preferences rank packages; they are distinct from binding terms and
 must-haves. The model can propose allowed nonprice terms. Code computes their
 price, checks cost and validates the resulting sheet. A generic should-cost
-estimate cannot override an observed supplier price as a hard floor.
+estimate cannot override an observed supplier price as a hard floor; an
+own-plant estimate is calibrated and capped at the margin the opening quote
+must carry. The first ask is ambitious but bounded: below the standing price,
+at or below today's price in increases and renewals, below the cheapest rival
+bid in an RFQ, never below the point where squeezing a relationship supplier
+costs more than it saves.
 
 The concession horizon uses actual remaining moves and wave time. There is no
 practice-specific four-round cap. Breakdown questions are tracked as asked,

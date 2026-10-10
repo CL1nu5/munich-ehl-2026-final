@@ -39,6 +39,8 @@ class Ctx(TypedDict, total=False):
     mem: Any
     route: Any
     menus: Any
+    fulls: Any
+    mirrors: Any
     claims: Any
     shares: Any
     vals: Any
@@ -187,7 +189,7 @@ def menu(ctx):
     dossier = cc["dossier"]
     used = claims_mod.used_ids(ctx["threads"])
     logged, logged_per_sup = _logged_ids(state)
-    menus, claims, shares, vals = {}, {}, {}, {}
+    menus, claims, shares, vals, fulls, mirrors = {}, {}, {}, {}, {}, {}
     trig = dossier.get("trigger") or {}
     holds = r.setdefault("hold", {})
 
@@ -214,7 +216,8 @@ def menu(ctx):
         v_stand = offers._value(case, led["terms"], model) if led["terms"].get("unit_price") else None
         if v_stand is not None and s.get("v_asp") is None:
             drop = ctx["p"]["anchor_drop"] * (knobs.get("drop_mult") or {}).get(sid, 1.0)
-            anchor = offers.anchor_price(case, led, tags, dossier, drop)
+            rivals = [o["price"] for x, o in leds.items() if x != sid and o.get("acceptable") and o.get("price")]
+            anchor = offers.anchor_price(case, led, tags, dossier, drop, rivals, model, std)
             s["v_asp"] = offers._value(case, {"unit_price": anchor}, model)
             s["anchor"] = anchor
         v_asp = s.get("v_asp")
@@ -239,6 +242,15 @@ def menu(ctx):
             out = accept_ready("its offer meets our last ask")
             if out:
                 return out
+        alt = led.get("alt_better")
+        if alt and led["moves_left"] >= 1 and (led["status"] == "final_offer" or final_push):
+            # Its cheaper alternative cannot be accepted by ID: send its own terms back, it answers "agreed".
+            mirror = _mirror(case, alt, std)
+            if mirror:
+                menus[sid], shares[sid], claims[sid] = [mirror], {"trade": 1.0}, []
+                r["final_push"][sid] = True
+                mirrors[sid] = True
+                continue
         if v_asp is not None and v_stand is not None and v_asp >= v_stand:
             v_asp = v_stand * 0.995
         k = led["rounds"]
@@ -248,7 +260,7 @@ def menu(ctx):
         levels = {}
         if v_asp is not None and v_stand is not None:
             values = concession_values(s, k, horizon, v_asp, v_stand, (knobs.get("drop_mult") or {}).get(sid, 1.0))
-            if final_push or led["status"] == "final_offer" or values["step"] >= v_asp + 0.6 * (v_stand - v_asp):
+            if final_push or led["status"] == "final_offer":
                 values["trade"] = v_stand
             span = v_stand - v_asp
             levels = {name: (v - v_asp) / span if span > 0 else 1.0 for name, v in values.items()}
@@ -256,10 +268,14 @@ def menu(ctx):
             s["v_stand_prev"] = v_stand
         must_beat = (offers.cost(case, led["terms"], std, model) if led["terms"] else None) or led["c"]
         must_beat = must_beat if must_beat is not None else math.inf
-        m = preferences.rank(
-            within_band(offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat)),
-            s.get("preferences") or {},
-        )
+        if alt:  # never ask for more than a package it already offers us
+            must_beat = min(must_beat, alt["cost"])
+        pref = s.get("preferences") or {}
+        full = offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat)
+        fulls[sid] = full
+        m = preferences.rank(within_band(full, case, std, model, pref, led.get("price")), pref)
+        if not m and levels and led["terms"].get("unit_price") and not final_push:
+            m = _fallback_sheet(case, led, std, model, must_beat)
         if final_push and not [x for x in m if x["level"] == "trade"]:
             r["final_push"][sid] = False  # nothing to trade: do not push a final offer
             others_open = [
@@ -300,44 +316,120 @@ def menu(ctx):
     )
     pending = [s for s, led in leds.items() if not led.get("ended") and s not in ctx["ready"]]
     mode = ctx["budget"].mode(_llm_ok(ctx), refresh, ctx["p"].get("two_call") and not pending)
-    return {"menus": menus, "claims": claims, "shares": shares, "vals": vals, "mode": mode}
+    if mirrors and all(mirrors.get(sid) or holds.get(sid) for sid in r["suppliers"]):
+        mode = "det"  # sending its own package back needs no model
+    return {
+        "menus": menus,
+        "claims": claims,
+        "shares": shares,
+        "vals": vals,
+        "mode": mode,
+        "fulls": fulls,
+        "mirrors": mirrors,
+    }
 
 
-def within_band(menu):
-    """Keep structural alternatives; cost proximity alone does not measure supplier feasibility."""
-    return menu
+MENU_BAND = 0.003  # sheets of one level may cost us at most this much more than the level's cheapest
 
 
-RECIPROCITY = 0.4  # we concede this share of the supplier's last concession (in value to it)
-STALL_STEP = 0.15  # after one round of mutual standstill we concede this share of the remaining gap
+def within_band(menu, case=None, std=None, model=None, pref=None, standing_price=None):
+    """Of equal-value sheets the supplier takes the one dearest for us (practice P05: 14 days' payment,
+    P08/P18: the index clause, P10/P11: lead time and ppm): offer only sheets that cost us about the same.
+    A lever the supplier has insisted on (`pref`) is kept - repriced so that it, too, costs us the level's
+    cheapest C: an index clause then comes with a lower base price."""
+    floor = {}
+    for m in menu:
+        floor[m["level"]] = min(floor.get(m["level"], m["c"]), m["c"])
+    out = [m for m in menu if m["c"] <= floor[m["level"]] * (1 + MENU_BAND)]
+    fields = (pref or {}).get("fields") or {}
+    if not fields or case is None:
+        return out
+    hi = standing_price or max((m["price"] or 0) for m in menu) if menu else 0
+    for level, c_floor in floor.items():
+        if any(all(m["terms"].get(f) in p["values"] for f, p in fields.items()) for m in out if m["level"] == level):
+            continue
+        wanted = [
+            m for m in menu if m["level"] == level and all(m["terms"].get(f) in p["values"] for f, p in fields.items())
+        ]
+        if not wanted:
+            continue
+        best = min(wanted, key=lambda m: m["c"])
+        levers = {k: v for k, v in best["terms"].items() if k != "unit_price"}
+        price = offers.price_for_cost(case, levers, std, model, c_floor, 0.5 * (hi or best["price"]), best["price"])
+        if price and price > 0:
+            terms = {**best["terms"], "unit_price": price}
+            c = offers.cost(case, terms, std, model)
+            if c is not None:
+                out.append({**best, "terms": terms, "price": price, "c": round(c, 2), "mid": best["mid"]})
+    return out
+
+
+def _mirror(case, alt, std):
+    """Our term sheet with exactly the terms of the supplier's alternative package."""
+    terms = {f: alt["terms"].get(f, std.get(f)) for f in case["negotiable"]}
+    if any(v is None and f in ("unit_price",) for f, v in terms.items()):
+        return None
+    return {
+        "mid": "M1",
+        "level": "trade",
+        "terms": terms,
+        "c": alt["cost"],
+        "saving": 0.0,
+        "price": terms.get("unit_price"),
+        "changes": {},
+    }
+
+
+def _fallback_sheet(case, led, std, model, must_beat):
+    """No package fits the plan (e.g. the cost model rejects every lower price): never send prose only -
+    ask for its own levers at a slightly lower price, if that is cheaper for us."""
+    terms = {f: led["terms"].get(f, std.get(f)) for f in case["negotiable"]}
+    if any(v is None for v in terms.values()):
+        return []
+    for cut in (0.02, 0.01, 0.005):
+        t = {**terms, "unit_price": round(terms["unit_price"] * (1 - cut), 2)}
+        c = offers.cost(case, t, std, model)
+        if c is not None and c < must_beat - 0.5:
+            return [
+                {
+                    "mid": "M1",
+                    "level": "step",
+                    "terms": t,
+                    "c": round(c, 2),
+                    "saving": round(must_beat - c, 2),
+                    "price": t["unit_price"],
+                    "changes": {},
+                }
+            ]
+    return []
+
+
+# Concession: we always move a little (a supplier gives nothing without a move from us - practice runs in
+# which we held our position ran into its final offer at its own price: P07, P11, P18), more when it moves,
+# most in the end game; we never jump to its offer.
+STALL_SHARE = 0.10  # share of the remaining gap we concede when it did not move
+MOVE_SHARE = 0.10  # share of the remaining gap we concede when it moved ...
+RECIPROCITY = 0.5  # ... plus this share of its concession (in value to it)
+MAX_SHARE = 0.4  # never more than this share of the remaining gap before the end game
+END_SHARE = 0.3  # share of the remaining gap per round in the end game
 
 
 def concession_values(s, k, horizon, v_asp, v_stand, drop_mult=1.0):
-    """Supplier-value targets for this round: reciprocity, capped by a slow schedule early and pushed
-    by it late (deadline pressure). We never concede without a move from its side before the end game."""
+    """Supplier-value target of our next ask ("step")."""
     prev = s.get("v_ask", v_asp)
     their = max(0.0, (s.get("v_stand_prev") or v_stand) - v_stand)
-    late = k >= horizon - 2
-    gap = v_stand - v_asp
-    sched = v_asp + gap * offers.schedule(k, horizon)
-    cap = v_asp + gap * min(1.0, (k / max(1, horizon - 1)) ** 1.5)
+    remaining = max(0.0, v_stand - prev)
+    soft = 1.0 / max(drop_mult, 0.5)  # a learned "concede less" knob shrinks our moves
     if k == 0:
         step = v_asp
-    elif late:
-        step = max(prev + RECIPROCITY / max(drop_mult, 0.5) * their, sched)
-        step = min(step, prev + 0.75 * (v_stand - prev))  # a real move, but never all the way to its offer
+    elif k >= horizon - 2:
+        step = prev + END_SHARE * remaining
     elif their <= 1e-6:
-        # no concession without a move from its side - but only once: repeating the same sheets runs into
-        # its final offer at its own price. With a short horizon the end game starts first.
-        step = prev + STALL_STEP * (v_stand - prev) if s.get("held") else prev
+        step = prev + STALL_SHARE * soft * remaining
     else:
-        step = min(prev + RECIPROCITY / max(drop_mult, 0.5) * their, max(cap, prev))
+        step = prev + min(MAX_SHARE * remaining, MOVE_SHARE * soft * remaining + RECIPROCITY * soft * their)
     step = min(max(step, prev), v_stand)
-    s["held"] = 0 < k and not late and step <= prev + 1e-9
-    values = {"step": step, "big": step + (v_stand - step) * 0.4}
-    if k > 0 and prev < step - 1e-9:
-        values["hold"] = prev
-    return values
+    return {"step": step}
 
 
 def after_menu(ctx):
@@ -365,6 +457,8 @@ def _det_choices(ctx):
             knobs,
         )
         out[sid]["source"] = "det"
+        if (ctx.get("mirrors") or {}).get(sid):
+            out[sid].update(tactic="conclude", ask_breakdown=False, claim_ids=[], questions=[])
     return out
 
 
@@ -459,7 +553,35 @@ def _merge_choices(ctx, raw):
                 entries.get(sid), ctx["menus"].get(sid) or [], ctx["claims"].get(sid) or [], det_c[sid]
             )
             choice = out[sid]
+            if (ctx.get("mirrors") or {}).get(sid):
+                out[sid] = dict(det_c[sid], source="det")
+                continue
             candidates = ctx["menus"].get(sid) or []
+            fields = pref.get("fields") or {}
+            if (
+                fields
+                and candidates
+                and not any(all(m["terms"].get(f) in p["values"] for f, p in fields.items()) for m in candidates)
+            ):
+                # A countercondition the model just evidenced: add it, repriced to the same cost for us.
+                led = ctx["ledgers"][sid]
+                extra = [
+                    {**m, "mid": f"P{i}"}
+                    for i, m in enumerate(
+                        within_band(
+                            (ctx.get("fulls") or {}).get(sid) or [],
+                            ctx["case"],
+                            led["std"],
+                            led["model"],
+                            pref,
+                            led.get("price"),
+                        ),
+                        1,
+                    )
+                    if all(m["terms"].get(f) in p["values"] for f, p in fields.items())
+                ]
+                candidates.extend(extra)
+                ctx["menus"][sid] = candidates
             selected = [m for m in candidates if m["mid"] in choice["sheet_ids"]]
             if selected and pref.get("fields"):
                 same_level = [m for m in candidates if m["level"] == selected[0]["level"]]

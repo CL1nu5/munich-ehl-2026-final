@@ -47,14 +47,16 @@ def ranked_offers(case, events, supplier=None):
     alt = case["buyer"].get("alternative") or {}
     limit = total_cost(case, alt["terms"]) if alt.get("kind") not in (None, "none") and alt.get("terms") else math.inf
     out = []
-    for sheet in current_offers(events):
+    for index, sheet in enumerate(current_offers(events)):
         terms = sheet["terms"]
         if any(f not in terms and f not in std and f not in case.get("fixed_terms", {}) for f in case["negotiable"]):
             continue
         try:
             v = value(case, terms, std, supplier)
             if math.isfinite(v["cost"]) and must_haves_ok(case, terms, std):
-                out.append({**sheet, **v, "beats_alternative": v["cost"] <= limit})
+                # Only the standing sheet (the first) can be accepted; the arena rejects an alternative's ID
+                # with 422 (practice P18). Alternatives are information: mirror their terms to get "agreed".
+                out.append({**sheet, **v, "beats_alternative": v["cost"] <= limit, "primary": index == 0})
         except (ValueError, TypeError, KeyError, ZeroDivisionError):
             continue
     return sorted(out, key=lambda s: (s["cost"], s["term_sheet_id"]))

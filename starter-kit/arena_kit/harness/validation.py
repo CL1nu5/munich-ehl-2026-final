@@ -24,14 +24,16 @@ def acceptable(case, events, offer_id=None):
         return False
     try:
         return any(
-            s["beats_alternative"] and (offer_id is None or s["term_sheet_id"] == offer_id)
+            s["beats_alternative"] and s["primary"] and (offer_id is None or s["term_sheet_id"] == offer_id)
             for s in ranked_offers(case, events)
         )
     except (ValueError, TypeError, KeyError, ZeroDivisionError):
         return False
 
 
-def close_action(case, threads):
+def close_action(case, threads, exclude=()):
+    """Accept the cheapest acceptable standing sheet (never an alternative, never one in `exclude`, e.g.
+    already rejected by the arena), else walk away."""
     live = live_threads(threads)
     candidates = []
     for sid in live:
@@ -39,7 +41,7 @@ def close_action(case, threads):
             candidates.extend(
                 (s["cost"], sid, s["term_sheet_id"])
                 for s in ranked_offers(case, threads[sid])
-                if s["beats_alternative"]
+                if s["beats_alternative"] and s["primary"] and s["term_sheet_id"] not in exclude
             )
     if candidates:
         _, sid, offer_id = min(candidates)

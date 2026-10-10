@@ -8,7 +8,7 @@ DEFAULTS = {
     "data_dir": None,  # default: the repo's data/
     "memory": True,  # learn from finished cases of this run
     "max_lessons": 10,
-    "anchor_drop": 0.10,  # first ask: this far below the standing value (before priors and lessons)
+    "anchor_drop": 0.18,  # first ask: this far below the standing price (scaled by the supplier's situation)
 }
 
 
