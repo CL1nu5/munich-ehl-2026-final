@@ -1,8 +1,8 @@
-# Negotiation Arena — team harness
+# Negotiation Arena
 
-We are building buyer agents for the Tacto negotiation challenge. The harness
-runs local experiments, compares agents and coordinates the live final. Start
-locally, then select a hosted profile only when that run is authorized.
+Python harness for buyer agents in the Tacto negotiation challenge. It supports
+local experiments, agent comparisons and execution of the live final. Hosted
+profiles require explicit authorization.
 
 ## Start locally
 
@@ -21,26 +21,26 @@ calls. Results, journals and reports go to the ignored `.runs/` directory at the
 repo root. Simulator scores help compare local behavior; they do not predict
 performance against live suppliers.
 
-## Where to work
+## Repository structure
 
 | Location | Purpose |
 |---|---|
-| [`starter-kit/agents/`](starter-kit/agents/) | **Team agents:** copy `example.py` and implement your approach |
-| [`starter-kit/configs/`](starter-kit/configs/) | **Experiment settings:** agent, parameters, model and limits; no keys |
-| [`starter-kit/arena_kit/harness/`](starter-kit/arena_kit/harness/) | **Shared infrastructure:** API communication, execution, recovery and reporting |
+| [`starter-kit/agents/`](starter-kit/agents/) | Agent implementations and a copyable `example.py` |
+| [`starter-kit/configs/`](starter-kit/configs/) | Experiment configuration: agent, parameters, model and limits; no keys |
+| [`starter-kit/arena_kit/harness/`](starter-kit/arena_kit/harness/) | API communication, execution, recovery and reporting |
 | [`starter-kit/arena_kit/`](starter-kit/arena_kit/) | Existing cost calculation, data access, document parsing and simulator |
 | [`starter-kit/tests/`](starter-kit/tests/) | Local tests; hosted tests require explicit selection |
 | [`brief/`](brief/) | Official challenge, API and submission requirements |
 | [`data/`](data/) | Official procurement data, facts, SQLite, contracts and notes |
 | [`example_inputs/`](example_inputs/) | Recorded simulator inputs and attachments for inspection |
-| `.runs/` (ignored) | Local run state and exports; no shared source code |
+| `.runs/` (ignored) | Local run state and exports |
 
 There is one Python project, with its `pyproject.toml` and `uv.lock` in
-`starter-kit/`. Run Python commands there. New team agents belong in the outer
+`starter-kit/`. Run Python commands there. New agent implementations belong in
 `starter-kit/agents/`; `starter-kit/arena_kit/agents/` contains the original
 starter examples, exposed through harness adapters.
 
-## Team workflow
+## Development
 
 Follow the [Python workspace guide](starter-kit/README.md) to add an agent and
 configuration. Keep each approach in its own agent/config pair, run it locally,
@@ -49,8 +49,9 @@ Changes go through a feature branch and pull request; commit agent code and
 configuration so runs can be reproduced. Do not commit keys, `.env` or run state.
 
 The harness permits one run per OS user and machine. Coordinate hosted runs
-between team machines: they share the Arena key and quota. The original `arena`
-CLI has separate execution and configuration; use `arena-harness` for team runs.
+across machines using the same Arena key and quota. The original `arena`
+CLI has separate execution and configuration; use `arena-harness` for
+experiments and final execution.
 
 ## Hosted runs and the final
 

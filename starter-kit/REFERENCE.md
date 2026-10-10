@@ -1,6 +1,6 @@
 # Original starter-kit reference
 
-This page describes the original `arena` CLI and library examples. For team
+This page describes the original `arena` CLI and library examples. For
 experiments and the final, start with [README.md](README.md) and use
 [`arena-harness`](HARNESS.md). The two CLIs have different agent interfaces and
 model configuration. The original `arena` runner does not use the harness lock,

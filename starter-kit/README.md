@@ -1,8 +1,8 @@
 # Python workspace
 
-This directory is the team's Python 3.12 project. Keep new negotiation agents in
+This directory contains the Python 3.12 project. Agent implementations are in
 `agents/`, experiment configuration in `configs/`, and execution infrastructure
-in `arena_kit/harness/`. The original starter-kit helpers remain in `arena_kit/`.
+in `arena_kit/harness/`. The original starter-kit helpers are in `arena_kit/`.
 
 ## Install and check
 
@@ -40,15 +40,15 @@ your configuration. Compare matching case selections and data versions.
 
 Use `services.data`, `services.cost` and `services.complete` for shared data,
 cost calculation and budgeted model access. Keep state in the JSON returned by
-the agent. Each teammate can add an agent/config pair without changing the
-scheduler or transport.
+the agent. Agent implementations and their configurations can be added
+independently of the scheduler and transport.
 
 ## Navigation
 
 | Location | Purpose |
 |---|---|
 | [`HARNESS.md`](HARNESS.md) | Agent contract, CLI options, model limits, final start and recovery |
-| [`agents/example.py`](agents/example.py) | Copyable team-agent example |
+| [`agents/example.py`](agents/example.py) | Copyable agent example |
 | [`configs/`](configs/) | Per-experiment TOML; no keys |
 | [`arena_kit/harness/`](arena_kit/harness/) | Scheduler, transport, workers, journal, validation and reports |
 | [`arena_kit/`](arena_kit/) | Reusable cost, data, document and simulator helpers |
@@ -68,4 +68,4 @@ uv run --frozen ruff format --check arena_kit/harness agents tests/test_harness.
 Default tests block external connections. Hosted tests and hosted smoke runs
 need explicit authorization; follow [HARNESS.md](HARNESS.md) for those commands.
 The Dockerfile serves the original local simulator; use the Python/uv setup
-above for the full harness and team agents.
+above for the full harness and agent implementations.
