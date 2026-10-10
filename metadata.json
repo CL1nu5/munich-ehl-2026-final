@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4KZYJGBSDQKHY84AWFQTZAJ",
+  "strategy": "manual-commit",
+  "branch": "next-iter-linus",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "starter-kit/agents/_learner/graph.py",
+    "starter-kit/arena_kit/harness/engine.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 22,
+    "cache_creation_tokens": 11674,
+    "cache_read_tokens": 3904802,
+    "output_tokens": 8985,
+    "api_call_count": 11
+  }
+}
