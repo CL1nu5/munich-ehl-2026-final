@@ -21,6 +21,9 @@ Sunday at 12:00 a Live Final on hidden cases ranks every team.
 This repo holds everything you need: the brief, the API docs, a Python starter kit and the data
 package. Bring your own LLM, any provider; we run the suppliers.
 
+Team contributors: see [the team guide](docs/TEAM_GUIDE.md) for the data layout,
+release handling and proposed agent development priorities.
+
 ## Start in 15 minutes
 
 You need Python 3.12, [uv](https://docs.astral.sh/uv/) and git.
