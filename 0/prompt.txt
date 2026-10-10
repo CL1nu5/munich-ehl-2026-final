@@ -1,0 +1,5 @@
+Ist die Struktur von dem Repo und mit der Readme und allem gerade sinnvoll und so, dass die Teamkollegen gut weiterarbeiten können und soll das im Starter-Kit sein, der Python-Code und wie es gerade ist, oder sollen wir es noch kurz umstrukturieren und verbessern?
+
+---
+
+ok mache es nur ein tick neutraler und schreibe nicht so explitzit team oder so  sondern einfach neutral professionell und sachlich
