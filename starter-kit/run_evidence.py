@@ -41,6 +41,7 @@ def main():
         if args.mode == "final":
             if not args.commit:
                 parser.error("Final requires --commit with the frozen clean commit")
+            config = ROOT / "configs" / "evidence-final.toml"
             command = [
                 "run",
                 "--config",

@@ -10,8 +10,10 @@ import sys
 import time
 
 from ..client import ArenaError
+from ..data import DataPackage
 from ..play import live_threads, moves_left
 from .agent_process import AgentProcess
+from .economics import Economics
 from .state import Journal, digest, redact
 from .transport import Models, Transport, UncertainRequest, component
 from .validation import close_action, validate
@@ -30,6 +32,7 @@ class Engine:
         )
         self.models = models or Models(cfg, journal)
         self.stop = asyncio.Event()
+        self.policy_data = DataPackage(cfg["data"]) if cfg["agent"] == "evidence_buyer" else None
         self.quota_exhausted = False
         self.practice_left = None
         self.caps = {}
@@ -157,6 +160,9 @@ class Engine:
             return await self.play_case(case)
 
     async def play_case(self, case):
+        policy = (
+            Economics(case, self.policy_data, self.cfg["parameters"]) if self.cfg["agent"] == "evidence_buyer" else None
+        )
         cid = case["case_id"]
         stored = self.journal.cases().get(cid, {})
         if stored.get("result"):
@@ -253,7 +259,7 @@ class Engine:
                     if snapshot["status"] == "ended":
                         self.record_result(cid, snapshot)
                         return
-                    actions = [close_action(case, threads)]
+                    actions = [close_action(case, threads, policy)]
                 elif not ready:
                     await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)
                     continue
@@ -282,7 +288,7 @@ class Engine:
                             self.journal.case(cid, agent_state=state)
                             await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)
                             continue
-                        actions = validate(case, threads, decision["actions"])
+                        actions = validate(case, threads, decision["actions"], policy)
                         if any(a["supplier_id"] not in ready for a in actions):
                             raise ValueError("Action for busy supplier")
                         state = decision["state"]
@@ -304,10 +310,10 @@ class Engine:
                         return
                     threads = fresh
                     try:
-                        validate(case, threads, actions)
+                        validate(case, threads, actions, policy)
                     except ValueError:
                         self.journal.event("fallback", case=cid, phase="close", reason="StaleOrUnsafeOffer")
-                        actions = [close_action(case, threads)]
+                        actions = [close_action(case, threads, policy)]
                     close_attempts += 1
                     if close_attempts > 3:
                         self.journal.case(cid, error="Closure repeatedly rejected; session retained")

@@ -1,0 +1,15 @@
+# Real final only: never used by local/model launch modes.
+agent = "evidence_buyer"
+parallel = 10
+decision_seconds = 25
+poll_seconds = 3
+[parameters]
+use_model = true
+light_humor = true
+[model]
+name = "gpt-4.1-mini-2025-04-14"
+base_url = "https://api.openai.com/v1"
+max_calls = 500
+max_output_tokens = 512
+parallel = 10
+timeout = 15

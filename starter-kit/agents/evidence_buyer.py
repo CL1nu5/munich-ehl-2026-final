@@ -9,11 +9,12 @@ import sqlite3
 
 from arena_kit.cost import OPS, complete_offer, must_haves_ok, total_cost
 from arena_kit.docs import standard_terms
-from arena_kit.harness.validation import close_action
+from arena_kit.harness.economics import Economics
+from arena_kit.harness.validation import acceptable, close_action
 from arena_kit.play import latest, live_threads, moves_left, standing
 
 OPENINGS = {
-    "neutral": "Thank you for the clear proposal. Let's find a package that works for both sides.",
+    "neutral": "Thank you for your proposal. We would like to agree commercially sound terms for both businesses.",
     "cash": "Would earlier payment help make the overall package more workable for you?",
     "capacity": "Which delivery and commitment arrangement would help you plan reliably?",
     "quality": "Let's focus on a dependable solution and clear quality commitments.",
@@ -21,7 +22,7 @@ OPENINGS = {
 QUESTIONS = {
     "priorities": "Which of these packages best fits your priorities, and what is the main remaining obstacle?",
     "cash": "Would a different payment schedule help close the remaining gap?",
-    "capacity": "Which permitted delivery schedule is most reliable for your operation?",
+    "capacity": "Which delivery schedule can your operation reliably commit to?",
     "quality": "Which quality commitment can you reliably support?",
 }
 
@@ -79,13 +80,13 @@ def evidence(d, used):
         if ref in used:
             continue
         if ref.startswith("sc:") and finite_number(fact.get("otd_pct")):
-            return ref, f"Our recorded on-time delivery rate is {fact['otd_pct']:g}% ({ref})."
+            return ref, f"Our recorded on-time delivery rate is {fact['otd_pct']}% ({ref})."
         if ref.startswith("idx:") and finite_number(fact.get("value")):
-            return ref, f"The published index observation is {fact['value']:g} ({ref})."
+            return ref, f"The published index observation is {fact['value']} ({ref})."
     return None, ""
 
 
-def packages(case, current, std, target):
+def packages(case, current, std, target, policy=None, supplier_id=None):
     """Beam-search allowed nonprice terms, then solve price for equivalent buyer cost.
 
     Bounded to 48 candidates at each stage. No claim of global optimality. Packages
@@ -93,7 +94,7 @@ def packages(case, current, std, target):
     """
     if not finite_number(current.get("unit_price")) or current["unit_price"] <= 0:
         return []
-    base = complete_offer(case, current)
+    base = complete_offer(case, {**std, **current})
     if not finite_number(base.get("unit_price")) or base["unit_price"] <= 0:
         return []
     beam = [base]
@@ -125,12 +126,36 @@ def packages(case, current, std, target):
             if slope <= 0:
                 continue
             p = {**p, "unit_price": round((target - c1) / slope + 1, 2)}
+        if policy is not None:
+            cap = policy.parameters.get("max_unit_price", math.inf)
+            if "unit_price" in case["negotiable"]:
+                p["unit_price"] = math.floor(min(p["unit_price"], cap) * 100 + 1e-8) / 100
+            if policy.scenarios(supplier_id, std):
+                # Search prices as well as nonprice terms: a lower price may increase
+                # the published supplier-relationship penalty. All limits still apply.
+                upper = min(current["unit_price"], cap)
+                lower = min(p["unit_price"], upper * 0.7)
+                variants = (
+                    [{**p, "unit_price": round(lower + (upper - lower) * i / 40, 2)} for i in range(41)]
+                    if "unit_price" in case["negotiable"]
+                    else [p]
+                )
+                feasible = [
+                    v
+                    for v in variants
+                    if v["unit_price"] > 0 and must_haves_ok(case, v, std) and policy.within_limits(supplier_id, v, std)
+                ]
+                if not feasible:
+                    continue
+                p = min(feasible, key=lambda v: policy.cost(supplier_id, v, std))
+            if not policy.within_limits(supplier_id, p, std):
+                continue
         if not finite_number(p.get("unit_price")) or p["unit_price"] <= 0:
             continue
         if not must_haves_ok(case, p, std):
             continue
         # Rounding may differ by a cent per unit. Never silently exceed the target materially.
-        if total_cost(case, p, std) > target + max(
+        if not (policy and policy.scenarios(supplier_id, std)) and total_cost(case, p, std) > target + max(
             1, case["buyer"]["need_per_year"] * case["buyer"]["horizon_years"] * 0.011
         ):
             continue
@@ -140,7 +165,12 @@ def packages(case, current, std, target):
             seen.add(key)
     if not candidates:
         return []
-    candidates.sort(key=lambda p: sum(p.get(k) != base.get(k) for k in case["negotiable"]))
+    if policy and policy.scenarios(supplier_id, std):
+        best_cost = min(policy.cost(supplier_id, p, std) for p in candidates)
+        candidates = [p for p in candidates if policy.cost(supplier_id, p, std) <= best_cost * 1.01]
+        candidates.sort(key=lambda p: policy.cost(supplier_id, p, std))
+    else:
+        candidates.sort(key=lambda p: sum(p.get(k) != base.get(k) for k in case["negotiable"]))
     chosen = [candidates.pop(0)]
     while candidates and len(chosen) < 3:
         # Diverse choices: payment, delivery, volume, etc.; not mere cosmetic price differences.
@@ -184,18 +214,43 @@ class Agent:
         state.setdefault("suppliers", {})
         state.setdefault("used_refs", [])
         params = state.get("parameters", {})
+        policy = Economics(case, services.data, params)
+        params = policy.parameters
+        state["economics"] = {
+            "estimates": policy.estimates,
+            "missing_estimates": [sid for sid in case.get("suppliers", []) if sid not in policy.estimates],
+        }
         if not ready:
             return {"actions": [], "state": state}
         wave_left = observation.get("wave_seconds_left")
         if (wave_left is not None and wave_left < 95) or any(moves_left(case, threads[s]) <= 0 for s in ready):
-            return {"actions": [close_action(case, threads)], "state": state}
+            return {"actions": [close_action(case, threads, policy)], "state": state}
+        # A final quote may violate a nonprice requirement while a compensated package
+        # remains feasible. Use at most one last conditional repair, never accept it as-is.
+        repairable = set()
+        for sid in ready:
+            events = threads[sid]
+            _, quote = standing(events)
+            std = standard_terms(events)
+            last = latest(events).get("status")
+            if (
+                last == "final_offer"
+                and moves_left(case, events) > 0
+                and not state["suppliers"].get(sid, {}).get("final_repair")
+                and finite_number(quote.get("unit_price"))
+                and not must_haves_ok(case, quote, std)
+                and not acceptable(case, events, policy, sid)
+            ):
+                repairable.add(sid)
         # Do not close a multi-supplier RFQ simply because the first respondent says agreed.
-        if all(latest(threads[s]).get("status") in ("agreed", "final_offer") for s in live_threads(threads)):
-            return {"actions": [close_action(case, threads)], "state": state}
+        if not repairable and all(
+            latest(threads[s]).get("status") in ("agreed", "final_offer") for s in live_threads(threads)
+        ):
+            return {"actions": [close_action(case, threads, policy)], "state": state}
         plans, tasks = {}, {}
         for sid in ready:
             events = threads[sid]
-            if latest(events).get("status") in ("agreed", "final_offer"):
+            if sid not in repairable and latest(events).get("status") in ("agreed", "final_offer"):
                 continue
             supplier_state = state["suppliers"].setdefault(sid, {})
             if "dossier" not in supplier_state:
@@ -217,7 +272,19 @@ class Agent:
             alt = case["buyer"].get("alternative") or {}
             if alt.get("kind") not in (None, "none") and alt.get("terms"):
                 target = min(target, total_cost(case, alt["terms"]))
-            plans[sid] = packages(case, current, std, target)
+            if params.get("target_unit_price") is not None:
+                desired = total_cost(case, {**current, "unit_price": params["target_unit_price"]}, std)
+                target = min(target, desired + max(0, c - desired) * progress**2)
+            if sid in repairable:
+                # Limited heuristic compensation for mandatory nonprice changes. This
+                # is not knowledge of the supplier's hidden reservation value.
+                target = min(
+                    total_cost(case, {**current, "unit_price": current["unit_price"] * 1.03}, std),
+                    policy.alternative,
+                    params.get("max_total_cost", math.inf),
+                )
+                supplier_state["final_repair"] = True
+            plans[sid] = packages(case, current, std, target, policy, sid)
             tasks[sid] = {
                 "case_type": case.get("type"),
                 "dossier": supplier_state["dossier"],
@@ -243,7 +310,15 @@ class Agent:
             question = selected.get("question")
             question = question if isinstance(question, str) and question in QUESTIONS else "priorities"
             ref, claim = evidence(state["suppliers"][sid]["dossier"], state["used_refs"])
-            body = OPENINGS[opening] + " "
+            turn = sum(m.get("from") == "buyer" for m in threads[sid])
+            if turn:
+                body = (
+                    "Thank you for the update. We have reviewed the commercial package. "
+                    if turn % 2
+                    else "We appreciate the continued discussion. The overall terms remain our focus. "
+                )
+            else:
+                body = OPENINGS[opening] + " "
             if claim:
                 body += claim + " "
                 state["used_refs"].append(ref)
@@ -253,11 +328,27 @@ class Agent:
                 body += "Please consider the attached complete package. "
             if (
                 params.get("light_humor")
-                and not any(m.get("from") == "buyer" for m in threads[sid])
+                and turn == 1
+                and opening == "neutral"
+                and any(
+                    word in latest(threads[sid]).get("body", "").lower()
+                    for word in ("appreciate", "pleased", "happy", "constructive")
+                )
+                and not any(
+                    word in latest(threads[sid]).get("body", "").lower()
+                    for word in ("urgent", "delay", "complaint", "disappointed", "damage", "final")
+                )
                 and kind not in ("quality", "capacity")
             ):
-                body += "Let's keep the paperwork lighter than the parts. "
-            body += QUESTIONS[question]
+                body += "Ideally, the next thing we simplify is the paperwork. "
+            if turn >= max(1, case.get("round_limit", 10) - 2):
+                body += "Please confirm the complete package you can support so we can reach a clear decision."
+            else:
+                body += (
+                    "Does this package address your priorities, and what is the main remaining obstacle?"
+                    if len(offers) == 1 and question == "priorities"
+                    else QUESTIONS[question]
+                )
             actions.append(
                 {
                     "supplier_id": sid,

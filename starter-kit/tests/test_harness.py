@@ -643,3 +643,28 @@ def test_agent_can_wait_for_pending_supplier_without_forced_close(journal, monke
         assert report(journal)["coverage"] == 1
 
     execute(scenario())
+
+
+def test_broken_evidence_agent_cannot_bypass_hard_price_limit(journal, monkeypatch):
+    from arena_kit.harness import engine as module
+
+    class BrokenAgent:
+        def __init__(self, *args):
+            pass
+
+        async def call(self, method, *args, **kwargs):
+            return {} if method == "prepare" else {"actions": [{"invalid": True}], "state": {}}
+
+        async def close(self):
+            pass
+
+    monkeypatch.setattr(module, "AgentProcess", BrokenAgent)
+
+    async def scenario():
+        cfg = config(agent="evidence_buyer", cases=["case:S01"], parameters={"max_unit_price": 1})
+        sim, api = api_fixture(cfg, journal)
+        assert await Engine(cfg, journal, api=api).run() == 0
+        assert not journal.cases()["case:S01"]["result"]["deal"]
+        assert report(journal)["fallbacks"] == 1
+
+    execute(scenario())

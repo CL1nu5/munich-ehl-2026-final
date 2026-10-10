@@ -223,6 +223,86 @@
           "must_haves_ok": true
         }
       ]
+    },
+    {
+      "run_id": "20261010T152632Z-1bb2e36b",
+      "agent": "evidence_buyer",
+      "agent_hash": "2b53966e812dcfc57ddba444e55d812c69238e008d6f7e766d5dfb44537b576f",
+      "data_hash": "9dd27d7d26905dc00f609f20a96338655fb136a44d3e7aff5ad8da0d9360c1d5",
+      "profile": "sim",
+      "status": "completed",
+      "complete_score": 0.7560029868303673,
+      "fallbacks": 0,
+      "model_calls": 0,
+      "unknown_usage_calls": 0,
+      "usage_tokens": {},
+      "timeouts": 0,
+      "arena_timeouts_observed": 0,
+      "cases": [
+        {
+          "case_id": "case:S01",
+          "score": 0.7948245783349933,
+          "rounds": 5,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S02",
+          "score": 0.7813413783926938,
+          "rounds": 10,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S03",
+          "score": 0.6918430037634148,
+          "rounds": 3,
+          "deal": true,
+          "must_haves_ok": true
+        }
+      ]
+    },
+    {
+      "run_id": "20261010T152955Z-7d3a7eef",
+      "agent": "evidence_buyer",
+      "agent_hash": "3afc36232fd0bc2a3f115095ea67c9d58dcb37aa4215c9cc0df9b0931a267924",
+      "data_hash": "9dd27d7d26905dc00f609f20a96338655fb136a44d3e7aff5ad8da0d9360c1d5",
+      "profile": "sim",
+      "status": "completed",
+      "complete_score": 0.7560029868303673,
+      "fallbacks": 0,
+      "model_calls": 12,
+      "unknown_usage_calls": 0,
+      "usage_tokens": {
+        "completion_tokens": 237,
+        "prompt_tokens": 24600,
+        "total_tokens": 24837
+      },
+      "timeouts": 0,
+      "arena_timeouts_observed": 0,
+      "cases": [
+        {
+          "case_id": "case:S01",
+          "score": 0.7948245783349933,
+          "rounds": 5,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S02",
+          "score": 0.7813413783926938,
+          "rounds": 10,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S03",
+          "score": 0.6918430037634148,
+          "rounds": 3,
+          "deal": true,
+          "must_haves_ok": true
+        }
+      ]
     }
   ]
 }

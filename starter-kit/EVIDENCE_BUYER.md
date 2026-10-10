@@ -44,7 +44,9 @@ practice requests were used to develop this agent.
 2. Search permitted terms in a bounded beam (48 packages per stage, up to 32
    choices per field), filter mandatory constraints, and solve the price for a
    common buyer-cost target. Offer up to three distinct, complete packages.
-   Equivalence is approximate because unit prices have two decimal places.
+   Equivalence is approximate because unit prices have two decimal places. For strategic
+   cases with a usable cost estimate, a separate minimax search ranks packages by
+   worst estimated total cost, including relationship penalties.
 3. Keep an opening-based target with gradual concessions. The initial reduction
    is a tunable heuristic: 12% of opening total cost, or 6% for strategic/supply
    security goals. These are **not research-derived optimal percentages**.
@@ -56,13 +58,17 @@ practice requests were used to develop this agent.
    output cannot add citations or invent statistics. Current claim templates
    cover delivery scorecards and index observations, not causal cost arguments.
 6. Default tone is warm professional English, matching the kit's case language.
-   A mild paperwork/parts joke can appear in the opening; it is suppressed for
-   quality and capacity cases. No invented shared interests or personal research.
+   A restrained paperwork remark is eligible only once, on the second buyer reply,
+   after a positive supplier signal. It is suppressed for quality/capacity cases and
+   detected urgency, complaints, delays or dissatisfaction. No invented shared interests or personal research.
    This deliberately limited language palette should be expanded only alongside
    corresponding promise/claim checks.
 7. Standing offers are accepted explicitly through the existing common harness
    safeguards: current offer ID, readable quote, required fields, must-haves and
-   buyer alternative. RFQs wait for outstanding replies instead of closing solely
+   buyer alternative. Hard unit-price and total-cost limits and the risk estimate apply
+   consistently to ordinary acceptance, model failure and deadline closure. A final
+   quote that violates a mandatory condition can receive one checked counterpackage
+   before walking away. RFQs wait for outstanding replies instead of closing solely
    because one supplier said agreed. Near a wave deadline the harness safely closes.
 8. Model failure, malformed JSON, injection-like output, unavailable credentials
    or exhausted model-call budget leads to deterministic language. The harness
@@ -75,11 +81,23 @@ against hosted bots, and they cannot validate the economic effect of tone.
 No promised win rate, ranking, or hidden-final score follows from local results.
 
 The search is bounded and not a global optimizer. Supplier acceptance is uncertain.
-Should-cost values are retrieved as estimates; they are not true supplier floors.
-The current package equivalence and shared emergency-close policy use the public
-buyer cost function without an estimated supplier relationship penalty. Strategic
-cases therefore use a less aggressive anchor, but **robust optimization of uncertain
-supplier margins remains a limitation**. Do not present that as implemented.
+Should-cost is normalized by `price_unit`; its error band produces low/high cost
+scenarios, combined with financing-rate sensitivities of half/twice the buyer rate.
+The worst of these four estimates drives strategic offer ranking and every closing
+path. Rates are assumptions, not verified supplier facts or guarantees. Candidate
+prices are searched on a 41-point grid. No probability-calibrated risk claim is made.
+
+Missing/invalid cost estimates and bundles without part weights are explicitly
+recorded in agent state; no supplier margin is invented. Those cases use nominal
+buyer cost and the more cautious strategic anchor. This is a disclosed coverage
+limit, not a claim that every hidden supplier's economics can be recovered.
+
+`target_unit_price` is an aspiration. `max_unit_price` and `max_total_cost` are hard
+limits, also enforced on outgoing proposals and emergency closure. They are optional
+and can be set per case under `[parameters.case_limits."case:ID"]`. Do not apply a
+single arbitrary unit-price limit to unrelated parts. All amounts use the case's
+unit basis; source should-cost tables are separately normalized. The system never
+raises a hard limit to manufacture a deal.
 
 The market state is frozen by the challenge. Live web statistics in the research
 note below inform design only; they are not supplied as Arena evidence. The model
@@ -123,6 +141,25 @@ recovery, secret redaction, endpoint restrictions and rate-limit tests.
 Raw journals are local and ignored under `.runs/`. Report using
 `arena-harness report RUN_ID`; never feed final results back to the live agent.
 
+## Expanded stress evaluation and research
+
+See [professional policy and detailed assessment](PROFESSIONAL_POLICY.md) and the
+reproducible `evaluations/stress_evidence.py`. Two independent local sets now cover
+180 scenario instances, each run with two agents: 360 simulated negotiations.
+
+| Synthetic set | Known feasible at tested final terms | Baseline deals | Evidence Buyer deals | Unsafe deals |
+|---|---:|---:|---:|---:|
+| Development, 60 combinations | 42 | 23 | 39 | 0 for both |
+| New combinations, 120 | 79 | 48 | 73 | 0 for both |
+
+Among paired deals, buyer cost changed by −0.73% in development but **+0.14%** in
+validation. This does not show universal price superiority. The improved agent
+finds more feasible packages, while retaining hard limits. The validation set
+contains new combinations of the same five scripted opponent families; it does
+not test unseen human behavior or hosted bots. Feasibility is evaluated at a
+specific final-threshold price; it is not a global oracle for uncertain economics.
+Full outputs: `evidence-stress.json` and `evidence-validation.json`.
+
 ## Before the actual final
 
 Consult the current [official submission instructions](../brief/submission.md),
@@ -132,8 +169,10 @@ Consult the current [official submission instructions](../brief/submission.md),
 - Choose a reviewed, clean commit and ensure code/config/data are included.
 - Provide the team's existing `ARENA_API_KEY` through the local secret file.
   The OpenAI key is a different credential. Do not create a second Arena team.
-- Size the per-run model budget for the final; the included 12-call setting is a
-  deliberately small local-test budget. Once exhausted the agent remains deterministic.
+- The final launcher uses the separate `evidence-final.toml`: at most 500 model
+  calls, 512 output tokens per call, 15-second timeouts and ten parallel cases.
+  Local model tests remain capped at 12 calls. This is a call cap, not a euro
+  spending cap. Once exhausted the agent remains deterministic. Final was not run.
 - Verify Entire checkpoint linkage and EHL reviewer repository access.
 - Use the actual frozen commit in the submission and launch before the final:
   `.venv/bin/python starter-kit/run_evidence.py final --commit FULL_COMMIT_SHA`.

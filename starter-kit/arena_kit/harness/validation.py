@@ -19,7 +19,7 @@ def documented(events):
     return False
 
 
-def acceptable(case, events):
+def acceptable(case, events, policy=None, supplier_id=None):
     offer_id, terms = standing(events)
     std = standard_terms(events)
     if not offer_id or not documented(events):
@@ -27,6 +27,8 @@ def acceptable(case, events):
     if any(f not in terms and f not in std and f not in case.get("fixed_terms", {}) for f in case["negotiable"]):
         return False
     try:
+        if policy is not None and not policy.within_limits(supplier_id, terms, std):
+            return False
         cost = total_cost(case, terms, std)
         alt = case["buyer"].get("alternative") or {}
         limit = (
@@ -37,13 +39,18 @@ def acceptable(case, events):
         return False
 
 
-def close_action(case, threads):
+def close_action(case, threads, policy=None):
     live = live_threads(threads)
     candidates = []
     for sid in live:
-        if acceptable(case, threads[sid]):
+        if acceptable(case, threads[sid], policy, sid):
             offer_id, terms = standing(threads[sid])
-            candidates.append((total_cost(case, terms, standard_terms(threads[sid])), sid, offer_id))
+            cost = (
+                policy.cost(sid, terms, standard_terms(threads[sid]))
+                if policy
+                else total_cost(case, terms, standard_terms(threads[sid]))
+            )
+            candidates.append((cost, sid, offer_id))
     if candidates:
         _, sid, offer_id = min(candidates)
         return {"supplier_id": sid, "message": {"action": {"type": "accept", "term_sheet_id": offer_id}}}
@@ -51,7 +58,7 @@ def close_action(case, threads):
     return {"supplier_id": sid, "message": {"action": {"type": "walk_away"}}}
 
 
-def validate(case, threads, actions):
+def validate(case, threads, actions, policy=None):
     if not isinstance(actions, list) or not actions or len(actions) > len(threads):
         raise ValueError("Agent must return a nonempty list of actions")
     seen = set()
@@ -83,7 +90,7 @@ def validate(case, threads, actions):
             if cmd["type"] == "accept":
                 if set(cmd) != {"type", "term_sheet_id"}:
                     raise ValueError("Invalid accept")
-                if cmd["term_sheet_id"] != standing(threads[sid])[0] or not acceptable(case, threads[sid]):
+                if cmd["term_sheet_id"] != standing(threads[sid])[0] or not acceptable(case, threads[sid], policy, sid):
                     raise ValueError("Unsafe or stale acceptance")
             elif set(cmd) != {"type"}:
                 raise ValueError("Invalid walk_away")
@@ -110,6 +117,10 @@ def validate(case, threads, actions):
         for sheet in sheets:
             if set(sheet) != {"terms"} or set(sheet["terms"]) != set(case["negotiable"]):
                 raise ValueError("Term sheets require exactly the negotiable fields")
+            if policy is not None and (
+                not must_haves_ok(case, sheet["terms"], std) or not policy.within_limits(sid, sheet["terms"], std)
+            ):
+                raise ValueError("Proposal exceeds buyer limits or mandatory requirements")
             for field, value in sheet["terms"].items():
                 if isinstance(value, float) and not math.isfinite(value):
                     raise ValueError("Non-finite term")
