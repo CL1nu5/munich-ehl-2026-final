@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4KXKRT2PSBDZGGWR93RJE7Q",
+  "session_id": "e0423d2a-dc24-4576-8022-de040482ae79",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T22:05:55.429154Z",
+  "branch": "next-iter-linus",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "starter-kit/agents/_learner/graph.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "efede95c6065",
+  "checkpoint_transcript_start": 508,
+  "transcript_lines_at_start": 508,
+  "compact_transcript_start": 82,
+  "token_usage": {
+    "input_tokens": 2,
+    "cache_creation_tokens": 5471,
+    "cache_read_tokens": 218531,
+    "output_tokens": 782,
+    "api_call_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T22:05:55.380898Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 0,
+    "total_lines_changed": 0,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
