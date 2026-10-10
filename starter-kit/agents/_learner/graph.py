@@ -386,7 +386,10 @@ def within_band(menu, case=None, std=None, model=None, pref=None, standing_price
             terms = {**best["terms"], "unit_price": price}
             c = offers.cost(case, terms, std, model)
             if c is not None:
-                out.append({**best, "terms": terms, "price": price, "c": round(c, 2), "mid": best["mid"]})
+                # A sheet built from the level's cheapest one would share its ID, and the critic, which
+                # maps IDs to sheets, then sent the cheapest sheet twice instead of the repriced one.
+                mid = best["mid"] if best["mid"] not in {m["mid"] for m in out} else f"R{len(out) + 1}"
+                out.append({**best, "terms": terms, "price": price, "c": round(c, 2), "mid": mid})
     return out
 
 
@@ -403,7 +406,17 @@ def _with_alt_levers(case, led, pref):
     standing = led.get("terms") or {}
     for f in case["negotiable"]:
         v = (alt.get("terms") or {}).get(f)
-        if f == "unit_price" or f in fields or v is None or v == standing.get(f):
+        if f == "unit_price" or f in fields or v is None:
+            continue
+        # Our sheets may only carry allowed values (term options or its standard): a supplier's own value
+        # (practice: 54 days' lead time, options 35/42/56) becomes the nearest allowed one.
+        allowed = [o for o in case.get("term_options", {}).get(f) or [] if o is not None] + [led["std"].get(f)]
+        if v not in allowed:
+            nums = [o for o in allowed if isinstance(o, int | float) and not isinstance(o, bool)]
+            if not isinstance(v, int | float) or not nums:
+                continue
+            v = min(nums, key=lambda o: (abs(o - v), -o))
+        if v == standing.get(f):
             continue
         fields[f] = {"values": [v], "source": alt.get("term_sheet_id"), "basis": "its alternative package"}
     return {**(pref or {}), "fields": fields}
@@ -817,11 +830,20 @@ def critic(ctx):
             for c in ctx["claims"].get(sid) or []
             if c["cid"] in (choice.get("claim_ids") or []) and not (set(c["ids"]) & batch)
         ]
+        # One argument per kind and message: a supplier answers a second argument of the same kind (three
+        # parts' volume forecasts, say) with "duplicate" or "we have already taken that into account", and
+        # it takes one of the three checked slots (practice: 8 of 19 same-kind repeats came back duplicate).
+        chosen = [c for i, c in enumerate(chosen) if c["kind"] not in {x["kind"] for x in chosen[:i]}]
         wanted = len(choice.get("claim_ids") or [])
         for c in ctx["claims"].get(sid) or []:  # replace claims another supplier of this batch just got
             if len(chosen) >= wanted:
                 break
-            if c not in chosen and not c.get("reveals") and not (set(c["ids"]) & batch):
+            if (
+                c not in chosen
+                and not c.get("reveals")
+                and not (set(c["ids"]) & batch)
+                and c["kind"] not in {x["kind"] for x in chosen}
+            ):
                 chosen.append(c)
         batch.update(i for c in chosen for i in c["ids"] if not i.startswith(claims_mod.PER_SUPPLIER))
         questions = []
@@ -844,6 +866,7 @@ def critic(ctx):
         if hold:  # no sheets, no arguments: a polite holding reply that does not push its final offer
             sheets, chosen, questions = [], [], []
             choice = {**choice, "body": "", "tactic": "review", "sheet_ids": []}
+        sheets = _valid_sheets(case, threads, sid, sheets)
         latest = next((m.get("body") or "" for m in reversed(threads[sid]) if m.get("from") != "buyer"), "")
         notes = [writer.volume_answer(case, sheets, latest)] if sheets else []
         body_src, issues = writer.lint(preferences.filter_questions(choice.get("body") or "", pref))
@@ -911,6 +934,20 @@ def critic(ctx):
             }
         )
     return {"actions": actions}
+
+
+def _valid_sheets(case, threads, sid, sheets):
+    """Sheets the arena would accept: one invalid sheet used to cost the whole message its sheets."""
+    ok = []
+    for terms in sheets:
+        message = {"subject": "check", "body": "check", "term_sheets": [{"terms": terms}]}
+        probe = {"supplier_id": sid, "message": message}
+        try:
+            validate(case, threads, [probe])
+            ok.append(terms)
+        except Exception:
+            continue
+    return ok
 
 
 def _dearest(case, sheets, std, model=None):
