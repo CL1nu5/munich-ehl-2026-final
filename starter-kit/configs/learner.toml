@@ -1,0 +1,8 @@
+# learner agent on the local simulator, deterministic (no model).
+agent = "learner"
+parallel = 1   # one case after another, so later cases learn from earlier ones
+decision_seconds = 30
+max_cases = 3
+
+[parameters]
+llm = false
