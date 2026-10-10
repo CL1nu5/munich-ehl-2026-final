@@ -1,0 +1,5 @@
+quickcheck würde es sinn machen luna von medium auf high oder xhigh zu stellen, oder antwortet es aktuell nah an den timeout grenzen?
+
+---
+
+ok stelle das timout limit einfach auf 35
