@@ -5,6 +5,7 @@ parallel = 10
 decision_seconds = 30
 
 [parameters]
+round_budget = 4   # practice: suppliers sent their final offer in rounds 2-4
 llm = true
 two_call = true
 model_timeout = 25   # keep equal to [model].timeout

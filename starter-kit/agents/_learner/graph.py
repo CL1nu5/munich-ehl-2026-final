@@ -19,6 +19,8 @@ from . import memory, offers, policy, prompts, writer
 from .priors import advice_for
 
 REFRESH_MOVE = 1.5
+MENU_BAND = 0.003  # sheets may cost us at most this much more than the level's cheapest
+ASK_TOL = 0.001  # an offer "meets our ask" only if it also costs us no more than that ask
 MAX_LATENCY = 120  # a supplier answers within about a minute
 
 
@@ -256,6 +258,8 @@ def menu(ctx):
             and v_stand is not None
             and s.get("v_ask") is not None
             and v_stand <= s["v_ask"] + tol
+            # same value to it but dearer for us (practice P08: index clause swapped in) is no match
+            and (s.get("c_ask") is None or (led["c"] is not None and led["c"] <= s["c_ask"] * (1 + ASK_TOL)))
         ):
             out = accept_ready("its offer meets our last ask")
             if out:
@@ -275,7 +279,7 @@ def menu(ctx):
             s["v_stand_prev"] = v_stand
         must_beat = (offers.cost(case, led["terms"], std, model) if led["terms"] else None) or led["c"]
         must_beat = must_beat if must_beat is not None else math.inf
-        m = offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat)
+        m = within_band(offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat))
         if final_push and not [x for x in m if x["level"] == "trade"]:
             r["final_push"][sid] = False  # nothing to trade: do not push a final offer
             others_open = [
@@ -319,7 +323,17 @@ def menu(ctx):
     return {"menus": menus, "claims": claims, "shares": shares, "vals": vals, "mode": mode}
 
 
+def within_band(menu):
+    """Of equal-value sheets the supplier takes the one dearest for us (practice P10, P11): offer only
+    those close to the cheapest of their level."""
+    floor = {}
+    for m in menu:
+        floor[m["level"]] = min(floor.get(m["level"], m["c"]), m["c"])
+    return [m for m in menu if m["c"] <= floor[m["level"]] * (1 + MENU_BAND)]
+
+
 RECIPROCITY = 0.4  # we concede this share of the supplier's last concession (in value to it)
+STALL_STEP = 0.15  # after one round of mutual standstill we concede this share of the remaining gap
 
 
 def concession_values(s, k, horizon, v_asp, v_stand, drop_mult=1.0):
@@ -337,10 +351,13 @@ def concession_values(s, k, horizon, v_asp, v_stand, drop_mult=1.0):
         step = max(prev + RECIPROCITY / max(drop_mult, 0.5) * their, sched)
         step = min(step, prev + 0.75 * (v_stand - prev))  # a real move, but never all the way to its offer
     elif their <= 1e-6:
-        step = prev  # no concession without a move from its side
+        # no concession without a move from its side - but only once: repeating the same sheets runs into
+        # its final offer at its own price (practice P02, P03, P07, P11, P18)
+        step = prev + STALL_STEP * (v_stand - prev) if s.get("held") else prev
     else:
         step = min(prev + RECIPROCITY / max(drop_mult, 0.5) * their, max(cap, prev))
     step = min(max(step, prev), v_stand)
+    s["held"] = 0 < k and not late and step <= prev + 1e-9
     values = {"step": step, "big": step + (v_stand - step) * 0.4}
     if k > 0 and prev < step - 1e-9:
         values["hold"] = prev
@@ -567,6 +584,7 @@ def critic(ctx):
             v_asp, v_stand = ctx["vals"][sid]
             s["f"] = ctx["shares"][sid][level]
             s["v_ask"] = v_asp + s["f"] * (v_stand - v_asp)
+            s["c_ask"] = min(menu_by_id[m]["c"] for m in choice.get("sheet_ids") or [] if m in menu_by_id)
         s["sent_at"] = time.time()
         s["last_status"] = led["status"]
         if choice.get("read"):

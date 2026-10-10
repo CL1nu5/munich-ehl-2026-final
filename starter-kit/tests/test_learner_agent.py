@@ -370,7 +370,7 @@ def test_closing_actions_only_target_ready_suppliers():
             "ended": False,
         }
 
-    ledgers = {"sup:a": led(100.0, "agreed"), "sup:b": led(90.0)}
+    ledgers = {"sup:a": led(100.0, "agreed"), "sup:b": led(90.0, "final_offer")}
     r = policy.route({}, ledgers, ["sup:a"], None, {}, False)
     assert r["type"] == "close" and r["supplier_id"] == "sup:a"  # b is in flight: the engine settles it
 
@@ -622,3 +622,70 @@ def test_a_trigger_letter_only_in_the_case_facts_is_used():
     assert d["trigger"]["days"] == 51 and d["trigger"]["text"]
     kinds = {c["kind"] for c in claims_mod.build_catalog(case, pkg.facts, d, "sup:70110", 150, 9.5)}
     assert "notice" in kinds
+
+
+# --- practice run 20261010T180504Z-efccf31f regressions ---------------------------------------------
+
+
+def test_a_final_offer_is_not_pushed_when_walking_would_cost_us():
+    from agents._learner import policy
+
+    # P04: its final offer beats our alternative; a push risked a walk-away scoring 0
+    r = policy.route({}, {"sup:a": _led(197.0, "final_offer")}, ["sup:a"], 203.0, {}, False)
+    assert r["type"] == "close" and r["action"]["type"] == "accept"
+    # an alternative at least as good makes the push free
+    r = policy.route({}, {"sup:a": _led(205.0, "final_offer")}, ["sup:a"], 203.0, {}, False)
+    assert r["type"] == "negotiate" and r["final_push"] == {"sup:a": True}
+
+
+def test_an_agreement_is_held_while_a_cheaper_rival_negotiates():
+    from agents._learner import policy
+
+    # P05: one supplier agreed to a soft ask while a cheaper one was still open
+    ledgers = {"sup:a": _led(303.0, "agreed"), "sup:b": _led(269.0), "sup:c": _led(311.0)}
+    r = policy.route({}, ledgers, ["sup:a", "sup:b", "sup:c"], None, {}, False)
+    assert r["type"] == "negotiate" and r["hold"] == {"sup:a": True}
+    # cheapest already and the rivals stand still: take it
+    ledgers = {"sup:a": _led(260.0, "agreed"), "sup:b": _led(269.0), "sup:c": _led(311.0)}
+    r = policy.route({}, ledgers, ["sup:a"], None, {}, False)
+    assert r["type"] == "close" and r["supplier_id"] == "sup:a"
+
+
+def test_menu_keeps_only_sheets_close_to_the_cheapest_of_their_level():
+    menu = [
+        {"mid": "M1", "level": "step", "c": 1464865.0},
+        {"mid": "M2", "level": "step", "c": 1475230.0},  # P10: +0.7 %
+        {"mid": "M3", "level": "step", "c": 1480091.0},  # P10: 56 days lead time, +1.0 %
+        {"mid": "M4", "level": "big", "c": 1490000.0},
+        {"mid": "M5", "level": "big", "c": 1492000.0},
+    ]
+    assert [m["mid"] for m in graph.within_band(menu)] == ["M1", "M4", "M5"]
+
+
+def test_a_mutual_standstill_is_broken_after_one_held_round():
+    s = {"v_ask": 100.0, "v_stand_prev": 120.0}
+    first = graph.concession_values(s, 1, 6, 100.0, 120.0)
+    assert first["step"] == 100.0 and s["held"]
+    second = graph.concession_values(s, 2, 6, 100.0, 120.0)
+    assert second["step"] == pytest.approx(100.0 + graph.STALL_STEP * 20.0) and not s["held"]
+
+
+def test_an_offer_matching_our_ask_in_value_but_dearer_for_us_is_not_accepted():
+    sim = new_sim()
+    o = opened(sim, "case:S01")
+    case, threads = o["case"], o["threads"]
+    agent = Agent()
+    state = agent.prepare({"case": case, "parameters": {"llm": False, "memory": False}})
+    out = agent.decide(observation(case, threads), state, None)
+    sid = case["suppliers"][0]
+    sheet = out["actions"][0]["message"]["term_sheets"][0]["terms"]
+    reply = sim.message("test", o["session_id"], sid, out["actions"][0]["message"])
+    reply["term_sheets"][0]["terms"] = {"unit_price": round(sheet["unit_price"] - 1.0, 2)}  # below our ask
+    reply["status"] = "open"
+    threads[sid] += [{**out["actions"][0]["message"], "from": "buyer"}, reply]
+    for att in reply.get("attachments", []):
+        att["text"] = read_document(att["name"], sim.attachment("test", o["session_id"], att["attachment_id"])[0])
+    # P08: pretend our ask was cheaper for us than this offer (the supplier swapped in a dearer term)
+    out["state"]["sup"][sid]["c_ask"] = ledger_mod.build(case, threads)[sid]["c"] * 0.97
+    out2 = agent.decide(observation(case, threads), out["state"], None)
+    assert not out2["actions"][0]["message"].get("action")
