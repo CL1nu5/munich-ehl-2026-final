@@ -1,0 +1,142 @@
+D02 – Fehleranalyse, Reparatur und Grenzen
+10. Oktober 2026
+
+ABSCHLUSSPRÜFUNG
+
+291 Tests bestanden, ein echter Arena-Test absichtlich gesperrt. Laufzeit
+127,00 Sekunden. Zusätzlich 600 Eingabestörvarianten bestanden; statische
+Codeprüfung und Diff-Prüfung bestanden.
+
+ERGEBNIS DER UNTERSUCHUNG
+
+D02 erreichte im bereits abgeschlossenen Sandbox-Lauf 38,9039/100 Punkte.
+Der niedrige Wert war nicht bloß ein Anzeigeproblem und nicht allein die Folge
+des Timeouts. Die wirtschaftlichen Konditionen waren deutlich vom Bewertungs-
+Referenzpunkt entfernt. Zusätzlich gab es einen konkreten Fehler beim Warten
+auf mehrere Lieferanten. Dieser wurde lokal reproduziert und korrigiert.
+Es wurde keine neue Sandbox-Sitzung geöffnet und kein Modell aufgerufen.
+
+WAS DER SCORE BEDEUTET
+
+C_open: 214.296,00 EUR
+C_deal: 191.904,00 EUR
+C_best: 156.738,78 EUR
+(214.296 - 191.904) / (214.296 - 156.738,78) = 0,3890389425.
+Der Agent realisierte 22.392 EUR des vom Fall definierten Verbesserungsspielraums
+von 57.557,22 EUR. Das sind 38,90 Punkte, kein Preisrabatt von 38,90 Prozent.
+
+Abschluss bei Demo Machining:
+15,15 EUR/Stück, EXW, 42 Tage Lieferzeit, 45 Tage Zahlungsziel.
+Aufschlüsselung des Arena-Ergebnisses:
+- Teilekosten: 181.800 EUR
+- Fracht: 7.200 EUR
+- Verspätung gegenüber dem Bedarf: 1.050 EUR
+- Zahlungsbedingungen: 606 EUR
+- Qualitätskosten: 1.248 EUR
+Summe: 191.904 EUR. Die verbindliche Maximal-Lieferzeit von 42 Tagen wurde
+ eingehalten, aber der Bedarf nach 35 Tagen verursachte trotzdem Zusatzkosten.
+Der Stückpreis allein erklärte den Einkaufserfolg also nicht.
+
+KONKRETER ZEITFEHLER
+
+Der erste Lieferant, Demo Drehteile, stimmte in Runde 4 einem Angebot zu:
+15,91 EUR, DAP, 28 Tage Lieferzeit, 30 Tage Zahlungsziel. Während der Agent
+mit dem zweiten Lieferanten weiterverhandelte, übersprang er den bereits
+zustimmenden Lieferanten in seiner Aktionsliste. Dessen 60-Sekunden-Uhr lief
+jedoch weiter. Leere Entscheidungen waren als kurzfristiges Warten erlaubt,
+wurden hier aber über viele Wiederholungen fortgesetzt. Für D02 sind insgesamt
+486 Entscheidungsereignisse gespeichert, darunter zahlreiche leere Wartezyklen.
+Schließlich lief die Sicherheitsreserve aus; die Notfallentscheidung wurde
+aktiviert und im Arena-Verlauf wurde eine Fristverletzung registriert.
+
+REPARATUR
+
+Der Runner misst jetzt die bisher beobachtete Antwortdauer je Lieferant und
+übergibt sie der Entscheidungslogik. Bei einem wartenden zugesagten oder finalen
+Angebot wird die Restzeit dagegen geprüft: beobachtete Antwortdauer plus
+15 Sekunden Reserve, begrenzt auf 20 bis 55 Sekunden. Wenn eine weitere Runde
+nicht mehr vernünftig in dieses Fenster passt, wird über den zentralen,
+kosten- und pflichtgeprüften Abschlussweg entschieden. Bereits laufende
+Antworten werden wie bisher abgeglichen. Die Warteabfrage erfolgt in größeren
+Abständen, statt denselben leeren Entscheidungszyklus alle 0,1 Sekunden aufzurufen.
+Die Regel enthält weder D02-spezifische Kennungen noch einen geheimen Zielpreis.
+
+Das ist eine vorsichtige Heuristik anhand beobachteter Latenz, keine Garantie
+bei beliebig langen oder plötzlich ausfallenden Serverantworten. Insbesondere
+können bereits laufende HTTP-Anfragen weiterhin länger dauern als bisher.
+
+NACHWEIS DER REPARATUR
+
+Zwei lokale Integrationstests bilden die entscheidende Situation nach:
+ein schnell zustimmender Lieferant und ein langsamer weiterer Lieferant.
+Die Uhr wird um Faktor 20 beschleunigt; 1,5 beziehungsweise 2 Sekunden lokale
+Antwortverzögerung entsprechen 30 beziehungsweise 40 Sekunden Vertragszeit.
+Der Runner benutzt die echte Entscheidungslogik; die Lieferanten sind lokale
+Skripte. Die Dokumente werden über die vorhandene Auswertung verarbeitet.
+
+Mit dem ursprünglichen Agenten schlagen beide Tests wegen einer Ersatzentscheidung
+fehl. Mit dem korrigierten Agenten bestehen sie mit Abschluss, ohne Ersatzentscheidung
+und ohne protokollierte Lieferanten-Fristverletzung. Drei zusätzliche Tests prüfen
+Restzeit-/Latenzkombinationen direkt. Die bisherigen Warte- und Mehrlieferanten-
+Prüfungen bleiben erhalten: Ein erstes schnelles Angebot beendet nicht sofort
+jede RFQ, wenn noch genügend Zeit für weitere Antworten besteht.
+
+WARUM EIN FRÜHERER ABSCHLUSS NICHT AUTOMATISCH MEHR PUNKTE BRINGT
+
+Die Standardbedingungen des früheren Drehteile-Angebots wurden aus der bereits
+gespeicherten Angebots-PDF ausgelesen. Seine Gesamtkosten wären 192.720,80 EUR,
+entsprechend rund 37,48 Punkten mit derselben Bewertungsreferenz. Der spätere
+Abschluss war wirtschaftlich sogar etwas besser. Deshalb wäre die Behauptung,
+allein die Zeitkorrektur mache D02 nun zu einem 90-Punkte-Fall, falsch.
+Die Korrektur verbessert die Ablaufzuverlässigkeit; ein höherer gehosteter Score
+ist ohne einen neuen Lauf nicht nachgewiesen und wurde nicht behauptet.
+
+STRATEGIEPROBLEME UND NICHT ÜBERNOMMENE EXPERIMENTE
+
+Im Verlauf wurden Gegenangebote nach einem Rundenplan nach oben angepasst,
+auch bei zeitweise stagnierenden Lieferantenangeboten. Einige alternative
+Pakete verlangten außerdem 21 Tage Lieferzeit, obwohl laut Kostenmodell
+35 Tage genügten. Das kann dem Gegenüber unnötige Mehrarbeit auferlegen, ohne
+im veröffentlichten Käufer-Kostenmodell zusätzlichen Nutzen zu erzeugen.
+Für die Demo-Lieferanten enthielt das geladene lokale Dossier keine passenden
+Fakten oder Should-cost-Schätzungen. Im ausdrücklich modellfreien Lauf
+blieben die Texte zudem überwiegend allgemeine professionelle Bausteine.
+Es wurden keine fehlenden Fakten erfunden.
+
+Erprobt wurden deshalb eine kurze Pause einseitiger Zugeständnisse bei einem
+stagnierenden Angebot sowie weniger unnötig frühe Liefertermine. Alte und
+experimentelle Version wurden mit identischen Seeds lokal verglichen:
+- 100 Fälle: 55 Abschlüsse vorher und nachher; auf denselben 55 Abschlüssen
+  durchschnittlich 0,01046 % höhere Kosten mit dem Experiment.
+- Weitere 280 Fälle aus sieben Typen: 164 Abschlüsse vorher und nachher;
+  auf denselben 164 Abschlüssen durchschnittlich 0,00805 % höhere Kosten.
+- Keine getesteten harten Grenzverletzungen in beiden Serien.
+Die 380 Fälle wurden jeweils mit alter und experimenteller Agentenversion
+geprüft; das sind keine 760 unabhängigen Problemstellungen. Der zusätzlich
+mitlaufende ursprüngliche Starter-Baseline-Agent ist nicht der Vorher-Vergleich.
+
+Diese wirtschaftlich nicht belegten Änderungen wurden zurückgenommen.
+Der endgültige Code übernimmt nur die nachgewiesene Fristen-/Wartekorrektur.
+Die Versuchsdateien sind als Belege separat gespeichert. Ein höherer D02-Score
+bleibt eine offene Optimierungsaufgabe, kein abgeschlossenes Versprechen.
+
+RECHERCHE-EINORDNUNG
+
+Die fachliche Recherche stützt das Prüfen mehrerer gleichwertiger Angebote und
+wechselseitiger beziehungsweise bedingter Zugeständnisse als allgemeine Ansätze.
+Sie liefert keine Erfolgsgarantie für diese Sandbox-Gegner und rechtfertigt nicht,
+eine in unseren Vergleichstests schlechtere Variante als Verbesserung auszurollen.
+Quellen:
+Deepak Malhotra / Harvard Program on Negotiation, Four Strategies for Making
+Concessions in Negotiation:
+https://www.pon.harvard.edu/daily/negotiation-skills-daily/four-strategies-for-making-concessions/
+Harvard Program on Negotiation, The Benefits of Multiple Equivalent Simultaneous Offers:
+https://www.pon.harvard.edu/daily/dealmaking-daily/the-benefits-of-multiple-offers/
+
+VERBRAUCH UND OFFENE GRENZEN
+
+Kein neuer Sandbox-, Practice- oder Finalfall. Keine OpenAI-Aufrufe. Ausgewertet
+wurden ausschließlich das vorhandene D02-Journal und gespeicherte Dokumente;
+neue Verhandlungen waren ausschließlich lokale Simulationen. Der bekannte echte
+D02-Score bleibt 38,90/100. Die finale Wirksamkeit der Korrektur gegenüber dem
+gehosteten Server wurde gemäß Nutzervorgabe nicht erneut erprobt.

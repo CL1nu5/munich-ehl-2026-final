@@ -229,6 +229,15 @@ class Agent:
         wave_left = observation.get("wave_seconds_left")
         if (wave_left is not None and wave_left < 95) or any(moves_left(case, threads[s]) <= 0 for s in ready):
             return {"actions": [close_action(case, threads, policy)], "state": state}
+        # An agreed supplier's reply clock keeps running while another supplier thinks.
+        # Reserve observed roundtrip time plus closing margin, rather than parking it
+        # until the harness runs out of its five-second decision reserve.
+        terminal = [s for s in ready if latest(threads[s]).get("status") in ("agreed", "final_offer")]
+        latencies = observation.get("reply_latency_seconds", {})
+        observed = [v for v in latencies.values() if finite_number(v) and v >= 0]
+        reserve = min(55, max(20, max(observed, default=30) + 15))
+        if terminal and any(observation.get("seconds_left", {}).get(s, 60) <= reserve for s in terminal):
+            return {"actions": [close_action(case, threads, policy)], "state": state}
         # A final quote may violate a nonprice requirement while a compensated package
         # remains feasible. Use at most one last conditional repair, never accept it as-is.
         repairable = set()

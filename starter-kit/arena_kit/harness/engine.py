@@ -182,6 +182,7 @@ class Engine:
             return
         agent = AgentProcess(self.cfg, self.models)
         pending = {}
+        reply_latencies = {}
         try:
             state = stored.get("agent_state", {})
             if not stored.get("prepared"):
@@ -228,7 +229,9 @@ class Engine:
             async def send(action):
                 supplier, message = action["supplier_id"], action["message"]
                 path = f"sessions/{component(sid)}/threads/{component(supplier)}/messages"
+                sent_at = time.monotonic()
                 reply = await self.api.request("POST", path, body={"message": message})
+                reply_latencies[supplier] = max(reply_latencies.get(supplier, 0), time.monotonic() - sent_at)
                 if reply.get("ended") or "result" in reply:
                     return reply
                 deadlines[supplier] = time.monotonic() + 60
@@ -284,6 +287,7 @@ class Engine:
                         "case": case,
                         "threads": copy.deepcopy(threads),
                         "ready_suppliers": ready,
+                        "reply_latency_seconds": dict(reply_latencies),
                         "seconds_left": {s: max(0, deadlines[s] - time.monotonic()) for s in ready},
                         "wave_seconds_left": None if cap == float("inf") else max(0, cap - time.monotonic()),
                     }
@@ -297,7 +301,7 @@ class Engine:
                         if decision.get("actions") == [] and pending:
                             state = decision["state"]
                             self.journal.case(cid, agent_state=state)
-                            await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)
+                            await asyncio.wait(pending.values(), timeout=1.0, return_when=asyncio.FIRST_COMPLETED)
                             continue
                         actions = validate(case, threads, decision["actions"], policy)
                         if any(a["supplier_id"] not in ready for a in actions):

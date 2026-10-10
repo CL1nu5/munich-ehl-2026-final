@@ -1,8 +1,8 @@
-> Aktueller Prüfstand: **286 Tests bestanden**, nur der echte Arena-Test gesperrt.
-> Neuer lokaler Gesamtscore: **75,60/100** (drei Simulatorfälle, kein Arena-Ergebnis).
-> Mail-/HTTP-Integration und Team-Basis geprüft: `INTEGRATION_SCORE_REVIEW.txt`.
-> MCP-Fehlerbefunde: `MCP_DEEP_REVIEW.txt`; Modellvergleich: `MODEL_EVALUATION.txt`.
-> Ältere Messwerte im folgenden Text bleiben historische Befunde.
+> Aktueller Stand: **291 Tests bestanden**, echter Arena-Test gesperrt.
+> D02-Zeitfehler lokal reproduziert und korrigiert: `D02_REVIEW.txt`.
+> Bekannter echter Sandbox-Score: D01 92,66; D02 38,90; kein neuer gehosteter Lauf.
+> Wirtschaftliche Strategieexperimente ohne belegten Vorteil wurden zurückgenommen.
+> Frühere Modellmessungen und Simulatorwerte bleiben historische Befunde.
 
 # Evidence Buyer
 
