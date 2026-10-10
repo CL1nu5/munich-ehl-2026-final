@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4KWV92J8R6KFA3SB9VSEM38",
+  "strategy": "manual-commit",
+  "branch": "next-iter-linus",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "starter-kit/EVALUATION.md",
+    "starter-kit/agents/_learner/claims.py",
+    "starter-kit/agents/_learner/graph.py",
+    "starter-kit/agents/_learner/offers.py",
+    "starter-kit/agents/_learner/preferences.py",
+    "starter-kit/agents/_learner/priors.py",
+    "starter-kit/agents/_learner/prompts.py",
+    "starter-kit/agents/_learner/writer.py",
+    "starter-kit/arena_kit/harness/audit.py",
+    "starter-kit/tests/test_negotiation_generalization.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 168,
+    "cache_creation_tokens": 291004,
+    "cache_read_tokens": 17507101,
+    "output_tokens": 86549,
+    "api_call_count": 85
+  }
+}

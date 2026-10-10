@@ -1,0 +1,5 @@
+Ok nächste iteration, schaue dir an, was beim letzten run noch nicht so funktioniert hat, achte daruaf nicht overzufitten, starte noch keine pracitce runs. implmentiere die changes. hier sihst du das leaderboard: https://arena.tacto.ai/live wir sind fakeit tillyou make it. achaue dir an, was auch fundamental noch nicht funktionieren kann. schaue ob du bugs findest
+
+---
+
+continue
