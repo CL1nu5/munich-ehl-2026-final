@@ -57,7 +57,7 @@ message. A closing action must be the only action in its batch:
 
 The harness validates outputs and can replace an invalid/late decision with a
 safe closure. Standard terms must be readable before acceptance. Cost estimates
-do not reveal the supplier's hidden economics. Plugins are trusted team code,
+do not reveal the supplier's hidden economics. Plugins are trusted Python code,
 not an OS security sandbox; use `services.complete` for all model calls so limits
 and metrics apply. Worker stdout is reserved for the harness protocol; ordinary
 plugin prints are discarded. Keep durable state in the returned JSON.
@@ -81,7 +81,7 @@ uv run arena-harness run --profile sandbox --case case:D01 --agent baseline --al
 uv run arena-harness run --profile practice --case case:P01 --agent baseline --allow-arena
 ```
 
-`doctor` performs read-only team/session/data checks, never opens a session and
+`doctor` performs read-only account/session/data checks, never opens a session and
 never calls a model. Sandbox is outside the practice quota, but a configured
 buyer model can still cost money. Increase `--max-cases` explicitly for a larger
 practice batch. Preflight refuses unowned open sessions and insufficient quota.
@@ -102,10 +102,10 @@ not a guaranteed billing cap. Internal multi-step agents share the same limits.
 Use the current [official submission requirements](../brief/submission.md).
 Load the official Sunday release into `data/release-sunday/`; overlapping fact
 IDs are rejected. Commit the selected code, agent, configuration and data before
-the freeze. Ensure the machine stays awake and connected. Only one team machine
-should run live: the lock covers one OS user on one machine, not the team key
-across different computers. The legacy `arena` CLI is independent of this lock;
-use `arena-harness` for coordinated experiments and the final.
+the freeze. Ensure the machine stays awake and connected. Only one machine per
+Arena key should run live: the lock covers one OS user on one machine and does
+not coordinate execution across different computers. The legacy `arena` CLI is
+independent of this lock; use `arena-harness` for experiments and the final.
 
 ```bash
 uv run arena-harness doctor --profile final --config configs/final.toml
@@ -129,7 +129,7 @@ crashed engine at most three times. The engine inherits the lock descriptor, so
 killing only the supervisor does not permit a competing run. Every POST is
 journaled before sending; retries use its original `X-Move-Id`. Never delete a run
 journal to retry a final case. Resume requires unchanged commit, code, agent and
-data, plus the original team key. Config and remaining model budgets are restored.
+data, plus the original Arena key. Config and remaining model budgets are restored.
 
 First Ctrl-C requests controlled closure; a second forces interruption. After an
 unresolved request, resume the same run instead of starting a fresh one. Exit 0
