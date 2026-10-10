@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4K042TJ16JHZ12JXHREJDWQ",
+  "session_id": "01a125f4-e71b-75d3-80b9-1b2e455f85a8",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T13:30:31.725276Z",
+  "branch": "codex/team-data-guide",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "README.md",
+    "docs/TEAM_GUIDE.md"
+  ],
+  "agent": "Codex",
+  "model": "gpt-6.1-sol",
+  "turn_id": "47e84e30e04a",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 103293,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1617408,
+    "output_tokens": 12737,
+    "api_call_count": 20
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T13:30:31.68795Z",
+    "agent_lines": 94,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 94,
+    "total_lines_changed": 94,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 281,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "docs/CONTEXT.md": 83,
+        "docs/STRATEGY.md": 157,
+        "docs/public-data-audit.json": 41
+      }
+    }
+  ]
+}
