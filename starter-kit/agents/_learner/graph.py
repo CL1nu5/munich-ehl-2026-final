@@ -304,7 +304,8 @@ def menu(ctx):
         pref = _with_alt_levers(case, led, s.get("preferences") or {})
         full = offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat)
         fulls[sid] = full
-        m = preferences.rank(within_band(full, case, std, model, pref, led.get("price")), pref)
+        banded = within_band(full, case, std, model, pref, led.get("price"))
+        m = preferences.rank(_robust(case, banded, std, model, led.get("price"), pref), pref)
         probe = _index_probe(case, led, full, m, std, model, pref) if led["rounds"] == 0 and not final_push else None
         if probe:
             m.append(probe)
@@ -414,6 +415,35 @@ def within_band(menu, case=None, std=None, model=None, pref=None, standing_price
                 mid = best["mid"] if best["mid"] not in {m["mid"] for m in out} else f"R{len(out) + 1}"
                 out.append({**best, "terms": terms, "price": price, "c": round(c, 2), "mid": mid})
     return out
+
+
+ROBUST_BAND = 0.003
+
+
+def _robust(case, menu, std, model, standing_price, pref):
+    """Keep the sheets whose levers are also cheap for us at the supplier's own price, cheapest first.
+
+    Suppliers mostly answer with their own price on the levers we sent: in practice P03 a sheet with 30 days'
+    payment at a lower price came back as a final offer with 30 days' payment at almost its old price - dearer
+    for us than its 90-day offer before. A lever the supplier insists on (`pref`) stays."""
+    if not standing_price or not menu:
+        return menu
+    fields = (pref or {}).get("fields") or {}
+    scored = []
+    for m in menu:
+        c = offers.cost(case, {**m["terms"], "unit_price": standing_price}, std, model)
+        scored.append((math.inf if c is None else c, m))
+    floor = {}
+    for c, m in scored:
+        floor[m["level"]] = min(floor.get(m["level"], c), c)
+    out = [
+        (c, m)
+        for c, m in scored
+        if c <= floor[m["level"]] * (1 + ROBUST_BAND)
+        or (fields and all(m["terms"].get(f) in p["values"] for f, p in fields.items()))
+    ]
+    out.sort(key=lambda x: x[0])
+    return [m for _, m in out]
 
 
 def _with_alt_levers(case, led, pref):
