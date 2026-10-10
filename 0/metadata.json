@@ -1,0 +1,61 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4KR732HY6GB05SQV7SQ8177",
+  "session_id": "ee427ce8-ce82-47a0-8150-d806df7e09d9",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T20:31:37.384901Z",
+  "branch": "feat/negotiation-batch",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "starter-kit/EVALUATION.md",
+    "starter-kit/agents/_learner/README.md",
+    "starter-kit/agents/_learner/graph.py",
+    "starter-kit/agents/_learner/ledger.py",
+    "starter-kit/agents/_learner/offers.py",
+    "starter-kit/agents/_learner/params.py",
+    "starter-kit/agents/_learner/policy.py",
+    "starter-kit/agents/_learner/priors.py",
+    "starter-kit/agents/_learner/prompts.py",
+    "starter-kit/agents/_learner/writer.py",
+    "starter-kit/arena_kit/harness/engine.py",
+    "starter-kit/arena_kit/harness/validation.py",
+    "starter-kit/arena_kit/harness/valuation.py",
+    "starter-kit/tests/test_learner_agent.py",
+    "starter-kit/tests/test_negotiation_generalization.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "66f26c468ff4",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 226,
+    "cache_creation_tokens": 314455,
+    "cache_read_tokens": 21044919,
+    "output_tokens": 105479,
+    "api_call_count": 112
+  },
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T20:31:37.30911Z",
+    "agent_lines": 381,
+    "agent_removed": 99,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 381,
+    "total_lines_changed": 480,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
