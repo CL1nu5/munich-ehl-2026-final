@@ -11,6 +11,9 @@ max_calls = 10
 max_output_tokens = 1024
 parallel = 2
 timeout = 20
+# Optional for OpenAI reasoning models: sends reasoning_effort and
+# max_completion_tokens instead of max_tokens.
+# reasoning_effort = "medium"
 # Optional estimates only; enter your provider's actual prices.
 # input_usd_per_million = 0.0
 # output_usd_per_million = 0.0

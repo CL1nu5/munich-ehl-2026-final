@@ -8,6 +8,7 @@ import os
 import signal
 import sys
 import time
+import uuid
 
 from ..client import ArenaError
 from ..data import DataPackage
@@ -225,7 +226,8 @@ class Engine:
                 if case.get("wave") and time.monotonic() >= self.caps.get(case["wave"], 0) - 90:
                     self.journal.case(cid, error="Insufficient wave time to start safely")
                     return
-                op_id = stored.get("open_operation") or f"open-{cid}"
+                # X-Move-Id is replayed team-wide: a fixed ID would return another run's session.
+                op_id = stored.get("open_operation") or f"open-{cid}-{uuid.uuid4().hex}"
                 self.journal.case(cid, open_operation=op_id)
                 try:
                     opened = await self.api.request("POST", "sessions", body={"case_id": cid}, operation_id=op_id)
