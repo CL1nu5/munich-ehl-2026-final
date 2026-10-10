@@ -1,0 +1,228 @@
+{
+  "warning": "Local scripted simulator only; not a prediction of hosted performance.",
+  "runs": [
+    {
+      "run_id": "20261010T150822Z-72722255",
+      "agent": "evidence_buyer",
+      "agent_hash": "799af5abf96b7cb35900b9d5819401338b64b2e61c6fe0142478dd094167f1e6",
+      "data_hash": "9dd27d7d26905dc00f609f20a96338655fb136a44d3e7aff5ad8da0d9360c1d5",
+      "profile": "sim",
+      "status": "completed",
+      "complete_score": 0.5976894403137923,
+      "fallbacks": 0,
+      "model_calls": 0,
+      "unknown_usage_calls": 0,
+      "usage_tokens": {},
+      "timeouts": 0,
+      "arena_timeouts_observed": 0,
+      "decision_seconds": {
+        "count": 13,
+        "mean": 0.0014611603082112896,
+        "p95": 0.0030812920012976974
+      },
+      "cases": [
+        {
+          "case_id": "case:S01",
+          "score": 0.6287299428560444,
+          "rounds": 3,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S02",
+          "score": 0.6173472790613984,
+          "rounds": 6,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S03",
+          "score": 0.5469910990239342,
+          "rounds": 2,
+          "deal": true,
+          "must_haves_ok": true
+        }
+      ]
+    },
+    {
+      "run_id": "20261010T150859Z-d57cd7ca",
+      "agent": "baseline",
+      "agent_hash": "18e2289530081856c61e42d048b50bfb6fbbd80ae4831f72568a14198f1822a5",
+      "data_hash": "9dd27d7d26905dc00f609f20a96338655fb136a44d3e7aff5ad8da0d9360c1d5",
+      "profile": "sim",
+      "status": "completed",
+      "complete_score": 0.6731794406393706,
+      "fallbacks": 0,
+      "model_calls": 0,
+      "unknown_usage_calls": 0,
+      "usage_tokens": {},
+      "timeouts": 0,
+      "arena_timeouts_observed": 0,
+      "decision_seconds": {
+        "count": 22,
+        "mean": 0.0007140416819311213,
+        "p95": 0.001021250000121654
+      },
+      "cases": [
+        {
+          "case_id": "case:S01",
+          "score": 0.8694326796573583,
+          "rounds": 5,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S02",
+          "score": 0.8591815078655396,
+          "rounds": 10,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S03",
+          "score": 0.29092413439521414,
+          "rounds": 5,
+          "deal": true,
+          "must_haves_ok": true
+        }
+      ]
+    },
+    {
+      "run_id": "20261010T151121Z-797e5ca9",
+      "agent": "evidence_buyer",
+      "agent_hash": "abf668f085fa589b41d7c998e42a42547596da9e06561a5d2d8c582609712cc0",
+      "data_hash": "9dd27d7d26905dc00f609f20a96338655fb136a44d3e7aff5ad8da0d9360c1d5",
+      "profile": "sim",
+      "status": "completed",
+      "complete_score": 0.7560564278577567,
+      "fallbacks": 0,
+      "model_calls": 0,
+      "unknown_usage_calls": 0,
+      "usage_tokens": {},
+      "timeouts": 0,
+      "arena_timeouts_observed": 0,
+      "decision_seconds": {
+        "count": 20,
+        "mean": 0.001583152100283769,
+        "p95": 0.0026092500011145603
+      },
+      "cases": [
+        {
+          "case_id": "case:S01",
+          "score": 0.7948245783349933,
+          "rounds": 5,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S02",
+          "score": 0.7813413783926938,
+          "rounds": 10,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S03",
+          "score": 0.6920033268455832,
+          "rounds": 3,
+          "deal": true,
+          "must_haves_ok": true
+        }
+      ]
+    },
+    {
+      "run_id": "20261010T151210Z-098a7e05",
+      "agent": "evidence_buyer",
+      "agent_hash": "abf668f085fa589b41d7c998e42a42547596da9e06561a5d2d8c582609712cc0",
+      "data_hash": "9dd27d7d26905dc00f609f20a96338655fb136a44d3e7aff5ad8da0d9360c1d5",
+      "profile": "sim",
+      "status": "completed",
+      "complete_score": 0.7560564278577567,
+      "fallbacks": 0,
+      "model_calls": 12,
+      "unknown_usage_calls": 0,
+      "usage_tokens": {
+        "completion_tokens": 271,
+        "prompt_tokens": 13469,
+        "total_tokens": 13740
+      },
+      "timeouts": 0,
+      "arena_timeouts_observed": 0,
+      "decision_seconds": {
+        "count": 20,
+        "mean": 0.5062881331997232,
+        "p95": 1.3297810410003876
+      },
+      "cases": [
+        {
+          "case_id": "case:S01",
+          "score": 0.7948245783349933,
+          "rounds": 5,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S02",
+          "score": 0.7813413783926938,
+          "rounds": 10,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S03",
+          "score": 0.6920033268455832,
+          "rounds": 3,
+          "deal": true,
+          "must_haves_ok": true
+        }
+      ]
+    },
+    {
+      "run_id": "20261010T151507Z-f8b3ec2d",
+      "agent": "evidence_buyer",
+      "agent_hash": "871f817418f0350d0f097b34a509d03bc7bd116f2b5331c79af9b200ecfc64fd",
+      "data_hash": "9dd27d7d26905dc00f609f20a96338655fb136a44d3e7aff5ad8da0d9360c1d5",
+      "profile": "sim",
+      "status": "completed",
+      "complete_score": 0.7560564278577567,
+      "fallbacks": 0,
+      "model_calls": 12,
+      "unknown_usage_calls": 0,
+      "usage_tokens": {
+        "completion_tokens": 254,
+        "prompt_tokens": 24646,
+        "total_tokens": 24900
+      },
+      "timeouts": 0,
+      "arena_timeouts_observed": 0,
+      "decision_seconds": {
+        "count": 23,
+        "mean": 0.41142795299990964,
+        "p95": 0.9191382919998432
+      },
+      "cases": [
+        {
+          "case_id": "case:S01",
+          "score": 0.7948245783349933,
+          "rounds": 5,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S02",
+          "score": 0.7813413783926938,
+          "rounds": 10,
+          "deal": true,
+          "must_haves_ok": true
+        },
+        {
+          "case_id": "case:S03",
+          "score": 0.6920033268455832,
+          "rounds": 3,
+          "deal": true,
+          "must_haves_ok": true
+        }
+      ]
+    }
+  ]
+}

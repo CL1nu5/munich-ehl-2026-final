@@ -79,3 +79,10 @@ authorization.
 - [Upstream starter repository](https://github.com/tacto-ai/negotiation-arena-kit)
 
 Code: [MIT](LICENSE). Data and official docs: [CC BY 4.0](LICENSE-data).
+
+## Evidence Buyer agent
+
+A bounded, evidence-grounded agent built on the shared harness is available in
+`starter-kit/agents/evidence_buyer.py`. See [run instructions, research, evaluation
+and current limitations](starter-kit/EVIDENCE_BUYER.md). Start with the local
+simulator; `run_evidence.py` deliberately has no hosted practice mode.

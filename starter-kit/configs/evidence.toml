@@ -1,0 +1,7 @@
+agent = "evidence_buyer"
+parallel = 3
+max_cases = 3
+decision_seconds = 25
+[parameters]
+use_model = false
+light_humor = true

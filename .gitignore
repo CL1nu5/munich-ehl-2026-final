@@ -9,3 +9,7 @@ __pycache__/
 
 # Harness journals, transcripts, reports and local simulator state
 .runs/
+
+# Local credentials (never commit)
+.env.local
+.env.*.local

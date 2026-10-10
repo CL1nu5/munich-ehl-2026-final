@@ -275,6 +275,13 @@ class Engine:
                         if budget <= 0:
                             raise TimeoutError("Decision deadline")
                         decision = await agent.call("decide", budget, observation=observation, state=state)
+                        # An agent may wait when only an agreed supplier is ready and another
+                        # response is in flight. Do not turn that wait into a premature close.
+                        if decision.get("actions") == [] and pending:
+                            state = decision["state"]
+                            self.journal.case(cid, agent_state=state)
+                            await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)
+                            continue
                         actions = validate(case, threads, decision["actions"])
                         if any(a["supplier_id"] not in ready for a in actions):
                             raise ValueError("Action for busy supplier")

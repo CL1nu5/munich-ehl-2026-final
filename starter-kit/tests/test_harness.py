@@ -598,3 +598,48 @@ def test_oversized_or_secret_request_rejected_before_network(journal, monkeypatc
 
     execute(scenario())
     assert journal.pending() == []
+
+
+def test_agent_can_wait_for_pending_supplier_without_forced_close(journal, monkeypatch):
+    from arena_kit.harness import engine as module
+    from arena_kit.harness.plugins import Baseline
+
+    waits = []
+
+    class WaitingAgent:
+        def __init__(self, *args):
+            pass
+
+        async def call(self, method, *args, **kwargs):
+            if method == "prepare":
+                return {}
+            obs = kwargs["observation"]
+            if len(obs["ready_suppliers"]) == 1:
+                waits.append(True)
+                return {"actions": [], "state": {"waited": True}}
+            return Baseline().decide(obs, kwargs["state"], None)
+
+        async def close(self):
+            pass
+
+    monkeypatch.setattr(module, "AgentProcess", WaitingAgent)
+
+    async def scenario():
+        cfg = config(cases=["case:S02"])
+        sim = Sim(load_cases(), no_clock=True)
+        sim.teams["test"] = "test"
+        base = httpx.ASGITransport(app=create_app(sim))
+
+        async def handle(request):
+            if request.method == "POST" and "/threads/sup:70360/messages" in request.url.path:
+                if not json.loads(request.content)["message"].get("action"):
+                    await asyncio.sleep(0.4)
+            return await base.handle_async_request(request)
+
+        api = Transport(cfg, journal, url="http://127.0.0.1", key="test", transport=httpx.MockTransport(handle))
+        assert await Engine(cfg, journal, api=api).run() == 0
+        assert waits
+        assert report(journal)["fallbacks"] == 0
+        assert report(journal)["coverage"] == 1
+
+    execute(scenario())
