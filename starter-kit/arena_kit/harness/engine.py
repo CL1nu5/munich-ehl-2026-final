@@ -235,6 +235,7 @@ class Engine:
                 return reply
 
             force_close = False
+            resync = False  # a thread went late or ended under us: refresh all threads, keep negotiating
             close_attempts = 0
             rejected = set()  # term sheet IDs the arena refused to accept
             while live_threads(threads):
@@ -250,9 +251,12 @@ class Engine:
                             if e.status not in (409, 422):
                                 raise
                             self.journal.event("reconcile", case=cid, status=e.status)
-                            force_close = force_close or e.status == 422
-                            # Other requests may still be in flight; only refresh after they settle.
-                            force_close = True
+                            if e.status == 422:
+                                force_close = True
+                            else:
+                                # 409: this thread was late or has ended. With several suppliers the others are
+                                # still open: closing the whole case here accepted a moving RFQ bid early.
+                                resync = True
                 cap = self.caps.get(case.get("wave"), float("inf"))
                 if not force_close and (self.stop.is_set() or time.monotonic() >= cap - 90):
                     self.journal.event(
@@ -260,6 +264,23 @@ class Engine:
                     )
                 force_close = force_close or self.stop.is_set() or time.monotonic() >= cap - 90
                 ready = [s for s in live_threads(threads) if s not in pending]
+                late = [s for s in ready if deadlines.get(s, float("inf")) <= time.monotonic()]
+                if not force_close and (resync or late):
+                    # A late thread has a follow-up from the supplier we have not seen; deciding on the stale
+                    # thread would fail the decision deadline and close the case. Refresh once in-flight
+                    # requests have settled.
+                    if pending:
+                        await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)
+                        continue
+                    self.journal.event("resync", case=cid, late=late, after_conflict=resync)
+                    resync = False
+                    snapshot, threads, deadlines = await self.snapshot(sid)
+                    if snapshot["status"] == "ended":
+                        self.record_result(cid, snapshot)
+                        return
+                    if [s for s in live_threads(threads) if deadlines.get(s, float("inf")) <= time.monotonic()]:
+                        force_close = True  # still late after a refresh: close as before rather than loop
+                    continue
                 if force_close:
                     if pending:
                         await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)
