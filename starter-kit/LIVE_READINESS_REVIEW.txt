@@ -1,0 +1,145 @@
+EHL – Codeprüfung und lokale Live-Probe
+Stand: 10. Oktober 2026
+
+ERGEBNIS UND EINORDNUNG
+
+Der bestehende Evidence Buyer wurde nochmals anhand seiner kritischen Abläufe
+geprüft und an vier Stellen robuster gemacht. Auf dem abschließenden Stand:
+250 Tests bestanden, 2 bewusst beziehungsweise abhängigkeitsbedingt übersprungen;
+zusätzlich 600 von 600 Eingabe-Störvarianten erneut bestanden. Der vollständige
+Testlauf dauerte 112,60 Sekunden. Statische Prüfung und Diff-Prüfung bestanden.
+Diese Runde verursachte keine OpenAI-Aufrufe und keine Arena-Sitzungen.
+
+Geprüft wurden insbesondere Datenauflösung, Übergabe an den Agentenprozess,
+Fallvalidierung, Kosten-/Annahmegrenzen, Angebotsbelege, Protokollzugriffe,
+Wiederaufnahme nach unklaren Antworten und parallele Verhandlungen. Das ist eine
+gezielte Code- und Verhaltensprüfung, keine Garantie für sämtliche Produktions-
+zustände und kein Nachweis, dass jede einzelne mögliche Eingabe abgedeckt ist.
+
+VIER KONKRETE VERBESSERUNGEN
+
+1. Einheitliche Finaldaten in allen Prozessen
+Der Hauptprozess konnte eine extern ausgewählte Sonntagsfreigabe lesen, während
+der isolierte Agentenprozess diese Auswahl nicht zwingend erhielt. Die aufgelöste
+Freigabe wird jetzt explizit an den Agenten und die wirtschaftliche Prüfung
+weitergegeben. Auch der Final-Vorabcheck akzeptiert die unterstützten internen,
+benachbarten und externen Ablageorte. Der Datensatz bleibt während eines Laufs
+festgeschrieben; spätere Änderungen werden nicht unbemerkt übernommen.
+
+2. Fehler eines Falls bleiben auf diesen Fall begrenzt
+Vor dem Öffnen einer Sitzung werden die notwendigen Käuferdaten, Lieferanten,
+verhandelbaren Felder und Pflichtbedingungen geprüft. Ein unvollständiger Fall
+wird als Fehler dokumentiert und nicht mit erfundenen Angaben verhandelt. Andere
+gültige Fälle laufen weiter. Der Gesamtlauf meldet dann ausdrücklich unvollständige
+Bearbeitung statt Erfolg. Neue Fallnamen, Typbezeichnungen und zusätzliche Felder
+werden nicht über eine starre Liste bekannter Kategorien ausgeschlossen.
+
+3. Engere erlaubte API-Wege
+Die Transportprüfung erlaubt nur die vorgesehenen Lesewege sowie Sitzungseröffnung
+und Verhandlungsnachrichten. Unerwartete Schreibmethoden und zusätzliche Endpunkte
+werden bereits vor dem Netzwerkzugriff abgewiesen. Lokale Tests überprüfen diese
+Sperre. Eine serverseitige Berechtigungsprüfung wird dadurch nicht ersetzt.
+
+4. Unlesbare oder ungültige Angebotsbelege
+Nicht endliche Zahlen wie NaN/Infinity und Bruchteile in ganzzahligen Vertragsfeldern
+werden zurückgewiesen. Ein Zahlungsziel von 30,9 Tagen wird beispielsweise nicht
+still zu 30 Tagen. Ist das neueste Angebot unlesbar, werden ältere Bedingungen
+nicht als aktuelle Standardbedingungen verwendet. Fehlerhafte Dokumente dürfen
+keinen bindenden Abschluss auslösen. PDF-/XLSX-Endungen werden unabhängig von
+Großschreibung erkannt; textlose PDF-Seiten bringen das Auslesen nicht zum Absturz.
+Die vorhandenen Angebotsformate bleiben Voraussetzung; dies ist kein allgemeiner
+Vertragsparser für beliebige rechtliche Dokumente.
+
+WAS TATSÄCHLICH GETESTET WURDE
+
+Die neue Datei tests/test_live_resilience.py enthält 141 Testinstanzen. Sie ergänzt
+die bisherigen Tests auf insgesamt 250 bestandene Prüfungen:
+
+- 100 Agentenentscheidungen mit unbekannten Fall- und Typnamen, geänderten
+  Lieferantenkennungen und einer zusätzlichen verpflichtenden Zertifikatsoption.
+  Geprüft werden gültige Angebote und Einhaltung der neuen Pflichtbedingung.
+  Das sind Entscheidungen, nicht 100 vollständige mehrstufige Verhandlungen.
+- Sechs ungültige Fallvarianten, jeweils zusammen mit drei gültigen Fällen:
+  Der ungültige Fall eröffnet keine Sitzung; die drei gültigen werden beendet.
+- Fünf Fehlerabläufe mit jeweils fünf Wellen: verzögerter Lieferant, verlorene
+  Antwort nach Sitzungseröffnung, verlorene Antwort nach Annahme, einmaliger
+  Serverfehler und nicht abrufbare Anlagen. Wiederaufnahme verwendet dieselben
+  Aktionskennungen und erzeugt keine doppelten Sitzungen. Fehlende Anlagen führen
+  in dieser Probe zu keinem bindenden Abschluss. Die kurze künstliche Verzögerung
+  ist ausdrücklich kein Test minutenlanger Produktionsausfälle.
+- Eine Probe über echtes lokales HTTP mit zwölf vollständigen Verhandlungen,
+  echter Uhr, regulärer Anfragebegrenzung und mehreren gleichzeitig laufenden
+  Sitzungen: alle zwölf beendet, keine protokollierten Antwortfrist-Verletzungen.
+  Einzelner gezielter Lauf: 19,48 Sekunden. Server, Agent und Dokumentauswertung
+  laufen dabei über die vorgesehenen lokalen Komponenten/Prozesse.
+- Drei Varianten des Release-Ablageorts und ein tatsächlicher Agenten-Unterprozess,
+  der die extern gewählte Freigabe lesen muss.
+- Sechs unerlaubte API-Operationen vor dem Netzwerkzugriff blockiert.
+- 18 Kombinationen ungültiger Zahlen und Verhandlungszustände sowie ein Test gegen
+  das Wiederverwenden veralteter Bedingungen nach einem unlesbaren neuen Angebot.
+
+Zusätzlich wurden die vorhandenen 600 Störvarianten erneut ausgeführt: fehlende,
+leere, textuelle, negative und NaN-Preise; fehlerhaftes Zahlungsziel; fehlende oder
+unlesbare Anlagen; Instruktionsmanipulation im Lieferantentext; kurze Restzeit;
+doppelte und leere Bereitschaftslisten. Alle 600 bestanden. Diese Varianten sind
+synthetisch und keine unabhängige Produktionsstichprobe.
+
+Übersprungen wurden genau zwei Tests:
+- Hosted-Arena-Test: absichtlich nicht aktiviert, gemäß Vorgabe des Nutzers.
+- Optionaler MCP-Server-Test: das Python-Paket mcp ist nicht installiert.
+  Der verwendete Evidence-Buyer-Lauf benötigt diesen optionalen Server nicht.
+
+Die früheren 2.960 simulierten Verhandlungen über 1.480 Szenarien und der direkte
+Vergleich von fünf OpenAI-Modellen sind im MODEL_EVALUATION.txt dokumentiert. Diese
+Verhandlungsserie wurde in dieser Runde nicht erneut ausgeführt. In den früheren
+Simulationen blieben 26 laut Simulator mögliche Abschlüsse ungenutzt. Die aktuellen
+Änderungen beheben Robustheitsprobleme; eine Verbesserung dieser Abschlusszahl
+wurde damit nicht nachgewiesen. Wiederholte Testläufe werden nicht als zusätzliche
+unabhängige Szenarien gezählt.
+
+VERHALTEN BEI UNBEKANNTEM
+
+Der Agent arbeitet mit den übergebenen Bedingungen und verfügbaren Daten, nicht mit
+festen Kunden-/Teilenamen. Zusätzliche verhandelbare Felder mit erlaubten Optionen
+können berücksichtigt werden. Bei fehlenden Belegen oder unklaren Konditionen fragt
+er nach beziehungsweise vermeidet eine bindende Annahme. Bei strukturell ungültigen
+Käuferdaten wird der Fall isoliert abgelehnt. Andere gültige Verhandlungen bleiben
+bearbeitbar. Das Ziel ist eine nachvollziehbare, sichere Reaktion auf Unwissen.
+
+Nicht zugesichert sind unbekannte API-Protokolle, neue Kostenformeln, beliebige
+Pflichtoperatoren oder beliebige Vertragsformate. Solche Änderungen benötigen eine
+gezielte Anpassung. Ein völlig ungültiger Fall ohne Kennung kann weiterhin die
+Verarbeitung des Eingabeprotokolls stoppen. Neue Daten werden vor einem neuen Lauf
+eingelesen; während des Finals gibt es kein stilles Nachladen geänderter Regeln.
+
+TON UND MODELL
+
+Die professionelle, freundliche Ansprache und der sparsame kontextabhängige Humor
+bleiben erhalten. Bei Beschwerden, Dringlichkeit und Schlussangeboten wird Humor
+unterdrückt. Das Modell wählt geprüfte Gesprächsbausteine; Preise, harte Grenzen und
+Vertragsannahmen werden durch überprüfbare Programmlogik kontrolliert.
+GPT-6 Luna bleibt auf Grundlage des vorherigen direkten Vergleichs eingestellt.
+Diese Runde hat weder Modellbudget noch Freigaben erweitert.
+
+WAS VOR DEM ECHTEN FINALE NOCH FEHLT
+
+Der lokale MVP ist deutlich umfangreicher geprüft. Produktionsbereitschaft ist
+noch nicht vollständig nachgewiesen: Arena-Schlüssel und Finalberechtigung,
+vollständige offizielle Sonntagsdaten, Startzeit sowie Teamabgabe und Zugriff für
+die Bewertung müssen vor dem echten Start stimmen. Lokale HTTP-Tests ersetzen
+keinen Nachweis über den echten Server, dessen Latenzen oder Kontoberechtigungen.
+Es wurde kein echter Finalstart und kein Arena-Übungsversuch ausgelöst.
+
+Der Offline-Bereitschaftscheck zeigt nur das Vorhandensein von Schlüsseln, niemals
+deren Werte, und prüft den eingefrorenen Code-/Datenstand. Die Anwendung muss für
+den vorgesehenen lokalen Runner nicht zwingend öffentlich gehostet werden.
+
+NACHPRÜFEN (aus dem Repository-Hauptordner)
+
+.venv/bin/python -m pytest starter-kit/tests -q
+.venv/bin/python starter-kit/evaluations/mutation_evidence.py
+.venv/bin/python starter-kit/run_evidence.py ready
+
+Der erste und zweite Befehl verwenden lokale Simulationen; der dritte ist ein
+Offline-Check. Finale Aktionen bleiben explizit getrennt. Eine Zusage, jeden
+Wunschpreis zu erreichen oder immer zu gewinnen, wäre trotz aller Tests falsch.

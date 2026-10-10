@@ -52,7 +52,7 @@ def resolve_run(root, name):
 def supervise(cfg, journal, run_lock):
     environment = os.environ.copy()
     simulator = (
-        server(journal.folder, DataPackage(cfg["data"]).facts)
+        server(journal.folder, DataPackage(cfg["data"], release=cfg.get("data_release")).facts)
         if cfg["profile"] == "sim"
         else contextlib.nullcontext(None)
     )
@@ -169,7 +169,7 @@ def parser():
 
 
 async def doctor(cfg, runs_dir=DEFAULT_RUNS):
-    data = DataPackage(cfg["data"])
+    data = DataPackage(cfg["data"], release=cfg.get("data_release"))
     result = {
         "python": sys.version.split()[0],
         "agent": cfg["agent"],

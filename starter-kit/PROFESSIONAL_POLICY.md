@@ -1,3 +1,7 @@
+> Neuer Prüfstand: **250 Tests bestanden**, erneut 600 Störvarianten bestanden.
+> Unbekannte Fälle, Fehlerwiederaufnahme und paralleles lokales HTTP zusätzlich geprüft.
+> Details und verbleibende Grenzen: `LIVE_READINESS_REVIEW.txt`.
+
 > Aktueller Stand nach erweitertem Modellvergleich: **GPT-6 Luna**, 109 bestandene
 > reguläre Tests, 600 bestandene Störfälle und 2.960 lokale Verhandlungen über
 > 1.480 Szenarien. Der vollständige aktuelle Bericht steht in `MODEL_EVALUATION.txt`.

@@ -1,6 +1,7 @@
 """Read the documents suppliers attach: PDF and XLSX to text, a quote PDF to structured terms."""
 
 import io
+import math
 import re
 
 LABELS = {
@@ -27,11 +28,11 @@ CLAUSE = re.compile(r"(\S+), (\d+)% material, deadband ([\d.]+) %, base (\S+)")
 
 def read_document(name, data):
     """The text of an attachment: PDF pages, XLSX rows (formulas as written), or plain text."""
-    if name.endswith(".pdf"):
+    if name.lower().endswith(".pdf"):
         from pypdf import PdfReader
 
-        return "\n".join(p.extract_text() for p in PdfReader(io.BytesIO(data)).pages)
-    if name.endswith(".xlsx"):
+        return "\n".join((p.extract_text() or "") for p in PdfReader(io.BytesIO(data)).pages)
+    if name.lower().endswith(".xlsx"):
         from openpyxl import load_workbook
 
         wb = load_workbook(io.BytesIO(data))
@@ -57,7 +58,14 @@ def _value(field, text):
         }
     if field in ("effective_date", "incoterm"):
         return text
-    return float(text) if "eur" in field or field == "unit_price" else int(float(text))
+    value = float(text)
+    if not math.isfinite(value):
+        raise ValueError("Non-finite quote value")
+    if "eur" in field or field == "unit_price":
+        return value
+    if not value.is_integer():
+        raise ValueError("Fractional value in an integer quote field")
+    return int(value)
 
 
 def quote_terms(text):
@@ -76,6 +84,11 @@ def standard_terms(events):
     """The supplier's standard terms from the latest quote PDF in a thread (empty if none)."""
     for msg in reversed(events):
         for att in msg.get("attachments") or []:
-            if att.get("name", "").startswith("quote") and att.get("text"):
-                return quote_terms(att["text"]).get("standard", {})
+            if att.get("name", "").lower().startswith("quote"):
+                if att.get("error") or not att.get("text"):
+                    return {}  # never silently reuse older terms when the new quote is unreadable
+                try:
+                    return quote_terms(att["text"]).get("standard", {})
+                except (ValueError, TypeError, OverflowError):
+                    return {}
     return {}

@@ -1,3 +1,7 @@
+> Latest robustness review: **250 tests passed**, 600 mutation cases passed again.
+> Includes 100 unseen-case variants and 12 negotiations over real local HTTP.
+> See `LIVE_READINESS_REVIEW.txt` for fixes, evidence and remaining final-start gaps.
+
 > Current verified default: **GPT-6 Luna**, reasoning none, JSON mode. See
 > `MODEL_EVALUATION.txt` for the five-model comparison, 1,480 synthetic scenarios
 > (2,960 negotiations), 600 input perturbations and 109 passing regression tests.

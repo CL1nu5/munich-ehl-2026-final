@@ -22,8 +22,8 @@ def load_agent(name):
 
 
 class Services:
-    def __init__(self, data, output):
-        self.data, self.output = DataPackage(data), output
+    def __init__(self, data, output, release=None):
+        self.data, self.output = DataPackage(data, release=release), output
 
     def complete(self, messages):
         self.output.write(encode({"rpc": "model", "messages": messages}) + "\n")
@@ -44,7 +44,7 @@ def main():
     with contextlib.redirect_stdout(sys.stderr):
         try:
             agent = load_agent(init["agent"])
-            services = Services(init["data"], output)
+            services = Services(init["data"], output, init.get("release"))
             for line in sys.stdin:
                 request = json.loads(line)
                 try:

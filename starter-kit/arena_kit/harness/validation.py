@@ -2,7 +2,7 @@
 
 import math
 
-from ..cost import must_haves_ok, total_cost
+from ..cost import OPS, must_haves_ok, total_cost
 from ..docs import quote_terms, standard_terms
 from ..play import live_threads, standing
 from .state import encode
@@ -11,10 +11,10 @@ from .state import encode
 def documented(events):
     for msg in reversed(events):
         for att in msg.get("attachments") or []:
-            if att.get("name", "").startswith("quote"):
+            if att.get("name", "").lower().startswith("quote"):
                 try:
                     return bool(quote_terms(att.get("text", "")).get("stated")) and not att.get("error")
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, OverflowError):
                     return False
     return False
 
@@ -135,3 +135,66 @@ def validate(case, threads, actions, policy=None):
                 elif value not in case.get("term_options", {}).get(field, []) and value != std.get(field):
                     raise ValueError(f"Term outside allowed options: {field}")
     return actions
+
+
+def validate_case(case):
+    """Validate essentials, not known case IDs/types. Reject unknown binding operators.
+
+    Additional descriptive fields and new negotiable fields remain supported.
+    The published economics must still be computable without invented buyer inputs.
+    """
+    if not isinstance(case, dict) or not isinstance(case.get("case_id"), str):
+        raise ValueError("Case needs an ID")
+    for key in ("suppliers", "negotiable"):
+        items = case.get(key)
+        if (
+            not isinstance(items, list)
+            or not items
+            or any(not isinstance(x, str) for x in items)
+            or len(set(items)) != len(items)
+        ):
+            raise ValueError(f"Invalid case {key}")
+    buyer = case.get("buyer")
+    if not isinstance(buyer, dict):
+        raise ValueError("Missing buyer requirements")
+    for key in (
+        "need_per_year",
+        "horizon_years",
+        "fallback_unit_price",
+        "interest_rate",
+        "reference_payment_days",
+        "need_lead_time_days",
+    ):
+        value = buyer.get(key)
+        if type(value) not in (int, float) or not math.isfinite(value):
+            raise ValueError(f"Missing or invalid buyer {key}")
+    if buyer["need_per_year"] <= 0 or buyer["horizon_years"] <= 0:
+        raise ValueError("Buyer volume and horizon must be positive")
+    freight = buyer.get("freight_eur_per_unit")
+    if (
+        not isinstance(freight, dict)
+        or not freight
+        or any(type(v) not in (int, float) or not math.isfinite(v) for v in freight.values())
+    ):
+        raise ValueError("Missing freight cost mapping")
+    for key in ("fixed_terms", "term_options", "facts"):
+        if not isinstance(case.get(key, {}), dict):
+            raise ValueError(f"Invalid {key}")
+    requirements = buyer.get("must_haves", [])
+    if not isinstance(requirements, list):
+        raise ValueError("Invalid mandatory conditions")
+    for rule in requirements:
+        if (
+            not isinstance(rule, dict)
+            or not isinstance(rule.get("field"), str)
+            or rule.get("op") not in OPS
+            or "value" not in rule
+        ):
+            raise ValueError("Unsupported mandatory condition")
+    for options in case.get("term_options", {}).values():
+        if not isinstance(options, list):
+            raise ValueError("Term options must be lists")
+    rounds = case.get("round_limit", 10)
+    if type(rounds) is not int or rounds < 1:
+        raise ValueError("Invalid round limit")
+    return case

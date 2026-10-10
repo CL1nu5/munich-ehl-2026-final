@@ -24,7 +24,9 @@ class AgentProcess:
             stderr=asyncio.subprocess.DEVNULL,
             limit=256 * 1024,
         )
-        await self.write({"agent": self.cfg["agent"], "data": self.cfg["data"]})
+        await self.write(
+            {"agent": self.cfg["agent"], "data": self.cfg["data"], "release": self.cfg.get("data_release")}
+        )
 
     async def write(self, value):
         self.process.stdin.write((encode(value) + "\n").encode())

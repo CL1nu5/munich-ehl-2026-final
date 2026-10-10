@@ -152,6 +152,10 @@ def load(args):
     cfg["agent_hash"] = tree_hash(agent_path(cfg["agent"]))
     cfg["code_hash"] = tree_hash(ROOT / "arena_kit")
     cfg["data_hash"] = data_hash(cfg["data"])
+    package = DataPackage(cfg["data"])
+    cfg["data_release"] = str(package.release) if package.release else None
+    if package.db is not None:
+        package.db.close()
     cfg["config_hash"] = digest({k: v for k, v in cfg.items() if k not in ("source", "config_hash")})
     return cfg
 

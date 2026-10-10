@@ -1,3 +1,7 @@
+AKTUALISIERUNG: Nachfolgende Modellmessungen sind unverändert historische Befunde.
+Die neueste Robustheitsprüfung (250 Tests, erneut 600 Störvarianten, lokale HTTP-Probe)
+steht in LIVE_READINESS_REVIEW.txt. Diese Runde verwendete keine Modell-API.
+
 EHL – Modellvergleich und umfangreiche lokale Prüfung
 Stand: 10.10.2026
 

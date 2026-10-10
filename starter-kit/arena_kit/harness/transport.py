@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+import re
 import time
 from urllib.parse import quote
 
@@ -44,8 +45,12 @@ class Transport:
 
     def allowed(self, method, path):
         # Allowlist, not a list of known forbidden aliases.
-        read = path in ("me", "data", "cases", "sessions") or path.startswith("sessions/")
-        write = path == "sessions" or (path.startswith("sessions/") and path.endswith("/messages"))
+        if method not in ("GET", "POST"):
+            raise ValueError("Only GET and POST are part of the harness protocol")
+        read = path in ("me", "data", "cases", "sessions") or bool(
+            re.fullmatch(r"sessions/[^/]+(?:/(?:threads|attachments)/[^/]+)?", path)
+        )
+        write = path == "sessions" or bool(re.fullmatch(r"sessions/[^/]+/threads/[^/]+/messages", path))
         if path.startswith("/") or ".." in path or "?" in path or not (read if method == "GET" else write):
             raise ValueError(f"Endpoint is outside harness protocol: {method} {path}")
         if "/backoffice" in path or "://" in path:

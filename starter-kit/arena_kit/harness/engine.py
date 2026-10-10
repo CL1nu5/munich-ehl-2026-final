@@ -16,7 +16,7 @@ from .agent_process import AgentProcess
 from .economics import Economics
 from .state import Journal, digest, redact
 from .transport import Models, Transport, UncertainRequest, component
-from .validation import close_action, validate
+from .validation import close_action, validate, validate_case
 
 TRANSIENT_EXIT = 75
 
@@ -32,7 +32,9 @@ class Engine:
         )
         self.models = models or Models(cfg, journal)
         self.stop = asyncio.Event()
-        self.policy_data = DataPackage(cfg["data"]) if cfg["agent"] == "evidence_buyer" else None
+        self.policy_data = (
+            DataPackage(cfg["data"], release=cfg.get("data_release")) if cfg["agent"] == "evidence_buyer" else None
+        )
         self.quota_exhausted = False
         self.practice_left = None
         self.caps = {}
@@ -71,7 +73,8 @@ class Engine:
             if releases.get("release-sunday", {}).get("public"):
                 from pathlib import Path
 
-                if not (Path(self.cfg["data"]) / "release-sunday" / "facts.json").is_file():
+                release = Path(self.cfg.get("data_release") or Path(self.cfg["data"]) / "release-sunday")
+                if not (release / "facts.json").is_file():
                     raise ValueError("Public Sunday release missing: download it before arming final")
         owned = {c.get("session_id") for c in self.journal.cases().values()}
         for set_ in ("practice", "sandbox", "final") if self.cfg["profile"] != "sim" else ("practice",):
@@ -160,10 +163,18 @@ class Engine:
             return await self.play_case(case)
 
     async def play_case(self, case):
-        policy = (
-            Economics(case, self.policy_data, self.cfg["parameters"]) if self.cfg["agent"] == "evidence_buyer" else None
-        )
         cid = case["case_id"]
+        try:
+            validate_case(case)
+            policy = (
+                Economics(case, self.policy_data, self.cfg["parameters"])
+                if self.cfg["agent"] == "evidence_buyer"
+                else None
+            )
+        except (ValueError, TypeError, KeyError, AttributeError, ZeroDivisionError, OverflowError) as e:
+            self.journal.case(cid, error="Unsupported or incomplete case; no new session opened")
+            self.journal.event("case_rejected", case=cid, reason=type(e).__name__)
+            return
         stored = self.journal.cases().get(cid, {})
         if stored.get("result"):
             return
@@ -452,6 +463,8 @@ class Engine:
             await asyncio.gather(*tasks.values(), return_exceptions=True)
             await self.api.close()
             await self.models.close()
+            if self.policy_data is not None and self.policy_data.db is not None:
+                self.policy_data.db.close()
 
 
 def main():
