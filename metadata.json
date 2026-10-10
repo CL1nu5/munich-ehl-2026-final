@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4KHF6FE9BV2DX3DN46D41JH",
+  "strategy": "manual-commit",
+  "branch": "linus-implementation",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "starter-kit/arena_kit/harness/engine.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 114,
+    "cache_creation_tokens": 132658,
+    "cache_read_tokens": 4972739,
+    "output_tokens": 38405,
+    "api_call_count": 56
+  }
+}
