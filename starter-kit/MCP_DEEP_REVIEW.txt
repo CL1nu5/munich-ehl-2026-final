@@ -1,0 +1,119 @@
+EHL – Vertiefte MCP- und Datenzugriffsprüfung
+Stand: 10. Oktober 2026
+
+ABSCHLUSS: 285 Tests bestanden, 1 Arena-Test übersprungen; Laufzeit 120.713 Sekunden.
+
+WAS DIESMAL TIEFER GEPRÜFT WURDE
+
+Die vorherigen MCP-Tests riefen Funktionen im selben Prozess auf. Diesmal wird der
+MCP-Server tatsächlich als eigener Python-Prozess gestartet. Ein echter MCP-Client
+führt die Protokollinitialisierung durch, liest die sechs Werkzeuge und ruft sie
+über die stdio-Verbindung auf. Mehrere Aufrufe laufen gleichzeitig. Nach bewusst
+fehlerhaften Anfragen wird eine erfolgreiche Abfrage geprüft. Anschließend wird
+der Server beendet und neu gestartet und der Ablauf wiederholt.
+
+Dieser Ablauf wird sowohl ohne Zusatzfreigabe als auch mit einer externen,
+fiktiven Sonntagsfreigabe ausgeführt. Das Dokument aus dieser Freigabe muss durch
+den separaten Serverprozess lesbar sein. Alle Dateien sind selbst erzeugte
+Testdateien. Es werden keine echten Sonntagsdaten vorgetäuscht.
+
+ECHTE FEHLERBEFUNDE VOR DER KORREKTUR
+
+Der erste Lauf der neuen Grenztests ergab neun fehlgeschlagene und drei bestandene
+Testinstanzen. Die Fehler wurden vor der Änderung reproduziert:
+
+1. Dokument-Metadaten konnten mit einem root-Feld einen fremden Basisordner angeben.
+Ein eigens dafür erzeugtes Dokument außerhalb des Testpakets war dadurch lesbar.
+Die Korrektur erlaubt nur den konfigurierten Paketordner oder die aufgelöste
+Sonntagsfreigabe. Pfadtraversierung und symbolische Links aus dem Paket heraus
+werden ebenfalls gezielt geprüft. Es wurden keine privaten Dateien gelesen.
+
+2. Leere SQL-Abfragen verursachten einen internen IndexError. Jetzt werden sie
+als ungültige Leseabfrage nachvollziehbar zurückgewiesen.
+
+3. Negative, nullwertige, boolesche und nicht ganzzahlige Ergebnislimits waren
+nicht einheitlich geprüft. Jetzt wird eine positive ganze Zahl verlangt.
+
+4. Der direkte Datenzugriff konnte die dokumentierte Obergrenze von 200 Zeilen
+mit einem größeren Limit überschreiten. Jetzt wird sie auch dort erzwungen.
+Ein kleineres Limit, das der Agent für seine Lieferantendaten nutzt, bleibt
+möglich. Datenbank-Cursor werden nach der Abfrage geschlossen.
+
+Diese Korrekturen verändern weder das Verhandlungsmodell noch dessen Preisziele.
+Sie betreffen die Zuverlässigkeit und Grenzen der lokalen Datenwerkzeuge.
+
+ZUSÄTZLICHER FEHLER IM TESTAUFBAU
+
+Der erste vollständige Lauf meldete 283 bestandene Tests, einen Fehler und den
+gesperrten Arena-Test. Der Fehler lag in der neuen Sonntags-Testkonfiguration:
+Die vorbereitete ARENA_RELEASE-Variable wurde nicht an den Kindprozess übergeben.
+Das wurde im Test korrigiert; es war kein weiterer Fehler im Anwendungscode.
+Danach wurden die gezielte Prüfung und die Gesamtsuite erneut ausgeführt.
+
+UMFANG UND AUSSAGEKRAFT
+
+Die neue Datei tests/test_mcp_integration.py enthält 14 Testinstanzen. Zwei davon
+sind vollständige lokale MCP-Verbindungsabläufe mit jeweils zehn Serverstarts,
+parallelen Aufrufen der sechs Werkzeuge, abgewiesenen Fehleranfragen und einer
+anschließenden erfolgreichen Leseabfrage. Ein Ablauf liest zusätzlich eine
+externe Sonntagsfreigabe. Die übrigen Tests prüfen Dokumentgrenzen, leere Abfragen
+und Ergebnislimits unmittelbar und reproduzierbar.
+
+Die installierten Python-Abhängigkeiten sind laut pip check konsistent. Der
+Agenten-Schnittstellencheck funktioniert für S01, S02 und S03 ohne Modellaufrufe.
+Die 600 bestehenden Varianten fehlerhafter Eingaben wurden nach der Korrektur
+erneut ausgeführt und bestanden vollständig.
+
+Die vollständige Suite prüft außerdem erneut die bereits vorhandenen lokalen
+HTTP-Verhandlungen, echte Uhrzeit, Parallelität, Wiederaufnahme nach verlorenen
+Antworten, Datenfreigaben sowie Angebots- und Kostenprüfungen.
+
+PRÜFUNG MIT DEM VORHANDENEN TACTO-DATENPAKET
+
+Zusätzlich wurde derselbe echte MCP-Prozess gegen das vorhandene lokale
+Datenpaket gestartet: 24 Tabellen erfolgreich erkannt, keine externen Anfragen.
+Die Abfrage nach im Paket eingebetteten Fällen liefert null Fälle; der Harness
+bezieht Verhandlungsfälle vom Simulator beziehungsweise später von der Arena-API.
+Die Datenwerkzeug-Abfrage selbst war erfolgreich. Das Ergebnis ist separat als
+EHL-MCP-Echtdatenprobe.json gespeichert.
+
+ZUSÄTZLICHER PARALLELITÄTSFEHLER
+
+Ein weiterer Gesamtlauf ergab wieder 283 bestandene Tests und einen Fehler.
+Diesmal lieferte der reale MCP-Server bei gleichzeitigen Aufrufen sporadisch eine
+leere Dokumentkennungsliste; ein vorhandenes Dokument war dadurch nicht erreichbar.
+Die MCP-Werkzeuge teilen eine SQLite-Verbindung zwischen Arbeitsthreads. Der Zugriff
+auf Tabellen, SQL-Abfragen und den Kennungsindex wird jetzt mit einer gemeinsamen
+wiedereintrittsfähigen Sperre serialisiert. Das verhindert überlappende Nutzung
+dieser Verbindung, ohne die MCP-Protokollanfragen selbst verbieten zu müssen.
+
+Die Prozessprobe wurde auf insgesamt 20 Serverstarts erhöht. Außerdem prüfen
+300 Leseoperationen über 16 Threads die Konsistenz von Tabellen, Kennungen und
+Abfrageergebnissen. Diese 300 Operationen bilden einen Regressionstest, nicht
+300 zusätzliche unabhängige Testszenarien.
+
+WAS DAMIT NICHT BEWIESEN IST
+
+Eine funktionierende MCP-stdio-Verbindung beweist keine Integration mit jeder
+beliebigen externen Chat-Anwendung. Die Ergebnisobergrenze begrenzt zurückgegebene
+Zeilen, nicht die Rechenzeit beliebig komplexer SQL-Abfragen. Das Datenpaket und
+die bekannte Aufgabenstruktur bleiben Voraussetzungen. Unbekannte Protokolle,
+Kostenformeln oder neue Dokumentformate benötigen gegebenenfalls Anpassungen.
+
+Der einzige weiterhin gesperrte Test eröffnet echte Arena-Übungsverhandlungen.
+Er wird wegen des ausdrücklichen Verbots, Arena-Versuche zu verbrauchen, nicht
+aktiviert. Kein Test dieser Runde verwendete die OpenAI-API oder Arena-Sitzungen.
+
+Für den echten Start bleiben Arena-Schlüssel und Finalberechtigung, vollständige
+offizielle Sonntagsdaten sowie Teamabgabe/Bewertungszugriff offen. Das sind nicht
+bloß Hosting-Einstellungen. Die lokale Anwendung ist anhand der dokumentierten
+Tests geprüft; vollständige Fehlerfreiheit oder echtes Arena-Verhalten kann
+kein lokaler Test garantieren.
+
+NACHPRÜFEN
+
+.venv/bin/python -m pytest starter-kit/tests/test_mcp_integration.py -q
+.venv/bin/python -m pytest starter-kit/tests -q -rs
+.venv/bin/python -m pip check
+.venv/bin/python starter-kit/run_evidence.py check
+.venv/bin/python starter-kit/run_evidence.py ready

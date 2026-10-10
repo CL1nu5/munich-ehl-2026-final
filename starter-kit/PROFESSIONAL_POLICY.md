@@ -1,3 +1,7 @@
+> Aktueller Stand: **285 Tests bestanden**, nur der echte Arena-Test gesperrt.
+> MCP als separater Prozess mit Neustart, Parallelität und externen Testdaten geprüft;
+> Datengrenzen korrigiert. Details: `MCP_DEEP_REVIEW.txt`. Frühere Stände folgen unten.
+
 > Neueste Nachprüfung: **271 Tests bestanden, nur der gesperrte Arena-Test übersprungen**.
 > MCP installiert und geprüft; unklare Indexklauseln und widersprüchliche Belege abgesichert.
 > Details: `SKIPPED_TESTS_FOLLOWUP.txt`. Ältere Messstände unten bleiben historische Befunde.

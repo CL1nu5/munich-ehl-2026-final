@@ -5,17 +5,30 @@ import csv
 import json
 import os
 import sqlite3
-from functools import cached_property
+import threading
+from functools import cached_property, wraps
 from pathlib import Path
 
 MAX_ROWS = 200
 RELEASE = "release-sunday"
 
 
+def synchronized(method):
+    """Serialize use of the shared SQLite connection across MCP worker threads."""
+
+    @wraps(method)
+    def call(self, *args, **kwargs):
+        with self._db_lock:
+            return method(self, *args, **kwargs)
+
+    return call
+
+
 class DataPackage:
     def __init__(self, root, release=None):
         """`root`: the unpacked package. `release`: the unpacked Sunday release (default: a
         `release-sunday` folder inside or next to the package, or ARENA_RELEASE), if present."""
+        self._db_lock = threading.RLock()
         self.root = Path(root).expanduser().resolve()
         # facts.json holds every citable fact with the fields the arena checks claims against.
         own = self.root / "facts.json"
@@ -39,6 +52,7 @@ class DataPackage:
             self.db.row_factory = sqlite3.Row
             self.db.execute("PRAGMA query_only = ON")
 
+    @synchronized
     def tables(self):
         """{table: {"columns": [...], "rows": n}}"""
         if self.db is None:
@@ -52,15 +66,23 @@ class DataPackage:
             for t in names
         }
 
+    @synchronized
     def query(self, sql, params=(), limit=MAX_ROWS):
         if self.db is None:
             raise ValueError("this package has no SQLite file")
-        if sql.lstrip().split(None, 1)[0].lower() not in {"select", "with"}:
+        tokens = sql.split(None, 1) if isinstance(sql, str) else []
+        if not tokens or tokens[0].lower() not in {"select", "with"}:
             raise ValueError("read-only: SELECT or WITH statements only")
+        if type(limit) is not int or limit < 1:
+            raise ValueError("Query limit must be a positive integer")
         cur = self.db.execute(sql, params)
-        return [dict(r) for r in cur.fetchmany(limit)]
+        try:
+            return [dict(r) for r in cur.fetchmany(min(limit, MAX_ROWS))]
+        finally:
+            cur.close()
 
     @cached_property
+    @synchronized
     def _ids(self):
         # A table's citable ID sits in its `id` column, else in its first column.
         index = {}
@@ -92,7 +114,9 @@ class DataPackage:
             for col in ("body", "text", "content"):
                 if row.get(col):
                     return row[col]
-            base = Path(row.get("root") or (self.release if ref in self.release_facts else self.root))
+            base = Path(row.get("root") or (self.release if ref in self.release_facts else self.root)).resolve()
+            if base not in {self.root, self.release}:
+                raise FileNotFoundError("Document root outside the configured data package")
             ref = next((row[c] for c in ("path", "file") if row.get(c)), None)
             if ref is None:
                 return json.dumps(row, ensure_ascii=False)
