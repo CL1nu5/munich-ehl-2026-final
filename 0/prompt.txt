@@ -1,0 +1,18 @@
+<pasted_content id="fadb">
+We are teking part in a hackathon. The challenge porject
+    is the enviornment you are in right now. We decided to
+    implement a general harnes to run the agents (this harnes
+    is allready implemented) and now we individually implement
+    our agents, check witch one is the best and move on with
+    that ont. Your job will be to impment my agent. The final
+    test with acuall api use we do
+  . wo gebe ich erstmal den open ai api kea ein, den arena key brauchst du erstmal nicht, erst nach vollsrändiger implementation, werden wir die performance auf den wahren practice runs  machen
+</pasted_content id="fadb">
+
+---
+
+gebe mir ein env bluprint für gpt-6-luna auf medium resoning wo ich einfachnur noch die werte ersetzen muss
+
+---
+
+jo setzte das so um
