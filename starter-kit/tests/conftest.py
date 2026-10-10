@@ -36,3 +36,35 @@ def sim():
     yield f"http://127.0.0.1:{port}", state, clock
     server.should_exit = True
     thread.join()
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--arena-live",
+        action="store_true",
+        default=False,
+        help="Explicitly enable hosted tests (consumes Arena sessions)",
+    )
+
+
+@pytest.fixture(autouse=True)
+def no_external_network(request, monkeypatch):
+    """A default test run cannot consume live sessions even with real keys in env."""
+    if request.config.getoption("--arena-live"):
+        return
+    import ipaddress
+
+    original = socket.socket.connect
+
+    def connect(sock, address):
+        if isinstance(address, tuple):
+            host = address[0]
+            try:
+                local = ipaddress.ip_address(host).is_loopback
+            except ValueError:
+                local = host == "localhost"
+            if not local:
+                raise AssertionError("External network blocked in default tests")
+        return original(sock, address)
+
+    monkeypatch.setattr(socket.socket, "connect", connect)

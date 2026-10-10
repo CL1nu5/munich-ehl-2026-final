@@ -36,6 +36,8 @@ def scripted(system, user):
 @pytest.fixture(params=["sim", "hosted"])
 def arena(request):
     if request.param == "hosted":
+        if not request.config.getoption("--arena-live"):
+            pytest.skip("Hosted tests require explicit --arena-live")
         url, key = os.environ.get("ARENA_TEST_URL"), os.environ.get("ARENA_TEST_KEY")
         if not (url and key):
             pytest.skip("set ARENA_TEST_URL and ARENA_TEST_KEY to run against a hosted arena")
