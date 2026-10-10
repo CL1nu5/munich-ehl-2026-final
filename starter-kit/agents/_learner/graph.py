@@ -1,6 +1,6 @@
 """One decide() as a LangGraph state graph (with a plain sequential runner as fallback).
 
-observe -> route -> close -> reflect
+observe -> route -> close (reflection follows the confirmed result in the harness)
                  -> menu -> negotiator | strategist -> writer | det -> critic
 """
 
@@ -8,18 +8,17 @@ import math
 import time
 from typing import Any, TypedDict
 
-from arena_kit.cost import total_cost
+from arena_kit.cost import closing_terms, total_cost
 from arena_kit.docs import standard_terms
 from arena_kit.harness.validation import close_action, validate
 
 from . import claims as claims_mod
 from . import dossier as dossier_mod
 from . import ledger as ledger_mod
-from . import memory, offers, policy, prompts, writer
+from . import memory, offers, policy, preferences, prompts, writer
 from .priors import advice_for
 
 REFRESH_MOVE = 1.5
-MENU_BAND = 0.003  # sheets may cost us at most this much more than the level's cheapest
 ASK_TOL = 0.001  # an offer "meets our ask" only if it also costs us no more than that ask
 MAX_LATENCY = 120  # a supplier answers within about a minute
 
@@ -40,6 +39,8 @@ class Ctx(TypedDict, total=False):
     mem: Any
     route: Any
     menus: Any
+    fulls: Any
+    mirrors: Any
     claims: Any
     shares: Any
     vals: Any
@@ -62,9 +63,22 @@ def _cost_fn(services):
 def observe(ctx):
     case, threads, state = ctx["case"], ctx["threads"], ctx["state"]
     leds = ledger_mod.build(case, threads)
+    dossier = ctx["cc"]["dossier"]
+    models = {
+        sid: offers.supplier_model(
+            case,
+            led,
+            state["sup"].get(sid, {}).get("tags") or [],
+            dossier["suppliers"].get(sid) or {},
+            dossier["parts"],
+        )
+        for sid, led in leds.items()
+    }
+    leds = ledger_mod.build(case, threads, models)
     now = time.time()
     for sid, led in leds.items():
         s = state["sup"].setdefault(sid, {"tags": []})
+        s["preferences"] = preferences.observe(case, threads[sid], s.get("preferences"))
         seen = len(led["prices"])
         if s.get("seen", 1) < seen:
             lat = now - s["sent_at"] if s.get("sent_at") else None
@@ -85,7 +99,7 @@ def observe(ctx):
         if led["prices"] and led["prices"][0] is not None:
             s.setdefault("open_price", led["prices"][0])
     c_alt = policy.alternative_cost(case, _cost_fn(ctx["services"]))
-    mem = memory.refresh(case, ctx["p"], tags_of(state), ctx["cc"])
+    mem = memory.refresh(case, ctx["p"], tags_of(state), ctx["cc"], ctx["services"])
     state["mem"] = {
         "run": mem.get("run"),
         "episodes": mem.get("episodes", 0),
@@ -133,7 +147,7 @@ def close(ctx):
         r = {**r, "reason": r.get("reason", "") + " (harness close)"}
     led = ctx["ledgers"].get(action["supplier_id"]) or {}
     kind = action["message"]["action"]["type"]
-    state["closed"] = True
+    state["close_requested"] = True
     state["close"] = {
         "type": kind,
         "supplier_id": action["supplier_id"],
@@ -143,49 +157,6 @@ def close(ctx):
         "c_alt": ctx["c_alt"],
     }
     return {"actions": [action], "route": r}
-
-
-def reflect(ctx):
-    """Closing reflection: the lessons this case teaches the next cases of the run."""
-    state, gw, budget = ctx["state"], ctx["gw"], ctx["budget"]
-    used = ctx["mem"].get("lessons") or []
-    reflection = {"lessons": [], "feedback": {}, "reads": {}, "source": "det"}
-    if _llm_ok(ctx) and budget.can_call():
-        payload = {
-            "case": _case_summary(ctx),
-            "outcome": state.get("close"),
-            "suppliers": {
-                sid: {
-                    "tags": s.get("tags"),
-                    "our_read": s.get("read"),
-                    "price_path": (ctx["ledgers"].get(sid) or {}).get("prices"),
-                    "status_path": (ctx["ledgers"].get(sid) or {}).get("statuses"),
-                    "rounds": [
-                        {k: e.get(k) for k in ("r", "tactic", "level", "sheets", "claim_kinds", "tone", "pred", "out")}
-                        for e in state["log"]
-                        if e.get("sup") == sid
-                    ][-8:],
-                }
-                for sid, s in state["sup"].items()
-            },
-            "lessons_used": [{"key": x["key"], "text": x["text"]} for x in used],
-        }
-        try:
-            raw = gw.json(prompts.reflector(payload))
-            lessons = prompts.clean_lessons(raw)
-            if raw is None or not isinstance(raw.get("lessons"), list):
-                raise ValueError("unusable reflection")
-            reflection["lessons"] = lessons
-            fb = raw.get("feedback") if isinstance(raw.get("feedback"), dict) else {}
-            keys = {x["key"] for x in used}
-            reflection["feedback"] = {k: v for k, v in fb.items() if k in keys and v in ("held", "failed")}
-            reads = raw.get("supplier_reads") if isinstance(raw.get("supplier_reads"), dict) else {}
-            reflection["reads"] = {k: v[:200] for k, v in reads.items() if k in state["sup"] and isinstance(v, str)}
-            reflection["source"] = "llm"
-        except Exception:  # the close is already decided: a bad reflection must never undo it
-            state["llm"]["fails"] = state["llm"].get("fails", 0) + 1
-    state["reflection"] = reflection
-    return {}
 
 
 # --- menu -----------------------------------------------------------------------------------------
@@ -218,7 +189,7 @@ def menu(ctx):
     dossier = cc["dossier"]
     used = claims_mod.used_ids(ctx["threads"])
     logged, logged_per_sup = _logged_ids(state)
-    menus, claims, shares, vals = {}, {}, {}, {}
+    menus, claims, shares, vals, fulls, mirrors = {}, {}, {}, {}, {}, {}
     trig = dossier.get("trigger") or {}
     holds = r.setdefault("hold", {})
 
@@ -240,12 +211,13 @@ def menu(ctx):
             continue
         tags = s.get("tags") or []
         final_push = r["final_push"].get(sid, False)
-        model = offers.supplier_model(case, led, tags, dossier["suppliers"].get(sid) or {}, dossier["parts"])
+        model = led["model"]
         std = led["std"]
         v_stand = offers._value(case, led["terms"], model) if led["terms"].get("unit_price") else None
         if v_stand is not None and s.get("v_asp") is None:
             drop = ctx["p"]["anchor_drop"] * (knobs.get("drop_mult") or {}).get(sid, 1.0)
-            anchor = offers.anchor_price(case, led, tags, dossier, drop)
+            rivals = [o["price"] for x, o in leds.items() if x != sid and o.get("acceptable") and o.get("price")]
+            anchor = offers.anchor_price(case, led, tags, dossier, drop, rivals, model, std)
             s["v_asp"] = offers._value(case, {"unit_price": anchor}, model)
             s["anchor"] = anchor
         v_asp = s.get("v_asp")
@@ -257,21 +229,38 @@ def menu(ctx):
             and led["rounds"] > 0
             and v_stand is not None
             and s.get("v_ask") is not None
-            and v_stand <= s["v_ask"] + tol
-            # same value to it but dearer for us (practice P08: index clause swapped in) is no match
+            and (
+                v_stand <= s["v_ask"] + tol
+                or any(
+                    closing_terms(case, asked, std) == closing_terms(case, led["terms"], std)
+                    for asked in (led.get("our_sheets") or [[]])[-1]
+                )
+            )
+            # Equal supplier value can still cost the buyer more when nonprice terms change.
             and (s.get("c_ask") is None or (led["c"] is not None and led["c"] <= s["c_ask"] * (1 + ASK_TOL)))
         ):
             out = accept_ready("its offer meets our last ask")
             if out:
                 return out
+        alt = led.get("alt_better")
+        if alt and led["moves_left"] >= 1 and (led["status"] == "final_offer" or final_push):
+            # Its cheaper alternative cannot be accepted by ID: send its own terms back, it answers "agreed".
+            mirror = _mirror(case, alt, std)
+            if mirror:
+                menus[sid], shares[sid], claims[sid] = [mirror], {"trade": 1.0}, []
+                r["final_push"][sid] = True
+                mirrors[sid] = True
+                continue
         if v_asp is not None and v_stand is not None and v_asp >= v_stand:
             v_asp = v_stand * 0.995
         k = led["rounds"]
-        horizon = min(ctx["p"]["round_budget"], (knobs.get("horizon") or {}).get(sid, 99), k + led["moves_left"])
+        horizon = min(
+            ctx["budget"].horizon(k, led["moves_left"], s.get("lat") or []), (knobs.get("horizon") or {}).get(sid, 99)
+        )
         levels = {}
         if v_asp is not None and v_stand is not None:
             values = concession_values(s, k, horizon, v_asp, v_stand, (knobs.get("drop_mult") or {}).get(sid, 1.0))
-            if final_push or led["status"] == "final_offer" or values["step"] >= v_asp + 0.6 * (v_stand - v_asp):
+            if final_push or led["status"] == "final_offer":
                 values["trade"] = v_stand
             span = v_stand - v_asp
             levels = {name: (v - v_asp) / span if span > 0 else 1.0 for name, v in values.items()}
@@ -279,7 +268,14 @@ def menu(ctx):
             s["v_stand_prev"] = v_stand
         must_beat = (offers.cost(case, led["terms"], std, model) if led["terms"] else None) or led["c"]
         must_beat = must_beat if must_beat is not None else math.inf
-        m = within_band(offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat))
+        if alt:  # never ask for more than a package it already offers us
+            must_beat = min(must_beat, alt["cost"])
+        pref = s.get("preferences") or {}
+        full = offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat)
+        fulls[sid] = full
+        m = preferences.rank(within_band(full, case, std, model, pref, led.get("price")), pref)
+        if not m and levels and led["terms"].get("unit_price") and not final_push:
+            m = _fallback_sheet(case, led, std, model, must_beat)
         if final_push and not [x for x in m if x["level"] == "trade"]:
             r["final_push"][sid] = False  # nothing to trade: do not push a final offer
             others_open = [
@@ -298,7 +294,7 @@ def menu(ctx):
         nothing_new = not [x for x in m if x["level"] in ("step", "big", "trade")]
         if led.get("acceptable") and k > 0 and not final_push:
             # the end game has nothing left to ask for, or it has stopped moving after our budget
-            if (late and nothing_new) or (k >= ctx["p"]["round_budget"] and _stalled(led)):
+            if (late and nothing_new) or (late and _stalled(led)):
                 out = accept_ready("nothing left to gain" if nothing_new else "supplier stopped moving")
                 if out:
                     return out
@@ -320,49 +316,120 @@ def menu(ctx):
     )
     pending = [s for s, led in leds.items() if not led.get("ended") and s not in ctx["ready"]]
     mode = ctx["budget"].mode(_llm_ok(ctx), refresh, ctx["p"].get("two_call") and not pending)
-    return {"menus": menus, "claims": claims, "shares": shares, "vals": vals, "mode": mode}
+    if mirrors and all(mirrors.get(sid) or holds.get(sid) for sid in r["suppliers"]):
+        mode = "det"  # sending its own package back needs no model
+    return {
+        "menus": menus,
+        "claims": claims,
+        "shares": shares,
+        "vals": vals,
+        "mode": mode,
+        "fulls": fulls,
+        "mirrors": mirrors,
+    }
 
 
-def within_band(menu):
-    """Of equal-value sheets the supplier takes the one dearest for us (practice P10, P11): offer only
-    those close to the cheapest of their level."""
+MENU_BAND = 0.003  # sheets of one level may cost us at most this much more than the level's cheapest
+
+
+def within_band(menu, case=None, std=None, model=None, pref=None, standing_price=None):
+    """Of equal-value sheets the supplier takes the one dearest for us (practice P05: 14 days' payment,
+    P08/P18: the index clause, P10/P11: lead time and ppm): offer only sheets that cost us about the same.
+    A lever the supplier has insisted on (`pref`) is kept - repriced so that it, too, costs us the level's
+    cheapest C: an index clause then comes with a lower base price."""
     floor = {}
     for m in menu:
         floor[m["level"]] = min(floor.get(m["level"], m["c"]), m["c"])
-    return [m for m in menu if m["c"] <= floor[m["level"]] * (1 + MENU_BAND)]
+    out = [m for m in menu if m["c"] <= floor[m["level"]] * (1 + MENU_BAND)]
+    fields = (pref or {}).get("fields") or {}
+    if not fields or case is None:
+        return out
+    hi = standing_price or max((m["price"] or 0) for m in menu) if menu else 0
+    for level, c_floor in floor.items():
+        if any(all(m["terms"].get(f) in p["values"] for f, p in fields.items()) for m in out if m["level"] == level):
+            continue
+        wanted = [
+            m for m in menu if m["level"] == level and all(m["terms"].get(f) in p["values"] for f, p in fields.items())
+        ]
+        if not wanted:
+            continue
+        best = min(wanted, key=lambda m: m["c"])
+        levers = {k: v for k, v in best["terms"].items() if k != "unit_price"}
+        price = offers.price_for_cost(case, levers, std, model, c_floor, 0.5 * (hi or best["price"]), best["price"])
+        if price and price > 0:
+            terms = {**best["terms"], "unit_price": price}
+            c = offers.cost(case, terms, std, model)
+            if c is not None:
+                out.append({**best, "terms": terms, "price": price, "c": round(c, 2), "mid": best["mid"]})
+    return out
 
 
-RECIPROCITY = 0.4  # we concede this share of the supplier's last concession (in value to it)
-STALL_STEP = 0.15  # after one round of mutual standstill we concede this share of the remaining gap
+def _mirror(case, alt, std):
+    """Our term sheet with exactly the terms of the supplier's alternative package."""
+    terms = {f: alt["terms"].get(f, std.get(f)) for f in case["negotiable"]}
+    if any(v is None and f in ("unit_price",) for f, v in terms.items()):
+        return None
+    return {
+        "mid": "M1",
+        "level": "trade",
+        "terms": terms,
+        "c": alt["cost"],
+        "saving": 0.0,
+        "price": terms.get("unit_price"),
+        "changes": {},
+    }
+
+
+def _fallback_sheet(case, led, std, model, must_beat):
+    """No package fits the plan (e.g. the cost model rejects every lower price): never send prose only -
+    ask for its own levers at a slightly lower price, if that is cheaper for us."""
+    terms = {f: led["terms"].get(f, std.get(f)) for f in case["negotiable"]}
+    if any(v is None for v in terms.values()):
+        return []
+    for cut in (0.02, 0.01, 0.005):
+        t = {**terms, "unit_price": round(terms["unit_price"] * (1 - cut), 2)}
+        c = offers.cost(case, t, std, model)
+        if c is not None and c < must_beat - 0.5:
+            return [
+                {
+                    "mid": "M1",
+                    "level": "step",
+                    "terms": t,
+                    "c": round(c, 2),
+                    "saving": round(must_beat - c, 2),
+                    "price": t["unit_price"],
+                    "changes": {},
+                }
+            ]
+    return []
+
+
+# Concession: we always move a little (a supplier gives nothing without a move from us - practice runs in
+# which we held our position ran into its final offer at its own price: P07, P11, P18), more when it moves,
+# most in the end game; we never jump to its offer.
+STALL_SHARE = 0.10  # share of the remaining gap we concede when it did not move
+MOVE_SHARE = 0.10  # share of the remaining gap we concede when it moved ...
+RECIPROCITY = 0.5  # ... plus this share of its concession (in value to it)
+MAX_SHARE = 0.4  # never more than this share of the remaining gap before the end game
+END_SHARE = 0.3  # share of the remaining gap per round in the end game
 
 
 def concession_values(s, k, horizon, v_asp, v_stand, drop_mult=1.0):
-    """Supplier-value targets for this round: reciprocity, capped by a slow schedule early and pushed
-    by it late (deadline pressure). We never concede without a move from its side before the end game."""
+    """Supplier-value target of our next ask ("step")."""
     prev = s.get("v_ask", v_asp)
     their = max(0.0, (s.get("v_stand_prev") or v_stand) - v_stand)
-    late = k >= horizon - 2
-    gap = v_stand - v_asp
-    sched = v_asp + gap * offers.schedule(k, horizon)
-    cap = v_asp + gap * min(1.0, (k / max(1, horizon - 1)) ** 1.5)
+    remaining = max(0.0, v_stand - prev)
+    soft = 1.0 / max(drop_mult, 0.5)  # a learned "concede less" knob shrinks our moves
     if k == 0:
         step = v_asp
-    elif late:
-        step = max(prev + RECIPROCITY / max(drop_mult, 0.5) * their, sched)
-        step = min(step, prev + 0.75 * (v_stand - prev))  # a real move, but never all the way to its offer
+    elif k >= horizon - 2:
+        step = prev + END_SHARE * remaining
     elif their <= 1e-6:
-        # no concession without a move from its side - but only once: repeating the same sheets runs into
-        # its final offer at its own price (practice P02, P03, P07, P11, P18). With a short horizon the
-        # end game below starts first.
-        step = prev + STALL_STEP * (v_stand - prev) if s.get("held") else prev
+        step = prev + STALL_SHARE * soft * remaining
     else:
-        step = min(prev + RECIPROCITY / max(drop_mult, 0.5) * their, max(cap, prev))
+        step = prev + min(MAX_SHARE * remaining, MOVE_SHARE * soft * remaining + RECIPROCITY * soft * their)
     step = min(max(step, prev), v_stand)
-    s["held"] = 0 < k and not late and step <= prev + 1e-9
-    values = {"step": step, "big": step + (v_stand - step) * 0.4}
-    if k > 0 and prev < step - 1e-9:
-        values["hold"] = prev
-    return values
+    return {"step": step}
 
 
 def after_menu(ctx):
@@ -390,6 +457,8 @@ def _det_choices(ctx):
             knobs,
         )
         out[sid]["source"] = "det"
+        if (ctx.get("mirrors") or {}).get(sid):
+            out[sid].update(tactic="conclude", ask_breakdown=False, claim_ids=[], questions=[])
     return out
 
 
@@ -424,6 +493,7 @@ def _payload(ctx, with_plan=True):
             "dossier": dossier_mod.digest(dossier, sid),
             "advice": advice_for(s.get("tags") or []),
             "ledger": ledger_mod.digest(led),
+            "preferences": s.get("preferences") or {},
             "final_offer_push": ctx["route"]["final_push"].get(sid, False),
             "menu": [
                 {
@@ -470,15 +540,98 @@ def _merge_choices(ctx, raw):
     out, used = {}, 0
     for sid in ctx["route"]["suppliers"]:
         try:
+            raw_choice = entries.get(sid)
+            s = ctx["state"]["sup"][sid]
+            pref = preferences.update(
+                ctx["case"],
+                ctx["ledgers"][sid],
+                s.get("preferences") or {},
+                (raw_choice or {}).get("signals") if isinstance(raw_choice, dict) else [],
+            )
+            s["preferences"] = pref
             out[sid] = prompts.clean_choice(
                 entries.get(sid), ctx["menus"].get(sid) or [], ctx["claims"].get(sid) or [], det_c[sid]
             )
+            choice = out[sid]
+            if (ctx.get("mirrors") or {}).get(sid):
+                out[sid] = dict(det_c[sid], source="det")
+                continue
+            candidates = ctx["menus"].get(sid) or []
+            fields = pref.get("fields") or {}
+            if (
+                fields
+                and candidates
+                and not any(all(m["terms"].get(f) in p["values"] for f, p in fields.items()) for m in candidates)
+            ):
+                # A countercondition the model just evidenced: add it, repriced to the same cost for us.
+                led = ctx["ledgers"][sid]
+                extra = [
+                    {**m, "mid": f"P{i}"}
+                    for i, m in enumerate(
+                        within_band(
+                            (ctx.get("fulls") or {}).get(sid) or [],
+                            ctx["case"],
+                            led["std"],
+                            led["model"],
+                            pref,
+                            led.get("price"),
+                        ),
+                        1,
+                    )
+                    if all(m["terms"].get(f) in p["values"] for f, p in fields.items())
+                ]
+                candidates.extend(extra)
+                ctx["menus"][sid] = candidates
+            selected = [m for m in candidates if m["mid"] in choice["sheet_ids"]]
+            if selected and pref.get("fields"):
+                same_level = [m for m in candidates if m["level"] == selected[0]["level"]]
+                ranked = preferences.rank(same_level, pref)
+                # A current, evidenced countercondition outranks a stale model choice.
+                if ranked:
+                    best = ranked[0]
+                    if any(m["terms"].get(f) not in p["values"] for m in selected for f, p in pref["fields"].items()):
+                        choice["sheet_ids"] = [best["mid"]]
+                        choice["body"] = ""  # render fresh prose when the evidenced terms changed
+            _proposal(ctx, sid, raw_choice, choice)
             used += out[sid].get("source") == "llm"
         except Exception:
             out[sid] = dict(det_c[sid], source="det")
     if not used:
         ctx["state"]["llm"]["fails"] = ctx["state"]["llm"].get("fails", 0) + 1
     return out
+
+
+def _proposal(ctx, sid, raw, choice):
+    """The model can request allowed non-price terms; code solves the price and checks cost."""
+    proposal = raw.get("proposal") if isinstance(raw, dict) else None
+    if not isinstance(proposal, dict) or not proposal or sid not in ctx.get("vals", {}):
+        return
+    case, led = ctx["case"], ctx["ledgers"][sid]
+    if any(
+        f == "unit_price" or f not in case["negotiable"] or v not in case.get("term_options", {}).get(f, [])
+        for f, v in proposal.items()
+    ):
+        return
+    s = ctx["state"]["sup"][sid]
+    if any(
+        f in proposal and proposal[f] not in p["values"] for f, p in s.get("preferences", {}).get("fields", {}).items()
+    ):
+        return
+    model = led["model"]
+    restricted = {**case, "term_options": {**case.get("term_options", {}), **{f: [v] for f, v in proposal.items()}}}
+    # Include proposed terms in the base so lever_domains does not re-add the old value.
+    std = {**led["std"], **proposal}
+    v_asp, v_stand = ctx["vals"][sid]
+    level = raw.get("level") if raw.get("level") in ctx["shares"][sid] else "step"
+    menu = offers.build_menu(
+        restricted, led, model, std, v_asp, v_stand, {level: ctx["shares"][sid].get(level, 0)}, led["c"] or math.inf
+    )
+    if menu:
+        selected = preferences.rank(menu, s.get("preferences") or {})[0]
+        selected["mid"] = "proposal"
+        ctx["menus"][sid].append(selected)
+        choice["sheet_ids"] = [selected["mid"]]
+        choice["body"] = ""
 
 
 def negotiator(ctx):
@@ -543,12 +696,15 @@ def critic(ctx):
                 chosen.append(c)
         batch.update(i for c in chosen for i in c["ids"] if not i.startswith(claims_mod.PER_SUPPLIER))
         questions = []
+        pref = state["sup"][sid].get("preferences") or {}
         for q in choice.get("questions") or []:
+            q = preferences.filter_questions(q, pref)
             text, issues = writer.lint(q)
             if text and not issues:
                 questions.append(text)
         if (
             choice.get("ask_breakdown")
+            and preferences.can_ask_breakdown(pref)
             and not ctx["ledgers"][sid].get("breakdown")
             and not any("breakdown" in q.lower() for q in questions)
         ):
@@ -558,7 +714,7 @@ def critic(ctx):
         if hold:  # no sheets, no arguments: a polite holding reply that does not push its final offer
             sheets, chosen, questions = [], [], []
             choice = {**choice, "body": "", "tactic": "review", "sheet_ids": []}
-        body_src, issues = writer.lint(choice.get("body") or "")
+        body_src, issues = writer.lint(preferences.filter_questions(choice.get("body") or "", pref))
         if len(body_src) < 40:
             body_src = writer.finish_template(
                 writer.template(
@@ -585,7 +741,7 @@ def critic(ctx):
             v_asp, v_stand = ctx["vals"][sid]
             s["f"] = ctx["shares"][sid][level]
             s["v_ask"] = v_asp + s["f"] * (v_stand - v_asp)
-            s["c_ask"] = _dearest(case, sheets, led["std"])
+            s["c_ask"] = _dearest(case, sheets, led["std"], led.get("model"))
         s["sent_at"] = time.time()
         s["last_status"] = led["status"]
         if choice.get("read"):
@@ -619,13 +775,16 @@ def critic(ctx):
     return {"actions": actions}
 
 
-def _dearest(case, sheets, std):
+def _dearest(case, sheets, std, model=None):
     """Our cost of the dearest sheet we sent, priced like the ledger prices its offers: any of them is a
     deal we asked for."""
     costs = []
     for t in sheets:
         try:
-            costs.append(total_cost(case, t, std))
+            c = offers.cost(case, t, std, model or {})
+            if c is None:
+                return None
+            costs.append(c)
         except Exception:
             return None
     finite = [c for c in costs if math.isfinite(c)]
@@ -645,7 +804,6 @@ NODES = {
     "observe": observe,
     "route": route,
     "close": close,
-    "reflect": reflect,
     "menu": menu,
     "negotiator": negotiator,
     "strategist": strategist,
@@ -668,8 +826,7 @@ def build_langgraph():
     g.set_entry_point("observe")
     g.add_edge("observe", "route")
     g.add_conditional_edges("route", after_route, {"close": "close", "menu": "menu"})
-    g.add_edge("close", "reflect")
-    g.add_edge("reflect", END)
+    g.add_edge("close", END)
     g.add_conditional_edges(
         "menu", after_menu, {"close": "close", "negotiator": "negotiator", "strategist": "strategist", "det": "det"}
     )
@@ -701,7 +858,6 @@ def run_sequential(ctx):
             step("critic")
             return ctx
     step("close")
-    step("reflect")
     return ctx
 
 

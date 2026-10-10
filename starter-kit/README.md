@@ -34,6 +34,20 @@ uv run --frozen arena-harness run --config configs/my_agent.toml
 uv run --frozen arena-harness compare RUN_A RUN_B
 ```
 
+Run five independent local experiments with a shared resource coordinator:
+
+```bash
+uv run --frozen arena-harness batch --config configs/learner.toml --copies 5
+uv run --frozen arena-harness resume-batch BATCH_ID
+uv run --frozen arena-harness audit RUN_ID
+```
+
+Each run has separate configuration, memory, model budget and results. The
+coordinator shares the Arena request rate, ten session slots and model
+concurrency. Repeat `--config` to compare different configurations. The final
+remains exclusive. [EVALUATION.md](EVALUATION.md) records the baseline,
+regression method and limits of offline performance conclusions.
+
 `baseline.toml` selects one case for a short experiment; the CLI without a config
 plays all three simulator cases. Use `--max-cases 3` to compare all three with
 your configuration. Compare matching case selections and data versions.
@@ -62,7 +76,7 @@ independently of the scheduler and transport.
 ```bash
 uv run --frozen pytest -q
 uv run --frozen ruff check arena_kit/harness agents tests
-uv run --frozen ruff format --check arena_kit/harness agents tests/test_harness.py
+uv run --frozen ruff format --check arena_kit/harness agents tests
 ```
 
 Default tests block external connections. Hosted tests and hosted smoke runs

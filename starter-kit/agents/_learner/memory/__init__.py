@@ -1,31 +1,23 @@
-"""Run memory: what this harness run has learned so far, rebuilt from its journal (never persisted)."""
+"""Run memory obtained from the owning engine, never discovered by scanning other runs."""
 
-from pathlib import Path
-
-from . import consolidate, episodes, runlocate
+from . import consolidate
 
 EMPTY = {"episodes": 0, "lessons": [], "knobs": {}, "run": None}
 
 
-def refresh(case, params, tags_by_supplier, cache):
-    """The lesson view for `case`; cached until another case of the run finishes. Never raises."""
-    if not params.get("memory", True):
+def refresh(case, params, tags_by_supplier, cache, services=None):
+    if not params.get("memory", True) or services is None or not hasattr(services, "history"):
         return dict(EMPTY)
     try:
-        run = cache.get("run_dir")
-        if run is None or not (Path(run) / "run.sqlite").is_file():
-            run = runlocate.find(case, params.get("runs_dir"))
-            cache["run_dir"] = str(run) if run else ""
-        if not run:
+        history = services.history()
+        runtime = getattr(services, "runtime", {})
+        if not runtime.get("run_id") or history.get("run_id") != runtime["run_id"]:
             return dict(EMPTY)
-        sig = episodes.signature(run)
-        key = (sig, tuple(sorted((s, tuple(t)) for s, t in tags_by_supplier.items())))
-        if cache.get("mem_key") == key and cache.get("mem"):
-            return cache["mem"]
-        eps = episodes.extract(run, exclude=case["case_id"])
-        view = consolidate.view(eps, case, tags_by_supplier, k=params.get("max_lessons", 10))
-        view["run"] = Path(run).name
-        cache["mem_key"], cache["mem"] = key, view
+        episodes = [
+            ep for ep in history.get("episodes", []) if ep.get("case_id") != case["case_id"] and ep.get("result")
+        ]
+        view = consolidate.view(episodes, case, tags_by_supplier, k=params.get("max_lessons", 10))
+        view["run"] = history["run_id"]
         return view
     except Exception:
         return dict(EMPTY)

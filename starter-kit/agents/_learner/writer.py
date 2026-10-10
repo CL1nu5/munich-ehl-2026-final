@@ -158,6 +158,8 @@ def template(case, tone, tactic, has_sheets, ask_breakdown, first):
         "close_push": "We are close. One more step from your side and we can sign.",
         "probe": "To find a fair solution for both sides we would like to understand your costs better.",
         "review": "We are reviewing your offer carefully and will come back to you shortly.",
+        "conclude": "We would like to conclude on the alternative package you offered, exactly as set out below. "
+        "Please confirm it so that we can place the agreement.",
     }.get(tactic, "We would like to reach an agreement on the following basis.")
     parts = [greet, opener, middle, "{{CLAIM_BLOCK}}"]
     if has_sheets:

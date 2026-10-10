@@ -24,6 +24,40 @@ work for comparison. Missing scores stay missing. Different profiles cannot be
 compared; different case/data sets require `--allow-mismatch` and are labelled.
 Simulator scores measure the scripted opponent, not expected live performance.
 
+`arena-harness audit RUN_ID` reads the journal without modifying it and replays
+recorded offer prefixes. It compares the accepted sheet with other acceptable
+current sheets from that supplier, using known buyer costs. It does not infer
+new supplier replies, hidden relationship costs or a counterfactual score.
+
+## Five independent experiments
+
+```bash
+uv run --frozen arena-harness batch --config configs/learner.toml --copies 5
+uv run --frozen arena-harness batch --config configs/experiment_a.toml --config configs/experiment_b.toml
+uv run --frozen arena-harness resume-batch BATCH_ID
+```
+
+A batch contains at most five runs under one supervisor and the existing local
+OS lock. Each run owns its journal, config, workers, memory and model-call
+budget; local simulations also have independent simulator state. The batch
+manifest records the child run IDs. Reports and comparisons still use those
+individual IDs. Resume a batch with `resume-batch`, not individual `resume`.
+
+`--parallel-per-run` defaults to 2, `--session-limit` to 10 and
+`--model-parallel` to 10. All requests share a nine-request/second pacer;
+waiting model calls count toward decision deadlines without consuming a call
+until dispatched. Session slots are fairly queued and are released only after
+a confirmed result or when no session could have opened. Unresolved opens keep
+their slots across restart. A failed experiment does not abort its neighbours;
+if failed experiments retain all capacity, queued runs stop with a recoverable
+error instead of hanging or exceeding the account limit.
+
+Batch profiles are `sim`, `sandbox` and `practice`; `final` stays exclusive.
+Hosted and model permissions are the same explicit flags as for single runs.
+Practice admission checks the total selection against the shared remaining
+quota before any new session opens. This coordinates one account on one
+machine; another machine or legacy CLI sharing the key is outside its lock.
+
 ## Add an agent
 
 Copy `agents/example.py` to `agents/my_agent.py`, keep the `Agent` class, then use
@@ -33,7 +67,7 @@ and pass `--config configs/my_experiment.toml`. Do not put keys in TOML.
 ```python
 class Agent:
     def prepare(self, context):
-        # context: {case, parameters}; runs before a session opens.
+        # context: {case, parameters, runtime}; runs before a session opens.
         return {"round": 0}  # explicit JSON state
 
     def decide(self, observation, state, services):
@@ -46,6 +80,10 @@ class Agent:
                 "subject": "...", "body": "...", "term_sheets": [{"terms": {}}]
             }}
         ], "state": {"round": state["round"] + 1}}
+
+    def on_result(self, context, state, services):  # optional
+        # Runs after a confirmed result is journaled, outside the closing deadline.
+        return state
 ```
 
 Use the actual supplier IDs and all negotiable terms from the observation; the
@@ -61,6 +99,12 @@ do not reveal the supplier's hidden economics. Plugins are trusted Python code,
 not an OS security sandbox; use `services.complete` for all model calls so limits
 and metrics apply. Worker stdout is reserved for the harness protocol; ordinary
 plugin prints are discarded. Keep durable state in the returned JSON.
+
+`context.runtime`, `observation.runtime` and `services.runtime` identify the run
+and authoritative data/budget settings. The observation carries the current
+effective decision budget. `services.history()` returns confirmed completed
+episodes only from this run; do not scan `.runs` to infer an owner. The optional
+result callback cannot mutate an unconfirmed close into a learning outcome.
 
 Built-ins: `baseline` (batch RFQ example), `starter_naive`, `starter_llm`.
 `agents check` validates three local opening observations without external calls;
@@ -95,6 +139,16 @@ uses `max_completion_tokens` instead of `max_tokens`. Without it the request is
 unchanged.
 Remote models require `--allow-model`, independently of `--allow-arena`.
 Loopback HTTP endpoints are supported without remote-model permission.
+
+Set `[model].service_tier = "fast"` to request OpenAI Fast mode. The two Luna
+configs enable it and retain `reasoning_effort = "medium"`. `priority` is also
+accepted; omitting the setting preserves the provider's default behaviour.
+Reports expose `model_service_tier_requested` and counts in
+`model_service_tiers`; each model event records the tier returned by the API.
+A provider downgrade to `default` stays visible, and missing tier metadata is
+`unknown`. A rejected tier is treated as a model error without an automatic retry.
+Fast mode uses premium pricing; see the
+[official guide](https://developers.openai.com/api/docs/guides/fast-mode).
 
 Limits are runwide and survive restarts. Ambiguous model failures consume an
 attempt and are not retried. Reports show provider-reported usage and unknown
@@ -133,7 +187,10 @@ crashed engine at most three times. The engine inherits the lock descriptor, so
 killing only the supervisor does not permit a competing run. Every POST is
 journaled before sending; retries use its original `X-Move-Id`. Never delete a run
 journal to retry a final case. Resume requires unchanged commit, code, agent and
-data, plus the original Arena key. Config and remaining model budgets are restored.
+data, plus the original Arena key. Agent fingerprints cover the team `agents/`
+tree, including imported helpers; dependency fingerprints cover `pyproject.toml`
+and `uv.lock`. Existing journals remain reportable, but older fingerprints cannot
+silently resume under changed code. Config and remaining model budgets are restored.
 
 First Ctrl-C requests controlled closure; a second forces interruption. After an
 unresolved request, resume the same run instead of starting a fresh one. Exit 0

@@ -15,7 +15,7 @@ from pathlib import Path
 
 from ..data import DataPackage
 from .agent_process import AgentProcess
-from .config import PROFILES, ROOT, agent_path, authorize, git_state, load, tree_hash
+from .config import PROFILES, ROOT, agent_hash, authorize, dependency_hash, git_state, load, tree_hash
 from .plugins import BUILTINS
 from .report import compare, report
 from .simulator import server
@@ -32,7 +32,8 @@ def verify_source(cfg):
         current["commit"] != cfg["source"]["commit"]
         or tree_hash(ROOT / "arena_kit") != cfg.get("code_hash")
         or tree_hash(cfg["data"]) != cfg["data_hash"]
-        or tree_hash(agent_path(cfg["agent"])) != cfg["agent_hash"]
+        or agent_hash(cfg["agent"]) != cfg["agent_hash"]
+        or dependency_hash() != cfg.get("dependency_hash")
     ):
         raise ValueError("Source, agent or data changed; cannot resume the same experiment")
     if cfg["profile"] == "final" and current["dirty"]:
@@ -103,6 +104,121 @@ def supervise(cfg, journal, run_lock):
                 signal.signal(sig, handler)
 
 
+def run_batch(args, run_lock):
+    from .batch import read_manifest
+    from .state import digest
+
+    root = Path(args.runs_dir).resolve()
+    journals = []
+    try:
+        if args.command == "batch":
+            if not 1 <= args.copies <= 5 or len(args.config) * args.copies > 5:
+                raise ValueError("A batch contains at most five runs")
+            if (
+                not 1 <= args.parallel_per_run <= 10
+                or not 1 <= args.session_limit <= 10
+                or not 1 <= args.model_parallel <= 10
+            ):
+                raise ValueError("Parallelism and shared limits must be 1..10")
+            configs = []
+            for path in args.config * args.copies:
+                cfg = load(argparse.Namespace(**{**vars(args), "config": path}))
+                cfg["parallel"] = args.parallel_per_run
+                cfg["config_hash"] = digest({k: v for k, v in cfg.items() if k not in ("source", "config_hash")})
+                authorize(cfg)
+                configs.append(cfg)
+            batch_id = "batch-" + time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + "-" + uuid.uuid4().hex[:8]
+            folder = root / batch_id
+            folder.mkdir(parents=True, mode=0o700)
+            for cfg in configs:
+                run_id = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + "-" + uuid.uuid4().hex[:8]
+                journal = Journal(root / run_id)
+                journals.append(journal)
+                journal.put("config", cfg)
+                journal.put("status", "created")
+                journal.put("batch_id", batch_id)
+                (journal.folder / "config.json").write_text(json.dumps(redact(cfg), indent=2) + "\n")
+            manifest = {
+                "version": 1,
+                "runs": [j.folder.name for j in journals],
+                "session_limit": args.session_limit,
+                "model_parallel": args.model_parallel,
+            }
+            temp = folder / "batch.tmp"
+            temp.write_text(encode(manifest))
+            temp.replace(folder / "batch.json")
+        else:
+            folder = Path(args.batch_id)
+            if not folder.is_dir():
+                folder = root / args.batch_id
+            folder = folder.resolve()
+            manifest = read_manifest(folder)
+            for run_id in manifest["runs"]:
+                journal = Journal(resolve_run(folder.parent, run_id))
+                journals.append(journal)
+                cfg = journal.get("config")
+                verify_source(cfg)
+                authorize(cfg)
+        print(f"Batch: {folder.name}", flush=True)
+        print(encode({"runs": [j.folder.name for j in journals]}), flush=True)
+        code = (
+            0 if all(j.get("status") == "completed" for j in journals) else supervise_batch(folder, journals, run_lock)
+        )
+        print(
+            json.dumps({"batch_id": folder.name, "runs": [summary(saved_report(j.folder)) for j in journals]}, indent=2)
+        )
+        return code
+    finally:
+        for journal in journals:
+            journal.close()
+
+
+def supervise_batch(folder, journals, run_lock):
+    environment = os.environ.copy()
+    environment.pop("HARNESS_SIM_URL", None)
+    with contextlib.ExitStack() as stack:
+        urls = {}
+        for journal in journals:
+            cfg = journal.get("config")
+            if cfg["profile"] == "sim" and journal.get("status") != "completed":
+                urls[journal.folder.name] = stack.enter_context(server(journal.folder, DataPackage(cfg["data"]).facts))
+        environment["HARNESS_BATCH_SIM_URLS"] = encode(urls)
+        child, interrupted = None, False
+
+        def stop(signum, frame):
+            nonlocal interrupted
+            if child and child.poll() is None:
+                child.kill() if interrupted else child.send_signal(signal.SIGTERM)
+            interrupted = True
+
+        previous = {sig: signal.signal(sig, stop) for sig in (signal.SIGINT, signal.SIGTERM)}
+        try:
+            for attempt in range(4):
+                for journal in journals:
+                    verify_source(journal.get("config"))
+                child = subprocess.Popen(
+                    [sys.executable, "-m", "arena_kit.harness.batch", str(folder)],
+                    cwd=ROOT,
+                    env=environment,
+                    start_new_session=True,
+                    pass_fds=(run_lock.file.fileno(),),
+                )
+                code = child.wait()
+                if interrupted or code >= 0:
+                    return code
+                for journal in journals:
+                    journal.event("batch_restart", attempt=attempt + 1, exit_code=code)
+                if attempt < 3:
+                    time.sleep((1, 2, 5)[attempt])
+            return 2
+        finally:
+            if child and child.poll() is None:
+                child.kill()
+                child.wait()
+            for sig, handler in previous.items():
+                signal.signal(sig, handler)
+
+
 def saved_report(folder):
     journal = Journal(folder)
     try:
@@ -149,6 +265,21 @@ def parser():
     run.add_argument("--allow-arena", action="store_true")
     run.add_argument("--allow-model", action="store_true")
     run.add_argument("--commit")
+    batch = sub.add_parser("batch", help="Start up to five isolated experiments under one resource coordinator")
+    batch.add_argument("--config", action="append", required=True)
+    batch.add_argument("--copies", type=int, default=1)
+    batch.add_argument("--profile", choices=("sim", "sandbox", "practice"), default="sim")
+    batch.add_argument("--runs-dir", default=str(DEFAULT_RUNS))
+    batch.add_argument("--max-cases", type=int)
+    batch.add_argument("--case", action="append")
+    batch.add_argument("--allow-arena", action="store_true")
+    batch.add_argument("--allow-model", action="store_true")
+    batch.add_argument("--parallel-per-run", type=int, default=2)
+    batch.add_argument("--session-limit", type=int, default=10)
+    batch.add_argument("--model-parallel", type=int, default=10)
+    resume_batch = sub.add_parser("resume-batch")
+    resume_batch.add_argument("batch_id")
+    resume_batch.add_argument("--runs-dir", default=str(DEFAULT_RUNS))
     resume = sub.add_parser("resume")
     resume.add_argument("run_id")
     resume.add_argument("--runs-dir", default=str(DEFAULT_RUNS))
@@ -161,6 +292,9 @@ def parser():
     rep.add_argument("run_id")
     rep.add_argument("--runs-dir", default=str(DEFAULT_RUNS))
     rep.add_argument("--format", choices=("json", "csv"), default="json")
+    replay = sub.add_parser("audit", help="Read-only audit of recorded offers; no Arena or model calls")
+    replay.add_argument("run_id")
+    replay.add_argument("--runs-dir", default=str(DEFAULT_RUNS))
     comp = sub.add_parser("compare")
     comp.add_argument("run_ids", nargs="+")
     comp.add_argument("--runs-dir", default=str(DEFAULT_RUNS))
@@ -260,6 +394,11 @@ async def check_agent(cfg):
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.command == "audit":
+            from .audit import audit
+
+            print(json.dumps(audit(resolve_run(args.runs_dir, args.run_id)), indent=2))
+            return 0
         if args.command == "agents" and args.operation == "list":
             print(
                 "\n".join(
@@ -299,6 +438,8 @@ def main(argv=None):
                 print(json.dumps(reports[0], indent=2))
             return 0
         with RunLock() as run_lock:  # before credentials, simulator startup or network calls
+            if args.command in ("batch", "resume-batch"):
+                return run_batch(args, run_lock)
             if args.command == "run":
                 cfg = load(args)
                 authorize(cfg, args.commit)
@@ -312,6 +453,9 @@ def main(argv=None):
                 folder = resolve_run(args.runs_dir, args.run_id)
                 journal = Journal(folder)
                 cfg = journal.get("config")
+                if journal.get("batch_id"):
+                    journal.close()
+                    raise ValueError("This run belongs to a batch; use resume-batch to preserve resource ownership")
                 try:
                     current = verify_source(cfg)
                 except Exception:

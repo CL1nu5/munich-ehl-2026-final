@@ -1,22 +1,20 @@
 # learner agent with an OpenAI model through the harness gateway.
 # Needs LLM_API_KEY in the environment and --allow-model; no keys in this file.
 agent = "learner"
-parallel = 2   # small "waves": later cases learn from the cases finished before them
+parallel = 10   # all cases at once, like a final wave (arena limit: 10 open sessions per key)
 decision_seconds = 45   # a 35 s model call + margin; the arena allows 60 s per message
-max_cases = 3
+max_cases = 10
 
 [parameters]
-round_budget = 4   # practice: suppliers sent their final offer in rounds 2-4
 llm = true
 two_call = true
-model_timeout = 35   # keep equal to [model].timeout
-decision_seconds = 45   # keep equal to the top-level decision_seconds
 
 [model]
 name = "gpt-6-luna"
 base_url = "https://api.openai.com/v1"
 reasoning_effort = "medium"
-max_calls = 150
+service_tier = "fast"
+max_calls = 300   # 10 cases x ~10 decisions x 1 call (merged mode at a 35 s timeout), plus reflections
 max_output_tokens = 16000   # reasoning tokens count against this limit
 parallel = 10
 timeout = 35   # the harness maximum

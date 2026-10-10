@@ -9,6 +9,7 @@ from urllib.parse import quote
 import httpx
 
 from ..client import ArenaError
+from .resources import Pacer
 from .state import encode, redact
 
 
@@ -21,7 +22,7 @@ def component(value):
 
 
 class Transport:
-    def __init__(self, cfg, journal, *, url=None, key=None, transport=None):
+    def __init__(self, cfg, journal, *, url=None, key=None, transport=None, pacer=None):
         self.cfg, self.journal = cfg, journal
         self.http = httpx.AsyncClient(
             base_url=(url or cfg["url"]) + "/v1/",
@@ -31,16 +32,13 @@ class Transport:
             transport=transport,
         )
         self.lock, self.next = asyncio.Lock(), 0.0
+        self.pacer = pacer or Pacer()
 
     async def close(self):
         await self.http.aclose()
 
     async def pace(self):
-        async with self.lock:
-            delay = self.next - time.monotonic()
-            if delay > 0:
-                await asyncio.sleep(delay)
-            self.next = time.monotonic() + 1 / 9
+        await self.pacer.wait()
 
     def allowed(self, method, path):
         # Allowlist, not a list of known forbidden aliases.
@@ -127,9 +125,10 @@ class Transport:
 
 
 class Models:
-    def __init__(self, cfg, journal, *, transport=None):
+    def __init__(self, cfg, journal, *, transport=None, shared=None):
         self.cfg, self.journal = cfg, journal
         self.sem = asyncio.Semaphore(cfg["model"].get("parallel", 2))
+        self.shared = shared or asyncio.Semaphore(10)
         self.http = httpx.AsyncClient(
             timeout=cfg["model"].get("timeout", 20), follow_redirects=False, transport=transport
         )
@@ -145,9 +144,11 @@ class Models:
             body |= {"reasoning_effort": model["reasoning_effort"], "max_completion_tokens": model["max_output_tokens"]}
         else:
             body["max_tokens"] = model["max_output_tokens"]
+        if "service_tier" in model:
+            body["service_tier"] = model["service_tier"]
         return body
 
-    async def complete(self, messages):
+    async def complete(self, messages, *, background=False):
         model = self.cfg["model"]
         if not model:
             raise ValueError("No model configured")
@@ -159,9 +160,13 @@ class Models:
                 raise ValueError("Remote model not authorized")
         if len(encode(messages).encode()) > 128 * 1024:
             raise ValueError("Model input exceeds 128 KiB")
-        async with self.sem:
+        # Reflections never queue ahead of decisions. Acquiring available semaphores does not yield.
+        if background and (self.sem.locked() or self.shared.locked()):
+            raise RuntimeError("Background analysis skipped while model capacity is busy")
+        async with self.sem, self.shared:
             call_id = self.journal.reserve_model(model["max_calls"])
             start = time.monotonic()
+            served_tier = None
             try:
                 r = await self.http.post(
                     model["base_url"].rstrip("/") + "/chat/completions",
@@ -170,10 +175,17 @@ class Models:
                 )
                 r.raise_for_status()
                 data = r.json()
+                served_tier = data.get("service_tier")
                 self.journal.model_done(call_id, data.get("usage", {}))
                 return data["choices"][0]["message"]["content"]
             except BaseException:
                 self.journal.model_done(call_id, {}, "unknown")
                 raise  # no retries: an ambiguous timeout may already have been billed
             finally:
-                self.journal.event("model", call_id=call_id, elapsed=time.monotonic() - start)
+                self.journal.event(
+                    "model",
+                    call_id=call_id,
+                    elapsed=time.monotonic() - start,
+                    service_tier_requested=model.get("service_tier", "auto"),
+                    service_tier=served_tier,
+                )

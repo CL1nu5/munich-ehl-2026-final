@@ -74,8 +74,10 @@ ARCHETYPES = {
         "news": ["energy_contract"],
         "rate": 0.07,
         "levers": {},
-        "advice": "Hedged its material/energy forward: market-index arguments meet 'not our reality'; use "
-        "volume, contract length and history instead of index claims.",
+        "advice": "Hedged its material/energy forward: index moves reach its costs only when the hedge ends, so "
+        "an index-based increase or an index clause is not justified before then - say so, citing its own "
+        "letter or quote remark; our own index claims meet 'not our reality', use volume, contract length "
+        "and history instead.",
     },
     "full_order_book": {
         "phrases": ["order intake is very strong", "binding 12-month commitment"],
@@ -118,6 +120,8 @@ GENERAL = [
     "Cite only verified data, one argument per sentence, at most three per message.",
     "Unstated terms close on the supplier's standard terms: always put every negotiable field in a sheet.",
     "A final offer is its last word: push further only when we have a real alternative.",
+    "Never concede a lever (payment, contract, index clause, lead time, quality terms) outside the packages: "
+    "each one is priced in, and the supplier takes whichever package is dearest for us.",
 ]
 
 

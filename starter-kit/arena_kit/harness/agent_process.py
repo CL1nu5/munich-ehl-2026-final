@@ -1,14 +1,21 @@
 import asyncio
 import os
 import sys
+import time
 
 from .config import ROOT
 from .state import encode
 
 
 class AgentProcess:
-    def __init__(self, cfg, models):
-        self.cfg, self.models, self.process = cfg, models, None
+    def __init__(self, cfg, models, journal=None):
+        self.cfg, self.models, self.process, self.journal = cfg, models, None, journal
+        self.runtime = {
+            "run_id": journal.folder.name if journal else None,
+            "data_dir": cfg["data"],
+            "decision_seconds": cfg["decision_seconds"],
+            "model_timeout": cfg["model"].get("timeout", 20),
+        }
 
     async def start(self):
         # Only a small OS environment crosses into plugins; keys stay in the broker.
@@ -24,7 +31,7 @@ class AgentProcess:
             stderr=asyncio.subprocess.DEVNULL,
             limit=256 * 1024,
         )
-        await self.write({"agent": self.cfg["agent"], "data": self.cfg["data"]})
+        await self.write({"agent": self.cfg["agent"], "data": self.cfg["data"], "runtime": self.runtime})
 
     async def write(self, value):
         self.process.stdin.write((encode(value) + "\n").encode())
@@ -32,6 +39,13 @@ class AgentProcess:
 
     async def call(self, method, timeout, **args):
         import json
+
+        deadline = time.monotonic() + timeout
+        runtime = {**self.runtime, "decision_seconds": min(timeout, self.cfg["decision_seconds"])}
+        if "context" in args:
+            args["context"] = {**args["context"], "runtime": runtime}
+        if "observation" in args:
+            args["observation"] = {**args["observation"], "runtime": runtime}
 
         async def exchange():
             if self.process is None:
@@ -44,10 +58,21 @@ class AgentProcess:
                 reply = json.loads(line)
                 if reply.get("rpc") == "model":
                     try:
-                        value = await self.models.complete(reply["messages"])
+                        # Queue waiting counts toward the worker's deadline as well as HTTP time.
+                        value = await asyncio.wait_for(
+                            self.models.complete(
+                                reply["messages"], **({"background": True} if method == "on_result" else {})
+                            ),
+                            max(0.01, deadline - time.monotonic() - 2),
+                        )
                         await self.write({"value": value})
                     except Exception as e:
                         await self.write({"error": type(e).__name__})
+                elif reply.get("rpc") == "history":
+                    from agents._learner.memory.episodes import extract
+
+                    episodes = extract(self.journal.folder) if self.journal else []
+                    await self.write({"value": {"run_id": self.runtime["run_id"], "episodes": episodes}})
                 elif "result" in reply:
                     return reply["result"]
                 else:

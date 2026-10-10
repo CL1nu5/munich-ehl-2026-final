@@ -66,16 +66,22 @@ def report(journal):
     finished = journal.get("status") == "completed" and (cfg["profile"] != "final" or len(wave_points) == 5)
     return {
         "run_id": journal.folder.name,
+        "batch_id": journal.get("batch_id"),
         "status": journal.get("status", "running"),
         "profile": cfg["profile"],
         "agent": cfg["agent"],
         "parameters": cfg["parameters"],
         "model": model.get("name"),
+        "model_service_tier_requested": model.get("service_tier", "auto") if model else None,
+        "model_service_tiers": dict(
+            Counter(e["value"].get("service_tier") or "unknown" for e in events if e["kind"] == "model")
+        ),
         "source": cfg["source"],
         "config_hash": cfg["config_hash"],
         "data_hash": cfg["data_hash"],
         "agent_hash": cfg["agent_hash"],
         "code_hash": cfg["code_hash"],
+        "dependency_hash": cfg.get("dependency_hash"),
         "selected": len(rows),
         "scored": len(complete),
         "coverage": len(complete) / len(rows) if rows else 0,

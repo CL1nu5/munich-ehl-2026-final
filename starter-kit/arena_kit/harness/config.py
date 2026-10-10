@@ -43,6 +43,20 @@ def agent_path(name):
     return path
 
 
+def agent_hash(name):
+    # Include imported team helpers, not only the tiny Agent wrapper. Over-inclusion is safer
+    # than resuming a run after an unrecorded helper edit.
+    return (
+        tree_hash(ROOT / "agents")
+        if name not in ("baseline", "starter_naive", "starter_llm")
+        else tree_hash(agent_path(name))
+    )
+
+
+def dependency_hash():
+    return digest({name: tree_hash(ROOT / name) for name in ("pyproject.toml", "uv.lock")})
+
+
 def load(args):
     cfg = {}
     if getattr(args, "config", None):
@@ -98,6 +112,7 @@ def load(args):
         "parallel",
         "timeout",
         "reasoning_effort",
+        "service_tier",
         "input_usd_per_million",
         "output_usd_per_million",
     }:
@@ -120,12 +135,15 @@ def load(args):
                 raise ValueError(f"Model requires positive {name}")
         if model.get("reasoning_effort", "medium") not in ("none", "minimal", "low", "medium", "high", "xhigh"):
             raise ValueError("Model reasoning_effort must be none, minimal, low, medium, high or xhigh")
+        if model.get("service_tier", "auto") not in ("auto", "default", "flex", "scale", "priority", "fast"):
+            raise ValueError("Model service_tier must be auto, default, flex, scale, priority or fast")
         if not 1 <= model.get("parallel", 2) <= 10 or not 0 < model.get("timeout", 20) <= 35:
             raise ValueError("Model parallel must be 1..10 and timeout >0 and <=35")
     if cfg["agent"] == "starter_llm" and not model:
         raise ValueError("starter_llm requires a [model] configuration")
     cfg["source"] = git_state()
-    cfg["agent_hash"] = tree_hash(agent_path(cfg["agent"]))
+    cfg["agent_hash"] = agent_hash(cfg["agent"])
+    cfg["dependency_hash"] = dependency_hash()
     cfg["code_hash"] = tree_hash(ROOT / "arena_kit")
     cfg["data_hash"] = tree_hash(cfg["data"])
     cfg["config_hash"] = digest({k: v for k, v in cfg.items() if k not in ("source", "config_hash")})

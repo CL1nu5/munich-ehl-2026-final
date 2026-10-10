@@ -160,14 +160,16 @@ def test_menu_sheets_are_valid_and_cheaper_than_the_standing_offer(case_id):
         assert all(p > 0 for p in steps)
 
 
-def test_concessions_wait_for_a_move_and_converge_late():
+def test_concessions_always_move_reciprocate_and_converge_late():
     s = {"v_ask": 100.0, "v_stand_prev": 120.0}
-    still = graph.concession_values(dict(s), 2, 6, 100.0, 120.0)
-    assert still["step"] == 100.0  # it did not move: neither do we
-    moved = graph.concession_values(dict(s), 2, 6, 100.0, 115.0)
-    assert 100.0 < moved["step"] < 100.0 + 5.0  # we concede less than it did
-    late = graph.concession_values(dict(s), 5, 6, 100.0, 120.0)
-    assert 110.0 < late["step"] < 120.0  # end game: a real move, never all the way to its offer
+    still = graph.concession_values(dict(s), 2, 8, 100.0, 120.0)
+    # it did not move: we still move a little - holding runs into its final offer at its own price
+    assert still["step"] == pytest.approx(100.0 + graph.STALL_SHARE * 20.0)
+    moved = graph.concession_values(dict(s), 2, 8, 100.0, 115.0)
+    assert still["step"] < moved["step"] < 100.0 + 5.0  # more when it moved, less than it did
+    late = graph.concession_values(dict(s), 7, 8, 100.0, 120.0)
+    assert moved["step"] < late["step"] < 120.0  # end game: a real move, never all the way to its offer
+    assert graph.concession_values({}, 0, 8, 90.0, 120.0)["step"] == 90.0  # first ask: our anchor
 
 
 def _check_claim(c, facts):
@@ -484,11 +486,9 @@ def test_engine_with_a_mocked_model_uses_it_and_reflects(tmp_path):
     logs = [e for c in CASES for e in states[c]["agent_state"]["log"]]
     assert any(e["src"] == "llm" for e in logs)
     assert any(states[c]["agent_state"].get("reflection", {}).get("source") == "llm" for c in CASES)
-    # S01's reflection (a relationship supplier) is retrieved for S02's relationship suppliers, not for S03's
-    assert any(
-        k.startswith("archetype|relationship|tone|do") for k in states["case:S02"]["agent_state"]["mem"]["lessons"]
-    )
-    assert not any("relationship|tone" in k for k in states["case:S03"]["agent_state"]["mem"]["lessons"])
+    # One reflected case is a hypothesis, not transferable policy evidence.
+    assert not any("relationship|tone" in k for k in states["case:S02"]["agent_state"]["mem"]["lessons"])
+    assert all(states[c].get("reflected") for c in CASES)
 
 
 def test_agent_never_writes_into_the_repository(tmp_path):
@@ -651,23 +651,25 @@ def test_an_agreement_is_held_while_a_cheaper_rival_negotiates():
     assert r["type"] == "close" and r["supplier_id"] == "sup:a"
 
 
-def test_menu_keeps_only_sheets_close_to_the_cheapest_of_their_level():
+def test_menu_offers_only_packages_that_cost_us_about_the_same():
+    # The supplier picks the package dearest for us (practice P10: 56 days' lead time, P08: index clause).
     menu = [
         {"mid": "M1", "level": "step", "c": 1464865.0},
-        {"mid": "M2", "level": "step", "c": 1475230.0},  # P10: +0.7 %
-        {"mid": "M3", "level": "step", "c": 1480091.0},  # P10: 56 days lead time, +1.0 %
-        {"mid": "M4", "level": "big", "c": 1490000.0},
-        {"mid": "M5", "level": "big", "c": 1492000.0},
+        {"mid": "M2", "level": "step", "c": 1466000.0},  # +0.08 %: an equal choice
+        {"mid": "M3", "level": "step", "c": 1480091.0},  # +1.0 %: a give-away
+        {"mid": "M4", "level": "trade", "c": 1490000.0},
+        {"mid": "M5", "level": "trade", "c": 1520000.0},
     ]
-    assert [m["mid"] for m in graph.within_band(menu)] == ["M1", "M4", "M5"]
+    assert [m["mid"] for m in graph.within_band(menu)] == ["M1", "M2", "M4"]
 
 
-def test_a_mutual_standstill_is_broken_after_one_held_round():
+def test_a_mutual_standstill_never_freezes_our_position():
     s = {"v_ask": 100.0, "v_stand_prev": 120.0}
-    first = graph.concession_values(s, 1, 6, 100.0, 120.0)
-    assert first["step"] == 100.0 and s["held"]
-    second = graph.concession_values(s, 2, 6, 100.0, 120.0)
-    assert second["step"] == pytest.approx(100.0 + graph.STALL_STEP * 20.0) and not s["held"]
+    first = graph.concession_values(s, 1, 8, 100.0, 120.0)
+    assert first["step"] > 100.0
+    s["v_ask"] = first["step"]
+    second = graph.concession_values(s, 2, 8, 100.0, 120.0)
+    assert first["step"] < second["step"] < 120.0
 
 
 def test_an_offer_matching_our_ask_in_value_but_dearer_for_us_is_not_accepted():
@@ -702,7 +704,7 @@ def test_our_dearest_sent_sheet_still_counts_as_our_ask():
     sheets = [s["terms"] for s in out["actions"][0]["message"]["term_sheets"]]
     std = ledger_mod.build(case, threads)[sid]["std"]
     dearest = max(sheets, key=lambda t: total_cost(case, t, std))
-    assert len(sheets) > 1 and total_cost(case, dearest, std) > min(total_cost(case, t, std) for t in sheets) * 1.001
+    assert len(sheets) > 1 and total_cost(case, dearest, std) > min(total_cost(case, t, std) for t in sheets)
     assert out["state"]["sup"][sid]["c_ask"] == pytest.approx(total_cost(case, dearest, std))
     reply = sim.message("test", o["session_id"], sid, out["actions"][0]["message"])
     reply["term_sheets"][0]["terms"] = dict(dearest)  # it takes exactly the sheet dearest for us

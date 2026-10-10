@@ -3,7 +3,7 @@
 import json
 import math
 
-STATE_VERSION = 1
+STATE_VERSION = 2
 STATE_LIMIT = 48 * 1024
 LOG_KEEP = 40
 

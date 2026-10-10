@@ -14,12 +14,18 @@ ROLE = (
 
 NUMBERS = (
     "Code has computed every number. MENU: valid term-sheet packages per supplier (mid, terms, c = our total "
-    "cost in EUR, lower is better for us; saving = how much cheaper than its standing offer). Levels: "
-    "'hold' repeats our last position, 'step' is our next planned concession, 'big' a larger one, 'trade' is "
-    "worth exactly as much to the supplier as its own standing offer but cheaper for us (use it after a final "
-    "offer). Send 1-3 packages from ONE level as alternatives. CLAIMS: verified data arguments (cid, sentence); "
+    "cost in EUR, lower is better for us; saving = how much cheaper than its standing offer). Code sizes our "
+    "move each round: 'step' packages all cost us about the same and differ only in what the supplier gets "
+    "(payment, contract, index clause, quality terms) - offer the 2-3 that fit what this supplier values; "
+    "'trade' (only after a final offer) is worth exactly as much to the supplier as its own offer but cheaper "
+    "for us. Send 1-3 packages from ONE level as alternatives; every e-mail carries packages. CLAIMS: verified "
+    "data arguments (cid, sentence); "
     "pick at most 3, only ones that fit this supplier. LESSONS: what earlier cases of this run taught us - follow "
-    "them unless this supplier clearly differs."
+    "them as uncertain hypotheses, never as causal facts. Supplier preferences are separate from cash value. "
+    "Respect evidenced counterconditions and do not repeat declined or answered questions. "
+    "You may add signals: [{field, values: [allowed values], evidence: verbatim span from the latest email}] "
+    "and proposal: {non-price negotiable field: allowed value}. Code computes the proposal's price. "
+    "A signal describes this supplier only; use an empty list when uncertain."
 )
 
 WRITING = (
@@ -32,10 +38,11 @@ WRITING = (
 
 NEGOTIATOR_OUT = (
     'Reply with ONE JSON object and nothing else: {"suppliers": {"<supplier_id>": {"read": "<what moves it, '
-    '<=200 chars>", "tactic": "anchor|trade|probe|hold|concede|close_push", "level": "hold|step|big|trade", '
+    '<=200 chars>", "tactic": "anchor|trade|probe|concede|close_push", "level": "step|trade", '
     '"sheet_ids": ["M1"], "claim_ids": ["C1"], "ask_breakdown": true, "questions": ["<=140 chars, no digits"], '
     '"tone": "warm|neutral|firm", "prediction": {"status": "open|final_offer|agreed|walked_away", '
-    '"price_move_pct": 1.5, "note": "<=140 chars"}, "email": {"subject": "...", "body": "..."}}}}. '
+    '"price_move_pct": 1.5, "note": "<=140 chars"}, "signals": [], "proposal": {}, '
+    '"email": {"subject": "...", "body": "..."}}}}. '
     "Include every supplier listed under suppliers."
 )
 
@@ -50,9 +57,10 @@ WRITER_OUT = (
 REFLECTOR = (
     "You review a negotiation our buyer agent just closed, to teach the next cases of this run. Compare what "
     "we predicted with what the supplier did; note what was too aggressive or too soft, which arguments and "
-    "levers moved it and which did not, and any mistake (contradicted data, wasted rounds, ignored signals). "
+    "levers coincided with changes, and any mistake (contradicted data, wasted rounds, ignored signals). "
+    "Treat proposed explanations as hypotheses. Price moves and final scores do not establish causation. "
     'Reply with ONE JSON object: {"lessons": [{"scope_level": "global|case_type|goal|archetype|supplier", '
-    '"scope_value": "<e.g. rfq, leverage, cash_short, sup:70110; empty for global>", "polarity": "do|avoid", '
+    '"scope_value": "<case type, goal, archetype or observed supplier ID; empty for global>", "polarity": "do|avoid", '
     '"lever": "price|payment_days|contract_months|incoterm|volume|claims|tone|closing|timing|other", '
     '"lesson": "<one actionable sentence, <=200 chars>"}], "supplier_reads": {"<supplier_id>": "<=200 chars"}, '
     '"feedback": {"<key of each lesson in lessons_used>": "held|failed"}}. '

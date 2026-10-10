@@ -22,8 +22,14 @@ def load_agent(name):
 
 
 class Services:
-    def __init__(self, data, output):
+    def __init__(self, data, output, runtime=None):
         self.data, self.output = DataPackage(data), output
+        self.runtime = runtime or {}
+
+    def history(self):
+        self.output.write(encode({"rpc": "history"}) + "\n")
+        self.output.flush()
+        return json.loads(sys.stdin.readline())["value"]
 
     def complete(self, messages):
         self.output.write(encode({"rpc": "model", "messages": messages}) + "\n")
@@ -44,12 +50,17 @@ def main():
     with contextlib.redirect_stdout(sys.stderr):
         try:
             agent = load_agent(init["agent"])
-            services = Services(init["data"], output)
+            services = Services(init["data"], output, init.get("runtime"))
             for line in sys.stdin:
                 request = json.loads(line)
                 try:
                     if request["method"] == "prepare":
                         result = agent.prepare(request["context"])
+                    elif request["method"] == "on_result":
+                        callback = getattr(agent, "on_result", None)
+                        result = (
+                            callback(request["context"], request["state"], services) if callback else request["state"]
+                        )
                     else:
                         result = agent.decide(request["observation"], request["state"], services)
                     reply = {"result": result}
