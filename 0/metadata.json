@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4KXKK60V2MTVSAAVZSR29E4",
+  "session_id": "e0423d2a-dc24-4576-8022-de040482ae79",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-10T22:05:49.718261Z",
+  "branch": "next-iter-linus",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "starter-kit/agents/_learner/graph.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "efede95c6065",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 144,
+    "cache_creation_tokens": 190067,
+    "cache_read_tokens": 9790772,
+    "output_tokens": 46669,
+    "api_call_count": 72
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-10T22:05:49.670779Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 1,
+    "total_committed": 0,
+    "total_lines_changed": 1,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 56,
+      "user_lines_removed": 1,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "starter-kit/agents/_learner/graph.py": 56
+      },
+      "user_removed_per_file": {
+        "starter-kit/agents/_learner/graph.py": 1
+      }
+    }
+  ]
+}
