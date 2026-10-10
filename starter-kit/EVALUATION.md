@@ -92,3 +92,26 @@ showed four defects and one strategic gap:
 The replays reuse the suppliers' recorded replies, so they check our moves, not the suppliers'
 reactions to them. No practice session was used for this revision; the local simulator scores
 0.787 against 0.759 before it (scripted supplier - not a live estimate).
+
+## Revision after practice run `20261010T203905Z-7eb05c71`
+
+That run (code `84c3940`) scored 0.649. Its traces, the suppliers' back-office logs (`GET
+/v1/sessions/{sid}/backoffice`, after the end) and the replies of all four hosted runs of the day
+were read across cases. Changes are limited to patterns seen with several suppliers, not to one case:
+
+| Finding | Evidence | Change |
+|---|---|---|
+| Citing a *rising* index confirms the supplier's case | "Your figures confirm our case: that driver rose" after LCI-C +2.7 % in P01, P02, P04, P05 (14 replies) | Index claims only for a fall: the steepest window of 3-12 months ending in the series' last 6 months, at least -1 % (e.g. AS-14404 -5.5 % 2026-06 → 2026-09 against a supplier's "+5.9 % in twelve months") |
+| Price history does not move suppliers | 0 of 23 `po` citations moved a supplier (seven suppliers): "it holds, but it does not change our calculation" | `po` claims rank last; the playbook says so |
+| Volume questions unanswered | "Which volume can you commit to? Please send the exact figures" in P02, P04, P05, P11, P18; our prose stayed vague; in P05 the cheapest bidder (back office: about to make a final offer) withdrew after the next vague reply | Code answers in figures from the sheets: "Our binding volume is 6,110 pc a year over 12 months, ..." |
+| Broken e-mail text | "Our recent orders ... were at Our recent orders ...", "consider the alternatives in We could agree ...", the same question twice, "Dear Mr.\nSeidl," | A claim placeholder replaces its whole sentence; packages get their own lines; reworded repeat questions are dropped; the question filter keeps lines whole; templates greet the signer by name and no longer ask about costs after a refusal |
+| An insisted index clause was dropped again | P08, P18: "the index clause must remain in place", yet rounds 3-4 offered no clause: the insistence counter reset when we offered the clause once, and the insisted deadband was missing from the pruned menu | The counter survives our matching it; an insisted clause accepts any allowed deadband; a missing combination is built from the cheapest sheet and repriced |
+| No index clause was ever tried unless demanded | `supplier_value` counts cash only, so a clause always looked dearer | Opening round: one sheet with the widest-deadband clause at the same cost for us, when the case allows it and the supplier quoted none (not in P02: there our relationship cost makes it dearer) |
+| Repricing failed for relationship goals | `price_for_cost` bisected from half the price, where the margin penalty makes C non-monotonic | Bisection starts from the cheapest price on a grid |
+| One more round for almost nothing | P05: the cheapest bidder sat 0.7 % above our ask and walked after our next step | Accept when the offer is within 5 % of the way from the opening cost to our last ask |
+| `audit` replayed round 0 from the structured `opening` (no term sheets, no PDF) | offline replays showed e-mails without packages in round 0 | `audit` uses the session's `threads` |
+
+Not changed, but limiting: every supplier issues its final offer at a fairly fixed round (P10 round
+2, P08 3, P02 4, P01 5-6 in all four runs, whatever our anchor), while our concession schedule
+assumes up to ten rounds; and we never push a final offer without a safe fallback. No practice
+session was used for this revision; the local simulator still scores 0.787.

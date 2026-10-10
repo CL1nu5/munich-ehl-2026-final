@@ -8,7 +8,7 @@ import math
 import time
 from typing import Any, TypedDict
 
-from arena_kit.cost import closing_terms, total_cost
+from arena_kit.cost import closing_terms, must_haves_ok, total_cost
 from arena_kit.docs import standard_terms
 from arena_kit.harness.validation import close_action, validate
 
@@ -20,6 +20,10 @@ from .priors import advice_for
 
 REFRESH_MOVE = 1.5
 ASK_TOL = 0.001  # an offer "meets our ask" only if it also costs us no more than that ask
+# Its offer is this close to our last ask, as a share of the way from the opening to that ask: another round
+# can gain at most that little but risks a final offer or a walk-out (practice P05: a bidder 0.7 % above our
+# ask, the cheapest in the RFQ, walked away after our next small step).
+NEAR_ASK = 0.05
 MAX_LATENCY = 120  # a supplier answers within about a minute
 
 
@@ -41,6 +45,7 @@ class Ctx(TypedDict, total=False):
     menus: Any
     fulls: Any
     mirrors: Any
+    explore: Any
     claims: Any
     shares: Any
     vals: Any
@@ -189,7 +194,7 @@ def menu(ctx):
     dossier = cc["dossier"]
     used = claims_mod.used_ids(ctx["threads"])
     logged, logged_per_sup = _logged_ids(state)
-    menus, claims, shares, vals, fulls, mirrors = {}, {}, {}, {}, {}, {}
+    menus, claims, shares, vals, fulls, mirrors, explore = {}, {}, {}, {}, {}, {}, {}
     trig = dossier.get("trigger") or {}
     holds = r.setdefault("hold", {})
 
@@ -242,6 +247,19 @@ def menu(ctx):
             out = accept_ready("its offer meets our last ask")
             if out:
                 return out
+        if (
+            led.get("acceptable")
+            and led["status"] == "open"
+            and led["rounds"] >= 2
+            and led["c"] is not None
+            and s.get("c_ask") is not None
+            and state.get("c_open")
+            and state["c_open"] > s["c_ask"]
+            and led["c"] - s["c_ask"] <= NEAR_ASK * (state["c_open"] - s["c_ask"])
+        ):
+            out = accept_ready("its offer is within reach of our last ask")
+            if out:
+                return out
         alt = led.get("alt_better")
         if alt and led["moves_left"] >= 1 and (led["status"] == "final_offer" or final_push):
             # Its cheaper alternative cannot be accepted by ID: send its own terms back, it answers "agreed".
@@ -274,6 +292,10 @@ def menu(ctx):
         full = offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat)
         fulls[sid] = full
         m = preferences.rank(within_band(full, case, std, model, pref, led.get("price")), pref)
+        probe = _index_probe(case, led, full, m, std, model, pref) if led["rounds"] == 0 and not final_push else None
+        if probe:
+            m.append(probe)
+            explore[sid] = probe["mid"]
         if not m and levels and led["terms"].get("unit_price") and not final_push:
             m = _fallback_sheet(case, led, std, model, must_beat)
         if final_push and not [x for x in m if x["level"] == "trade"]:
@@ -326,6 +348,7 @@ def menu(ctx):
         "mode": mode,
         "fulls": fulls,
         "mirrors": mirrors,
+        "explore": explore,
     }
 
 
@@ -351,9 +374,9 @@ def within_band(menu, case=None, std=None, model=None, pref=None, standing_price
         wanted = [
             m for m in menu if m["level"] == level and all(m["terms"].get(f) in p["values"] for f, p in fields.items())
         ]
-        if not wanted:
+        best = min(wanted, key=lambda m: m["c"]) if wanted else _with_fields(case, menu, level, fields, std)
+        if best is None:
             continue
-        best = min(wanted, key=lambda m: m["c"])
         levers = {k: v for k, v in best["terms"].items() if k != "unit_price"}
         price = offers.price_for_cost(case, levers, std, model, c_floor, 0.5 * (hi or best["price"]), best["price"])
         if price and price > 0:
@@ -362,6 +385,52 @@ def within_band(menu, case=None, std=None, model=None, pref=None, standing_price
             if c is not None:
                 out.append({**best, "terms": terms, "price": price, "c": round(c, 2), "mid": best["mid"]})
     return out
+
+
+def _with_fields(case, menu, level, fields, std):
+    """The level's cheapest sheet with the insisted values put in: the menu keeps only a few combinations per
+    level, and the one the supplier insists on may not be among them (practice P18: an index clause without
+    deadband, demanded twice, never came back into our packages)."""
+    base = [m for m in menu if m["level"] == level]
+    if not base:
+        return None
+    best = min(base, key=lambda m: m["c"])
+    terms = dict(best["terms"])
+    for f, p in fields.items():
+        if terms.get(f) not in p["values"]:
+            terms[f] = p["values"][0]
+    if not must_haves_ok(case, terms, std):
+        return None
+    return {**best, "terms": terms}
+
+
+def _index_probe(case, led, full, menu, std, model, pref):
+    """Opening round: an index clause the supplier did not quote, at the same cost for us as the other sheets.
+
+    `supplier_value` counts cash only, so an index clause always looked dearer for us at equal value and was
+    never offered unless the supplier demanded it (practice P02: copper +48 %, no clause ever tried; P08/P18:
+    the suppliers then insisted on one). The clause with the widest deadband is the cheapest for us (index risk
+    and expected index move are computed exactly from the case); its base price is lowered until it costs us
+    what the cheapest sheet costs, so whichever sheet the supplier picks costs us the same - and its choice
+    tells us what security is worth to it."""
+    if "index_clause" not in case["negotiable"] or (led.get("terms") or {}).get("index_clause"):
+        return None
+    if "index_clause" in ((pref or {}).get("fields") or {}) or any(m["terms"].get("index_clause") for m in menu):
+        return None
+    options = [o for o in case.get("term_options", {}).get("index_clause") or [] if isinstance(o, dict)]
+    if not options or not menu:
+        return None
+    widest = max(options, key=lambda o: o.get("deadband_pct") or 0)
+    wanted = {"fields": {"index_clause": {"values": [widest]}}}
+    level = menu[0]["level"]
+    repriced = [
+        x
+        for x in within_band([x for x in full if x["level"] == level], case, std, model, wanted, led.get("price"))
+        if x["terms"].get("index_clause") == widest
+    ]
+    if not repriced:
+        return None
+    return {**repriced[0], "mid": "X1"}
 
 
 def _mirror(case, alt, std):
@@ -682,6 +751,11 @@ def critic(ctx):
     for sid in ctx["route"]["suppliers"]:
         choice = ctx["choices"][sid]
         menu_by_id = {m["mid"]: m for m in ctx["menus"].get(sid) or []}
+        probe = (ctx.get("explore") or {}).get(sid)
+        ids = list(choice.get("sheet_ids") or [])
+        if probe in menu_by_id and probe not in ids and ids and len(ids) < 3:
+            if menu_by_id[probe]["level"] == (menu_by_id.get(ids[0]) or {}).get("level"):
+                choice = {**choice, "sheet_ids": ids + [probe]}
         sheets = [menu_by_id[m]["terms"] for m in choice.get("sheet_ids") or [] if m in menu_by_id]
         chosen = [
             c
@@ -707,6 +781,7 @@ def critic(ctx):
             and preferences.can_ask_breakdown(pref)
             and not ctx["ledgers"][sid].get("breakdown")
             and not any("breakdown" in q.lower() for q in questions)
+            and not preferences.BREAKDOWN.search(choice.get("body") or "")
         ):
             questions.append("Could you send us a cost breakdown for this part?")
         led = ctx["ledgers"][sid]
@@ -714,15 +789,23 @@ def critic(ctx):
         if hold:  # no sheets, no arguments: a polite holding reply that does not push its final offer
             sheets, chosen, questions = [], [], []
             choice = {**choice, "body": "", "tactic": "review", "sheet_ids": []}
+        latest = next((m.get("body") or "" for m in reversed(threads[sid]) if m.get("from") != "buyer"), "")
+        notes = [writer.volume_answer(case, sheets, latest)] if sheets else []
         body_src, issues = writer.lint(preferences.filter_questions(choice.get("body") or "", pref))
         if len(body_src) < 40:
             body_src = writer.finish_template(
                 writer.template(
-                    case, choice.get("tone"), choice.get("tactic"), bool(sheets), False, led["rounds"] == 0
+                    case,
+                    choice.get("tone"),
+                    choice.get("tactic"),
+                    bool(sheets),
+                    False,
+                    led["rounds"] == 0,
+                    writer.contact_name(threads[sid]),
                 ),
                 chosen,
             )
-        body, refs, emitted = writer.compose(case, body_src, chosen, sheets, questions)
+        body, refs, emitted = writer.compose(case, body_src, chosen, sheets, questions, notes)
         by_cid = {c["cid"]: c for c in chosen}
         emitted = [by_cid[c] for c in emitted if c in by_cid]
         subject = writer.subject(case, _thread_subject(threads[sid]))

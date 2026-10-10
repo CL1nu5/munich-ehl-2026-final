@@ -211,6 +211,14 @@ def price_for_cost(case, levers, std, model, c_target, lo, hi):
         return cost(case, {**levers, "unit_price": round(p, 2)}, std, model)
 
     c_lo, c_hi = c(lo), c(hi)
+    if c_hi is not None and (c_lo is None or c_lo > c_target):
+        # With a relationship goal C is not monotonic: far below the supplier's cost the margin penalty makes
+        # a lower price dearer for us. Start from the cheapest price on a grid (practice P02: a repriced index
+        # clause was dropped because half the price cost more than the target).
+        grid = [(c(lo + (hi - lo) * i / 40), lo + (hi - lo) * i / 40) for i in range(41)]
+        grid = [(cg, p) for cg, p in grid if cg is not None]
+        if grid:
+            c_lo, lo = min(grid)
     if c_lo is None or c_hi is None or c_lo > c_target:
         return None
     if c_hi <= c_target:

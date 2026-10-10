@@ -31,9 +31,11 @@ NUMBERS = (
 WRITING = (
     "Write plain, professional, concise e-mails (at most about 150 words) as the purchasing team. NEVER write "
     "digits, prices, percentages, dates or data IDs yourself: put {{CLAIM:Cn}} where a claim sentence goes, "
-    "{{SHEETS}} where the packages go and {{QUESTIONS}} for your questions. Never mention urgency, budgets, "
-    "deadlines, targets or whether we have alternatives. No threats. Close with 'Best regards' and 'Hollerau "
-    "Pumpenwerke GmbH, Purchasing'."
+    "{{SHEETS}} where the packages go and {{QUESTIONS}} for your questions. Each placeholder stands on its own "
+    "line, as a whole sentence or block - never inside a sentence of yours. Ask each question once: either in "
+    "your text or in questions, not both. Address the person who signed the supplier's latest e-mail by name. "
+    "Never mention urgency, budgets, deadlines, targets or whether we have alternatives. No threats. Close with "
+    "'Best regards' and 'Hollerau Pumpenwerke GmbH, Purchasing'."
 )
 
 NEGOTIATOR_OUT = (
