@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4KHF7H040PEHRSF07GCPHCX",
+  "strategy": "manual-commit",
+  "branch": "linus-implementation",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "starter-kit/agents/_learner/graph.py",
+    "starter-kit/agents/_learner/policy.py",
+    "starter-kit/configs/learner_final.toml",
+    "starter-kit/configs/learner_openai.toml",
+    "starter-kit/tests/test_learner_agent.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
