@@ -147,8 +147,8 @@ class Models:
         if urlparse(model["base_url"]).hostname not in ("127.0.0.1", "localhost", "::1"):
             if not self.cfg["allow_model"]:
                 raise ValueError("Remote model not authorized")
-        if len(encode(messages).encode()) > 128 * 1024:
-            raise ValueError("Model input exceeds 128 KiB")
+        if len(encode(messages).encode()) > model.get("max_input_bytes", 128 * 1024):
+            raise ValueError("Model input exceeds configured byte budget")
         async with self.sem:
             call_id = self.journal.reserve_model(model["max_calls"])
             start = time.monotonic()

@@ -169,3 +169,98 @@ Schritte nicht. Die finale Einreichung und Live-Finalverhandlungen wurden nicht 
 Die Final-Konfiguration ist separat vorbereitet: höchstens 500 Modellaufrufe mit
 512 Ausgabetokens pro Aufruf; dies ist kein Euro-Kostenlimit. Lokale KI-Tests
 bleiben auf zwölf Aufrufe begrenzt. Kein Final-Lauf wurde gestartet.
+
+
+## Ergänzung: neue Fälle, neue Daten und Kosten (10.10.2026)
+
+Der Agent ist nicht auf die drei lokalen Fallnummern oder vorhandene Teilnummern
+beschränkt. Er übernimmt die Fallbeschreibung, erlaubte Konditionen, Pflichtbedingungen,
+Standardkonditionen und verfügbaren Belege des jeweiligen Falls. Neue Teile und
+Lieferanten ohne Historie erhalten keine erfundenen Eigenschaften. Ein neuer Fall mit
+festem Preis, verhandelbaren Zahlungszielen und einer zusätzlichen Pflichtkondition
+wurde separat geprüft – auch mit strategischer Kostenbewertung. Neue Felder können
+über die vorgegebenen Optionen und Pflichtbedingungen berücksichtigt werden; neue
+Kostenformeln oder ein geändertes API-Schema erfordern weiterhin eine Codeanpassung.
+Der Agent lernt nicht selbstständig beliebige neue Regeln und verändert seinen Code
+im Finale nicht.
+
+Die Sonntags-Ergänzung kann im Datenpaket, als benachbarter Ordner `release-sunday`
+oder über `ARENA_RELEASE` bereitgestellt werden. Alle drei Wege wurden getestet.
+Doppelte Fakten-IDs werden abgewiesen. Neue Dokumente werden vom richtigen Paket
+aufgelöst. Auch externe Ergänzungsordner fließen jetzt in die Datenprüfsumme ein;
+Änderungen verhindern das Fortsetzen eines eingefrorenen Laufs. Neue Dateien deshalb
+vor dem finalen Start einspielen und mit `ready` prüfen. Neue Fallwellen werden vom
+Runner automatisch abgefragt; neue lokale Dateien werden nicht während eines
+laufenden Finales unkontrolliert nachgeladen.
+
+### Modell und Kosten
+
+Konfiguriert ist `gpt-4.1-mini-2025-04-14`, nicht ein Luna-Modell. Die Auswahl wurde mit
+unserer konkreten kleinen Aufgabe getestet: situationsgerechte Gesprächsbausteine
+wählen. Preise und Annahmeentscheidungen bleiben in der geprüften Berechnung.
+Ein größeres Modell ist dafür bislang nicht durch einen gemessenen Vorteil begründet.
+Es ist eine günstige, getestete Wahl; ein Vergleich aller verfügbaren Modelle wurde
+nicht durchgeführt und ein universell bestes Modell wird nicht behauptet.
+
+Offizielle Standardpreise: 0,40 USD pro Million Eingabetokens und 1,60 USD pro Million
+Ausgabetokens. Quelle, geprüft 10.10.2026:
+https://developers.openai.com/api/docs/models/gpt-4.1-mini
+
+Der neue lokale KI-Test verwendete 24.616 Eingabe- und 243 Ausgabetokens. Ohne
+Cache-Rabatt gerechnet ergibt das **0,0102352 USD** für zwölf Aufrufe und drei lokale
+Verhandlungen. Dies ist eine Preisschätzung aus gemeldeter Nutzung, keine Rechnung.
+
+Technisch erzwungen werden pro finalem Lauf höchstens 500 Modellaufrufe, maximal
+16.384 Bytes serialisierte Eingabe und 512 Ausgabetokens je Aufruf. Lokale KI-Läufe
+bleiben auf zwölf Aufrufe begrenzt. Überlange Eingaben werden vor dem Netzaufruf
+abgewiesen. Parallele Aufrufe können das gespeicherte Aufruflimit nicht umgehen;
+beim Fortsetzen desselben Laufs bleibt das Budget erhalten. Unklare Timeouts zählen
+weiter als verbrauchte Aufrufe und werden nicht automatisch wiederholt. Bei einem
+KI-Fehler oder erschöpftem Budget verhandelt der Agent mit sicheren Standardtexten weiter.
+
+Grobe konservative Rechenreserve bei 500 maximalen Texteingaben: etwa 4 USD bei
+heutigen Preisen, einem Token je UTF-8-Byte plus zusätzlicher Nachrichtenreserve.
+Das ist ausdrücklich kein erzwungenes Dollar-Limit und keine Guthabengarantie.
+Ein neuer separater Lauf erhält ein neues Aufrufbudget. Andere Anwendungen im selben
+OpenAI-Projekt können zusätzlich Kosten verursachen. Kontoguthaben und EHL-Gutschrift
+sind nicht verifiziert. Der gemessene kleine Test darf nicht als garantierter Preis
+für unbekannte finale Fälle hochgerechnet werden.
+
+### Wettbewerbsforschung, sinnvoll übertragen
+
+Die BOA-Forschung trennt Angebotsstrategie, Gegnerverständnis und Annahmeregeln.
+Eine darauf aufbauende Arbeit gewann ANAC 2013 gegen 19 teilnehmende Teams; das ist
+historische Evidenz für diese Architektur, keine Leistungszusage für Tacto.
+Quelle: https://research.tue.nl/en/publications/what-to-bid-and-when-to-stop/
+
+Renting, Hoos und Jonker (AAMAS 2020) berichten in ihrem ANAC-ähnlichen Versuchsaufbau
+5,1 Prozent höheren Verhandlungsnutzen gegenüber dem zweitbesten Agenten durch
+konfigurierte Strategien. Zugleich betonen sie, dass keine feste Strategie in jeder
+Situation die beste ist. Daraus folgt hier: getrennte Kostengrenzen und Sprachsteuerung,
+mehrere Gegenübertypen testen und neue Fälle prüfen. Wir übernehmen nicht die 5,1
+Prozent als erwarteten eigenen Vorteil und haben keine fremden privaten Team-Repos
+als Vergleichsbasis verwendet.
+Quelle: https://research.tudelft.nl/en/publications/automated-configuration-of-negotiation-strategies/
+
+### Erneute Prüfung und verbleibender Startbedarf
+
+- Vollständige lokale Testsuite: **95 bestanden, 2 Live-Tests bewusst ausgelassen**.
+- Erneut 120 synthetische Szenarien für beide Agenten: 73 gegenüber 48 Abschlüssen,
+  keine Verletzung geprüfter Abschlussgrenzen; gemeinsame Abschlüsse im Mittel +0,14 % Kosten.
+- Neue Regressionstests: unbekannte Teile/Lieferanten, zusätzliche Pflichtkondition,
+  fester Preis, strategischer Festpreisfall, drei Ergänzungsordner, Dokumentauflösung,
+  Faktenkollisionen, veränderte Ergänzungsdaten und Eingabegrenze vor Netzaufruf.
+- Neuer lokaler KI-Lauf `20261010T154403Z-e465ca16`: drei abgeschlossene Testfälle,
+  zwölf erfolgreiche Modellaufrufe, keine unklare Nutzung, lokaler Score 0,756003.
+- Statische Prüfungen bestanden. Kein gehosteter Arena-Versuch gestartet.
+
+`run_evidence.py ready` ist eine neue reine Offline-Startprüfung. Sie zeigt nur die
+Anwesenheit von Zugangsdaten, niemals Schlüsselwerte. Der aktuelle Befund: OpenAI
+vorhanden, 10.356 Basisfakten verfügbar; Arena-Schlüssel und Sonntags-Ergänzung fehlen.
+Eine vorhandene Zeichenfolge beweist dabei noch keine gültige Arena-Berechtigung.
+
+Vor dem echten Start verbleiben: offizielles Ergänzungspaket laden, Arena-Teamzugang
+bereitstellen und read-only prüfen, finalen Commit nach dem Datenupdate einfrieren,
+Jury-Zugriff/Einreichung samt Pitch-Unterlagen sicherstellen und den Runner rechtzeitig
+auf einem stabil laufenden Rechner starten. Der Agent braucht keinen öffentlichen
+Webserver. Die Live-Verbindung, Teamabgabe und ein Sieg sind noch nicht nachgewiesen.

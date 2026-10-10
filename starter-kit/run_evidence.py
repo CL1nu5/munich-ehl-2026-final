@@ -23,11 +23,47 @@ def load_local_env():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("local", "model", "check", "final"))
+    parser.add_argument("mode", choices=("local", "model", "check", "ready", "final"))
     parser.add_argument("--commit")
     args = parser.parse_args()
     load_local_env()
     os.environ.setdefault("XDG_STATE_HOME", str(ROOT.parent / ".runs" / "state"))
+    if args.mode == "ready":
+        import json
+
+        from arena_kit.data import DataPackage
+        from arena_kit.harness.cli import parser as harness_parser
+        from arena_kit.harness.config import load
+
+        cfg = load(
+            harness_parser().parse_args(
+                ["run", "--config", str(ROOT / "configs/evidence-final.toml"), "--profile", "final"]
+            )
+        )
+        data = DataPackage(cfg["data"])
+        result = {
+            "network_requests": 0,
+            "openai_key_present": bool(os.environ.get("LLM_API_KEY")),
+            "arena_key_present": bool(os.environ.get("ARENA_API_KEY")),
+            "sunday_release_present": data.release is not None,
+            "fact_count": len(data.facts),
+            "clean_checkout": not cfg["source"]["dirty"],
+            "commit": cfg["source"]["commit"],
+            "data_hash": cfg["data_hash"],
+            "model": cfg["model"]["name"],
+            "max_calls_per_run": cfg["model"]["max_calls"],
+            "max_input_bytes_per_call": cfg["model"]["max_input_bytes"],
+            "max_output_tokens_per_call": cfg["model"]["max_output_tokens"],
+            "remaining_external_checks": [
+                "Arena credential validity and final access",
+                "Event start time and final release completeness",
+                "Team submission and reviewer repository access",
+            ],
+        }
+        if data.db is not None:
+            data.db.close()
+        print(json.dumps(result, indent=2))
+        return 0
     if args.mode == "check":
         command = ["agents", "check", "--agent", "evidence_buyer"]
     else:

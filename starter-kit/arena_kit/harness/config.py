@@ -1,13 +1,13 @@
 """Explicit configuration. Environment credentials never select an execution mode."""
 
 import hashlib
-import json
 import os
 import subprocess
 import tomllib
 from pathlib import Path
 from urllib.parse import urlparse
 
+from ..data import DataPackage
 from .state import digest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -25,6 +25,23 @@ def tree_hash(path):
         h.update(str(file.relative_to(path) if path.is_dir() else file.name).encode())
         h.update(file.read_bytes())
     return h.hexdigest()
+
+
+def data_hash(root):
+    """Freeze every consumed release, including sibling directories and ARENA_RELEASE."""
+    data = DataPackage(root)
+    try:
+        release = data.release
+        return digest(
+            {
+                "base": tree_hash(root),
+                "release": str(release) if release else None,
+                "release_hash": tree_hash(release) if release else None,
+            }
+        )
+    finally:
+        if data.db is not None:
+            data.db.close()
 
 
 def git_state():
@@ -85,16 +102,13 @@ def load(args):
     agent_path(cfg["agent"])
     if not (Path(cfg["data"]) / "facts.json").is_file():
         raise ValueError("data must be the package directory containing facts.json")
-    base_facts = json.loads((Path(cfg["data"]) / "facts.json").read_text())
-    release = Path(cfg["data"]) / "release-sunday" / "facts.json"
-    if release.is_file() and base_facts.keys() & json.loads(release.read_text()).keys():
-        raise ValueError("Sunday release reuses base-package fact IDs")
     model = cfg["model"]
     if set(model) - {
         "name",
         "base_url",
         "max_calls",
         "max_output_tokens",
+        "max_input_bytes",
         "parallel",
         "timeout",
         "input_usd_per_million",
@@ -114,8 +128,9 @@ def load(args):
             or (p.scheme != "https" and not (local and p.scheme == "http"))
         ):
             raise ValueError("Model URL must be HTTPS, or loopback HTTP, without embedded secrets")
-        for name in ("max_calls", "max_output_tokens"):
-            if not isinstance(model.get(name), int) or model[name] <= 0:
+        model.setdefault("max_input_bytes", 128 * 1024)
+        for name in ("max_calls", "max_output_tokens", "max_input_bytes"):
+            if type(model.get(name)) is not int or model[name] <= 0:
                 raise ValueError(f"Model requires positive {name}")
         if not 1 <= model.get("parallel", 2) <= 10 or not 0 < model.get("timeout", 20) <= 25:
             raise ValueError("Model parallel must be 1..10 and timeout >0 and <=25")
@@ -124,7 +139,7 @@ def load(args):
     cfg["source"] = git_state()
     cfg["agent_hash"] = tree_hash(agent_path(cfg["agent"]))
     cfg["code_hash"] = tree_hash(ROOT / "arena_kit")
-    cfg["data_hash"] = tree_hash(cfg["data"])
+    cfg["data_hash"] = data_hash(cfg["data"])
     cfg["config_hash"] = digest({k: v for k, v in cfg.items() if k not in ("source", "config_hash")})
     return cfg
 

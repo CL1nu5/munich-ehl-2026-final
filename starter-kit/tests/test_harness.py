@@ -668,3 +668,59 @@ def test_broken_evidence_agent_cannot_bypass_hard_price_limit(journal, monkeypat
         assert report(journal)["fallbacks"] == 1
 
     execute(scenario())
+
+
+def test_model_input_limit_blocks_network_without_using_call_budget(journal):
+    cfg = config(
+        allow_model=True,
+        model={
+            "name": "test",
+            "base_url": "https://mock.invalid/v1",
+            "max_calls": 1,
+            "max_output_tokens": 64,
+            "max_input_bytes": 100,
+        },
+    )
+    seen = []
+
+    def handle(request):
+        seen.append(request)
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    async def scenario():
+        broker = Models(cfg, journal, transport=httpx.MockTransport(handle))
+        with pytest.raises(ValueError, match="byte budget"):
+            await broker.complete([{"role": "user", "content": "ä" * 100}])
+        assert journal.db.execute("SELECT count(*) FROM model_calls").fetchone()[0] == 0
+        assert await broker.complete([]) == "ok"
+        await broker.close()
+
+    execute(scenario())
+    assert len(seen) == 1
+
+
+@pytest.mark.parametrize("location", ["inside", "sibling", "environment"])
+def test_new_release_is_consumed_frozen_and_rejects_overwritten_facts(tmp_path, monkeypatch, location):
+    from arena_kit.data import DataPackage
+    from arena_kit.harness.config import data_hash
+
+    root = tmp_path / "package"
+    root.mkdir()
+    (root / "facts.json").write_text(json.dumps({"sc:old": {"otd_pct": 80}}))
+    release = (root if location == "inside" else tmp_path) / "release-sunday"
+    release.mkdir()
+    monkeypatch.delenv("ARENA_RELEASE", raising=False)
+    if location == "environment":
+        release = tmp_path / "other-release"
+        release.mkdir()
+        monkeypatch.setenv("ARENA_RELEASE", str(release))
+    (release / "facts.json").write_text(json.dumps({"news:new": {"file": "letter.txt"}}))
+    (release / "letter.txt").write_text("New supplier capacity announcement")
+    data = DataPackage(root)
+    assert data.lookup("news:new") and data.document("news:new") == "New supplier capacity announcement"
+    first = data_hash(root)
+    (release / "letter.txt").write_text("Updated supplier capacity announcement")
+    assert data_hash(root) != first
+    (release / "facts.json").write_text(json.dumps({"sc:old": {"otd_pct": 99}}))
+    with pytest.raises(ValueError, match="reuses"):
+        DataPackage(root)

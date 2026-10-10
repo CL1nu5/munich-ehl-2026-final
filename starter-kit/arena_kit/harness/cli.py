@@ -15,7 +15,7 @@ from pathlib import Path
 
 from ..data import DataPackage
 from .agent_process import AgentProcess
-from .config import PROFILES, ROOT, agent_path, authorize, git_state, load, tree_hash
+from .config import PROFILES, ROOT, agent_path, authorize, data_hash, git_state, load, tree_hash
 from .plugins import BUILTINS
 from .report import compare, report
 from .simulator import server
@@ -31,7 +31,7 @@ def verify_source(cfg):
     if (
         current["commit"] != cfg["source"]["commit"]
         or tree_hash(ROOT / "arena_kit") != cfg.get("code_hash")
-        or tree_hash(cfg["data"]) != cfg["data_hash"]
+        or data_hash(cfg["data"]) != cfg["data_hash"]
         or tree_hash(agent_path(cfg["agent"])) != cfg["agent_hash"]
     ):
         raise ValueError("Source, agent or data changed; cannot resume the same experiment")

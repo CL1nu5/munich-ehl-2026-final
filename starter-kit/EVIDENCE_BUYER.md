@@ -186,3 +186,30 @@ reviewer permissions, Sunday data or final credentials are already configured.
 
 Data attribution: Tacto Negotiation Arena, Tacto Technology GmbH, CC BY 4.0;
 market series retain the separate terms listed in `data/ATTRIBUTION.md`.
+
+
+## Readiness and future data updates
+
+Run `.venv/bin/python starter-kit/run_evidence.py ready` from the repository root.
+This makes zero network requests and prints key presence only, release presence,
+source cleanliness, data hash and the enforced model limits. It does not validate
+credentials or claim final submission completion.
+
+New case/part/supplier IDs require no whitelist changes. Fixed-price negotiations
+now search the remaining negotiable conditions. New allowed fields and must-haves
+are retained; changes to the published cost function or API require code updates.
+Missing history remains unknown. Load Sunday data before starting the final:
+inside `data/release-sunday`, beside the data directory, or via `ARENA_RELEASE`.
+All resolved release files are hashed for recovery; duplicate base fact IDs fail.
+New case waves are discovered automatically, but local data is frozen during a run.
+Old run journals from before this data-hash change cannot be resumed; start a new
+local experiment after updating, never start a duplicate final for this reason.
+
+Both model configs now enforce 16,384 input bytes per request in addition to call
+and output-token limits. GPT-4.1 mini prices are recorded for usage estimates:
+$0.40/M input, $1.60/M output (official model page, checked 2026-10-10).
+Latest bounded local test: 12 calls, 24,616 input / 243 output tokens, estimated
+$0.0102352 before cache discounts. These are per-run request limits, not a shared
+account spending cap. Budget exhaustion uses deterministic negotiation text.
+Current verification: 95 offline tests passed; 2 hosted tests deliberately skipped.
+See PROFESSIONAL_POLICY.md for detailed research, costs, new-data tests and limits.

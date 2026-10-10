@@ -7,7 +7,7 @@ import json
 import math
 import sqlite3
 
-from arena_kit.cost import OPS, complete_offer, must_haves_ok, total_cost
+from arena_kit.cost import OPS, closing_terms, complete_offer, must_haves_ok, total_cost
 from arena_kit.docs import standard_terms
 from arena_kit.harness.economics import Economics
 from arena_kit.harness.validation import acceptable, close_action
@@ -92,10 +92,11 @@ def packages(case, current, std, target, policy=None, supplier_id=None):
     Bounded to 48 candidates at each stage. No claim of global optimality. Packages
     are conditional alternatives, not three cumulative commitments.
     """
+    current = closing_terms(case, current, std)
     if not finite_number(current.get("unit_price")) or current["unit_price"] <= 0:
         return []
     base = complete_offer(case, {**std, **current})
-    if not finite_number(base.get("unit_price")) or base["unit_price"] <= 0:
+    if not finite_number(closing_terms(case, base, std).get("unit_price")):
         return []
     beam = [base]
     for field in case["negotiable"]:
@@ -134,7 +135,7 @@ def packages(case, current, std, target, policy=None, supplier_id=None):
                 # Search prices as well as nonprice terms: a lower price may increase
                 # the published supplier-relationship penalty. All limits still apply.
                 upper = min(current["unit_price"], cap)
-                lower = min(p["unit_price"], upper * 0.7)
+                lower = min(closing_terms(case, p, std)["unit_price"], upper * 0.7)
                 variants = (
                     [{**p, "unit_price": round(lower + (upper - lower) * i / 40, 2)} for i in range(41)]
                     if "unit_price" in case["negotiable"]
@@ -143,14 +144,17 @@ def packages(case, current, std, target, policy=None, supplier_id=None):
                 feasible = [
                     v
                     for v in variants
-                    if v["unit_price"] > 0 and must_haves_ok(case, v, std) and policy.within_limits(supplier_id, v, std)
+                    if closing_terms(case, v, std)["unit_price"] > 0
+                    and must_haves_ok(case, v, std)
+                    and policy.within_limits(supplier_id, v, std)
                 ]
                 if not feasible:
                     continue
                 p = min(feasible, key=lambda v: policy.cost(supplier_id, v, std))
             if not policy.within_limits(supplier_id, p, std):
                 continue
-        if not finite_number(p.get("unit_price")) or p["unit_price"] <= 0:
+        price = closing_terms(case, p, std).get("unit_price")
+        if not finite_number(price) or price <= 0:
             continue
         if not must_haves_ok(case, p, std):
             continue
@@ -257,6 +261,7 @@ class Agent:
                 supplier_state["dossier"] = dossier(case, sid, services.data)
             _, current = standing(events)
             std = standard_terms(events)
+            current = closing_terms(case, current, std)
             if not finite_number(current.get("unit_price")):
                 plans[sid] = []
                 continue

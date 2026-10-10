@@ -286,3 +286,33 @@ def test_final_and_local_model_configs_have_separate_budgets():
     assert local["model"]["max_calls"] == 12
     assert final["model"]["max_calls"] == 500 and final["parallel"] == 10
     assert not final["allow_arena"]  # reading a config alone must never authorize the network
+
+
+@pytest.mark.parametrize("strategic", [False, True])
+def test_new_part_and_fixed_price_still_allow_nonprice_packages(strategic):
+    from arena_kit.harness.economics import Economics
+
+    case = copy.deepcopy(opened()["case"])
+    case["case_id"] = "case:NEW-FUTURE"
+    case["parts"] = ["part:NEW-999"]
+    case["suppliers"] = ["sup:NEW-999"]
+    case["negotiable"] = ["payment_days", "inspection_report"]
+    case["fixed_terms"] = {**case.get("fixed_terms", {}), "unit_price": 15.0}
+    case["term_options"] = {"payment_days": [30, 60, 90], "inspection_report": [False, True]}
+    case["buyer"]["must_haves"] = [{"field": "inspection_report", "op": "==", "value": True}]
+    case["buyer"]["alternative"] = {"kind": "none"}
+    if strategic:
+        case["buyer"].update(category_goal="secure_supply", relationship_eur_per_point=100, sustainable_margin_pct=10)
+        case["facts"] = {"cost:NEW-999": {"unit_cost": 12, "price_unit": 1, "confidence_pct": 5}}
+    policy = Economics(case)
+    offers = mod.packages(case, {"payment_days": 30}, {}, 1e9, policy, "sup:NEW-999")
+    assert offers
+    assert all(set(p) == {"payment_days", "inspection_report"} and p["inspection_report"] for p in offers)
+    assert all(policy.within_limits("sup:NEW-999", p) for p in offers)
+
+
+def test_new_supplier_missing_history_is_not_invented():
+    case = copy.deepcopy(opened()["case"])
+    case.update(case_id="case:UNSEEN", suppliers=["sup:UNSEEN"], parts=["part:UNSEEN"], refs=[])
+    result = mod.dossier(case, "sup:UNSEEN", None)
+    assert result == {"supplier": "sup:UNSEEN", "facts": {}, "context": {}}
