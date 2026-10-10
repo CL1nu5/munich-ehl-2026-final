@@ -1,0 +1,11 @@
+{
+    "team_name": "Example Capture",
+    "status": "active",
+    "practice": {
+        "used": 0,
+        "left": 200,
+        "limit": 200,
+        "resets_at": null
+    },
+    "best": {}
+}

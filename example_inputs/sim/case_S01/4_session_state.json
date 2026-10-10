@@ -1,0 +1,38 @@
+{
+    "session_id": "sim1",
+    "case_id": "case:S01",
+    "set": "practice",
+    "status": "open",
+    "end_reason": null,
+    "threads": {
+        "sup:70270": {
+            "offer_id": "offer:70270-1",
+            "status": "open",
+            "closed": null,
+            "offers": 1,
+            "seconds_left": null
+        }
+    },
+    "rounds": 1,
+    "opening": {
+        "sup:70270": {
+            "offer_id": "offer:70270-0",
+            "round": 0,
+            "status": "open",
+            "terms": {
+                "unit_price": 17.47
+            },
+            "missing_fields": [
+                "payment_days"
+            ],
+            "claims": [],
+            "claim_results": [],
+            "signals": {
+                "reply_delay_days": 1,
+                "validity_days": 30
+            },
+            "text": "Simulated supplier. Our quote is attached."
+        }
+    },
+    "moves": []
+}

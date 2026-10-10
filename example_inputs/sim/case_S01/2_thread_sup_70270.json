@@ -1,0 +1,44 @@
+{
+    "supplier_id": "sup:70270",
+    "offer_id": "offer:70270-0",
+    "status": "open",
+    "closed": null,
+    "messages": [
+        {
+            "thread_id": "thread:S01:70270",
+            "message_id": "msg:70270-0-1",
+            "in_reply_to": null,
+            "from": "sales@70270",
+            "subject": "Re: Adapter piece HI: a price increase",
+            "body": "Simulated supplier. Our quote is attached.",
+            "refs": [],
+            "action": null,
+            "term_sheets": [
+                {
+                    "term_sheet_id": "offer:70270-0",
+                    "terms": {
+                        "unit_price": 17.47
+                    }
+                }
+            ],
+            "status": "open",
+            "signals": {
+                "reply_delay_days": 1,
+                "validity_days": 30
+            },
+            "claim_results": [],
+            "missing_fields": [
+                "payment_days"
+            ],
+            "attachments": [
+                {
+                    "attachment_id": "att:70270-0-quote",
+                    "name": "quote.pdf",
+                    "type": "pdf",
+                    "content_b64": null
+                }
+            ]
+        }
+    ],
+    "timeouts": []
+}

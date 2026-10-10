@@ -1,0 +1,326 @@
+[
+    {
+        "case_id": "case:S01",
+        "set": "practice",
+        "type": "price_increase",
+        "title": "Adapter piece HI: a price increase",
+        "briefing": "Simulator example. You buy part:320050 for Hollerau Pumpenwerke from sup:70270. Need: 6650 pc a year for 1 year(s). The supplier in the simulator is a plain script, not a real bot.",
+        "trigger_doc": null,
+        "parts": [
+            "part:320050"
+        ],
+        "suppliers": [
+            "sup:70270"
+        ],
+        "negotiable": [
+            "unit_price",
+            "payment_days"
+        ],
+        "fixed_terms": {
+            "lead_time_days": 42,
+            "volume_per_year": 6650,
+            "contract_months": 12,
+            "index_clause": null,
+            "incoterm": "FCA",
+            "tooling_eur": 0
+        },
+        "term_options": {
+            "payment_days": [
+                14,
+                30,
+                45,
+                60,
+                90
+            ]
+        },
+        "buyer": {
+            "need_per_year": 6650,
+            "horizon_years": 1,
+            "current_unit_price": 15.88,
+            "fallback_unit_price": 18.26,
+            "interest_rate": 0.08,
+            "reference_payment_days": 60,
+            "need_lead_time_days": 42,
+            "category_goal": "leverage",
+            "fallback_risk_pct": 3,
+            "index_risk_pct": 1,
+            "late_cost_per_day": 200,
+            "cost_per_defect": 50,
+            "freight_eur_per_unit": {
+                "EXW": 0.48,
+                "FCA": 0.32,
+                "DAP": 0.0
+            },
+            "index_paths": {},
+            "must_haves": [],
+            "alternative": {
+                "kind": "none",
+                "ref": null,
+                "terms": {}
+            }
+        },
+        "round_limit": 10,
+        "refs": [
+            "sc:70270@2026Q3",
+            "idx:LCI-C@2025-08",
+            "idx:PPI-C2431@2025-08",
+            "idx:PPI-C2431@2026-08"
+        ],
+        "facts": {
+            "sc:70270@2026Q3": {
+                "colour": "amber",
+                "otd_confirmed_pct": 88.5,
+                "otd_pct": 84.6,
+                "ppm": 1531,
+                "quarter": "2026Q3",
+                "supplier": "sup:70270"
+            },
+            "idx:LCI-C@2025-08": {
+                "month": "2025-08",
+                "series": "LCI-C",
+                "value": 117.0
+            },
+            "idx:PPI-C2431@2025-08": {
+                "month": "2025-08",
+                "series": "PPI-C2431",
+                "value": 115.0
+            },
+            "idx:PPI-C2431@2026-08": {
+                "month": "2026-08",
+                "series": "PPI-C2431",
+                "value": 129.1
+            }
+        },
+        "hosted": true
+    },
+    {
+        "case_id": "case:S02",
+        "set": "practice",
+        "type": "rfq",
+        "title": "Motor bracket HB: two quotes",
+        "briefing": "Simulator example. You buy part:330030 for Hollerau Pumpenwerke from sup:70340, sup:70360. Need: 18790 pc a year for 2 year(s). The supplier in the simulator is a plain script, not a real bot.",
+        "trigger_doc": null,
+        "parts": [
+            "part:330030"
+        ],
+        "suppliers": [
+            "sup:70340",
+            "sup:70360"
+        ],
+        "negotiable": [
+            "unit_price",
+            "payment_days",
+            "lead_time_days"
+        ],
+        "fixed_terms": {
+            "volume_per_year": 18790,
+            "contract_months": 24,
+            "index_clause": null,
+            "incoterm": "DAP",
+            "tooling_eur": 0
+        },
+        "term_options": {
+            "payment_days": [
+                14,
+                30,
+                45,
+                60,
+                90
+            ],
+            "lead_time_days": [
+                21,
+                28,
+                35,
+                42,
+                49
+            ]
+        },
+        "buyer": {
+            "need_per_year": 18790,
+            "horizon_years": 2,
+            "current_unit_price": 15.63,
+            "fallback_unit_price": 17.97,
+            "interest_rate": 0.08,
+            "reference_payment_days": 60,
+            "need_lead_time_days": 42,
+            "category_goal": "leverage",
+            "fallback_risk_pct": 3,
+            "index_risk_pct": 1,
+            "late_cost_per_day": 200,
+            "cost_per_defect": 50,
+            "freight_eur_per_unit": {
+                "EXW": 0.47,
+                "FCA": 0.31,
+                "DAP": 0.0
+            },
+            "index_paths": {},
+            "must_haves": [],
+            "alternative": {
+                "kind": "none",
+                "ref": null,
+                "terms": {}
+            }
+        },
+        "round_limit": 10,
+        "refs": [
+            "sc:70340@2026Q3",
+            "sc:70360@2026Q3",
+            "idx:PPI-C241@2025-08",
+            "idx:PPI-C241@2026-08",
+            "idx:LCI-C@2025-08"
+        ],
+        "facts": {
+            "sc:70340@2026Q3": {
+                "colour": "green",
+                "otd_confirmed_pct": 90.4,
+                "otd_pct": 88.5,
+                "ppm": 489,
+                "quarter": "2026Q3",
+                "supplier": "sup:70340"
+            },
+            "sc:70360@2026Q3": {
+                "colour": "amber",
+                "otd_confirmed_pct": 84.0,
+                "otd_pct": 76.0,
+                "ppm": 762,
+                "quarter": "2026Q3",
+                "supplier": "sup:70360"
+            },
+            "idx:PPI-C241@2025-08": {
+                "month": "2025-08",
+                "series": "PPI-C241",
+                "value": 99.4
+            },
+            "idx:PPI-C241@2026-08": {
+                "month": "2026-08",
+                "series": "PPI-C241",
+                "value": 105.9
+            },
+            "idx:LCI-C@2025-08": {
+                "month": "2025-08",
+                "series": "LCI-C",
+                "value": 117.0
+            }
+        },
+        "hosted": true
+    },
+    {
+        "case_id": "case:S03",
+        "set": "practice",
+        "type": "renewal",
+        "title": "Motor IE3 4 kW: framework renewal",
+        "briefing": "Simulator example. You buy part:350010 for Hollerau Pumpenwerke from sup:70520. Need: 8490 pc a year for 2 year(s). The supplier in the simulator is a plain script, not a real bot.",
+        "trigger_doc": null,
+        "parts": [
+            "part:350010"
+        ],
+        "suppliers": [
+            "sup:70520"
+        ],
+        "negotiable": [
+            "unit_price",
+            "payment_days",
+            "contract_months",
+            "incoterm"
+        ],
+        "fixed_terms": {
+            "lead_time_days": 35,
+            "volume_per_year": 8490,
+            "index_clause": null,
+            "tooling_eur": 0
+        },
+        "term_options": {
+            "payment_days": [
+                14,
+                30,
+                45,
+                60,
+                90
+            ],
+            "contract_months": [
+                12,
+                24
+            ],
+            "incoterm": [
+                "EXW",
+                "FCA",
+                "DAP"
+            ]
+        },
+        "buyer": {
+            "need_per_year": 8490,
+            "horizon_years": 2,
+            "current_unit_price": 217.77,
+            "fallback_unit_price": 250.44,
+            "interest_rate": 0.08,
+            "reference_payment_days": 60,
+            "need_lead_time_days": 42,
+            "category_goal": "routine",
+            "fallback_risk_pct": 5,
+            "index_risk_pct": 2,
+            "late_cost_per_day": 200,
+            "cost_per_defect": 50,
+            "freight_eur_per_unit": {
+                "EXW": 6.53,
+                "FCA": 4.36,
+                "DAP": 0.0
+            },
+            "index_paths": {},
+            "must_haves": [],
+            "alternative": {
+                "kind": "quote",
+                "ref": "quote:7100042",
+                "terms": {
+                    "unit_price": 245.59,
+                    "payment_days": 30,
+                    "lead_time_days": 42,
+                    "incoterm": "DAP"
+                }
+            }
+        },
+        "round_limit": 10,
+        "refs": [
+            "sc:70520@2026Q3",
+            "idx:CU-NOTATION@2025-08",
+            "idx:CU-NOTATION@2026-08",
+            "idx:LCI-C@2025-08",
+            "quote:7100042"
+        ],
+        "facts": {
+            "sc:70520@2026Q3": {
+                "colour": "green",
+                "otd_confirmed_pct": 83.0,
+                "otd_pct": 81.1,
+                "ppm": 764,
+                "quarter": "2026Q3",
+                "supplier": "sup:70520"
+            },
+            "idx:CU-NOTATION@2025-08": {
+                "month": "2025-08",
+                "series": "CU-NOTATION",
+                "value": 852.1524
+            },
+            "idx:CU-NOTATION@2026-08": {
+                "month": "2026-08",
+                "series": "CU-NOTATION",
+                "value": 1266.6289
+            },
+            "idx:LCI-C@2025-08": {
+                "month": "2025-08",
+                "series": "LCI-C",
+                "value": 117.0
+            },
+            "quote:7100042": {
+                "date": "2025-01-15",
+                "incoterm": "DAP",
+                "lead_time_days": 42,
+                "part": "part:350010",
+                "payment_days": 30,
+                "price_unit": 1,
+                "supplier": "sup:70510",
+                "unit_price": 245.59
+            }
+        },
+        "hosted": true
+    }
+]
