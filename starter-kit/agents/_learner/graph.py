@@ -288,7 +288,7 @@ def menu(ctx):
         must_beat = must_beat if must_beat is not None else math.inf
         if alt:  # never ask for more than a package it already offers us
             must_beat = min(must_beat, alt["cost"])
-        pref = s.get("preferences") or {}
+        pref = _with_alt_levers(case, led, s.get("preferences") or {})
         full = offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat)
         fulls[sid] = full
         m = preferences.rank(within_band(full, case, std, model, pref, led.get("price")), pref)
@@ -296,6 +296,9 @@ def menu(ctx):
         if probe:
             m.append(probe)
             explore[sid] = probe["mid"]
+        rival_c = _best_rival_cost(leds, sid)
+        if rival_c is not None and m and not final_push:
+            m = _undercut(case, m, std, model, rival_c * (1 - RIVAL_UNDERCUT))
         if not m and levels and led["terms"].get("unit_price") and not final_push:
             m = _fallback_sheet(case, led, std, model, must_beat)
         if final_push and not [x for x in m if x["level"] == "trade"]:
@@ -384,6 +387,58 @@ def within_band(menu, case=None, std=None, model=None, pref=None, standing_price
             c = offers.cost(case, terms, std, model)
             if c is not None:
                 out.append({**best, "terms": terms, "price": price, "c": round(c, 2), "mid": best["mid"]})
+    return out
+
+
+def _with_alt_levers(case, led, pref):
+    """Levers of the supplier's own alternative package when that package is cheaper for us than its
+    standing offer: the price gap between its two packages shows what the lever is worth to it, so our next
+    packages carry that lever too (repriced to the same cost for us) instead of only its standing levers.
+    Practice: a capacity-constrained supplier offered a longer lead time for 6 % less, we kept asking for the
+    short one, and its final offer came without the alternative."""
+    alt = led.get("alt_better")
+    if not alt or led.get("status") != "open":
+        return pref
+    fields = dict((pref or {}).get("fields") or {})
+    standing = led.get("terms") or {}
+    for f in case["negotiable"]:
+        v = (alt.get("terms") or {}).get(f)
+        if f == "unit_price" or f in fields or v is None or v == standing.get(f):
+            continue
+        fields[f] = {"values": [v], "source": alt.get("term_sheet_id"), "basis": "its alternative package"}
+    return {**(pref or {}), "fields": fields}
+
+
+# RFQ: a bidder is never asked for more than a rival already offers us (practice: we cited a rival's EUR 27.61
+# to another bidder while asking it for EUR 29.40-29.81 - the rival quote only moves a bidder if our ask is
+# below it).
+RIVAL_UNDERCUT = 0.01
+
+
+def _best_rival_cost(leds, sid):
+    costs = [
+        o["c"]
+        for x, o in leds.items()
+        if x != sid and not o.get("ended") and o.get("acceptable") and o.get("c") is not None
+    ]
+    return min(costs) if costs else None
+
+
+def _undercut(case, menu, std, model, c_max):
+    """Sheets dearer for us than `c_max` repriced (same levers, lower price) to cost us `c_max`."""
+    out = []
+    for m in menu:
+        if m["c"] <= c_max:
+            out.append(m)
+            continue
+        levers = {k: v for k, v in m["terms"].items() if k != "unit_price"}
+        price = offers.price_for_cost(case, levers, std, model, c_max, 0.5 * m["price"], m["price"])
+        if not price or price <= 0:
+            continue
+        terms = {**m["terms"], "unit_price": price}
+        c = offers.cost(case, terms, std, model)
+        if c is not None:
+            out.append({**m, "terms": terms, "price": price, "c": round(c, 2)})
     return out
 
 
