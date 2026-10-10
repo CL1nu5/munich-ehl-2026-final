@@ -1,0 +1,1 @@
+Check that the project is setup for entire. we are in a hackathon, do i need to configure anything before making my first commit?
