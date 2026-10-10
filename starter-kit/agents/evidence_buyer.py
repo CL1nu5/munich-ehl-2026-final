@@ -126,7 +126,10 @@ def packages(case, current, std, target, policy=None, supplier_id=None):
             slope = total_cost(case, {**p, "unit_price": 2.0}, std) - c1
             if slope <= 0:
                 continue
-            p = {**p, "unit_price": round((target - c1) / slope + 1, 2)}
+            # Floor the solved price: rounding upward can exceed the cost target
+            # over a large committed volume and discard an otherwise valid package.
+            price = math.floor(((target - c1) / slope + 1) * 100 + 1e-8) / 100
+            p = {**p, "unit_price": price}
         if policy is not None:
             cap = policy.parameters.get("max_unit_price", math.inf)
             if "unit_price" in case["negotiable"]:

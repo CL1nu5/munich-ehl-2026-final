@@ -1,0 +1,154 @@
+EHL – vertiefte Harness- und Angebotsprüfung
+10. Oktober 2026
+
+AUFTRAG UND GRENZEN
+
+Den schwachen D02-Lauf weiter untersuchen, die Hinweise auf Harness-Fehler prüfen
+und Verbesserungen ausschließlich lokal validieren. In dieser Prüfung wurden
+keine neuen Sandbox-, Practice- oder Final-Sitzungen geöffnet und keine Modell-
+API aufgerufen. GitHub wurde zum Abgleich des gemeinsamen Codes verwendet.
+
+ERGEBNIS
+
+Es gibt einen nachgewiesenen Fehler im gemeinsamen Harness und weitere Fehler
+in der lokalen Testumgebung sowie der Angebotssuche. Sie sind korrigiert.
+Das ist kein Nachweis, dass diese zusätzlichen Fehler den tatsächlichen D02-
+Score von 38,90 verursacht haben. Der bereits belegte D02-Wartefehler ist im
+vorherigen Bericht beschrieben. Die tatsächlichen wirtschaftlichen Konditionen
+bleiben eine eigenständige Ursache des niedrigen Scores.
+
+1. HARNESS: VERALTETE ANGEBOTE NACH SERVERSEITIGEN ÄNDERUNGEN
+
+Der bisherige Snapshot übernahm nur die E-Mail-Historie. Ein Lieferant kann aber
+serverseitig geschlossen sein oder nach einem Timeout ein anderes stehendes
+Angebot haben, ohne dass eine neue E-Mail in dieser Historie steht.
+Der Agent konnte dann einen geschlossenen Lieferanten noch als verfügbar oder
+ein altes Angebot als aktuell ansehen. Das führt zu abgelehnten Abschluss-
+versuchen und verbraucht wertvolle Zeit im Wiederherstellungspfad.
+
+Die relevante Übernahme der Historie ist auch im geprüften gemeinsamen
+Hauptbranch origin/main, Commit 18db44b, vorhanden. Eine neuere Korrektur war
+beim Abruf nicht vorhanden. Damit ist ein Fehler im gemeinsamen Harness
+belegt; welcher konkrete Fehler mit dem Hinweis der Kollegin gemeint war,
+lässt sich ohne deren Fehlerbeschreibung nicht feststellen.
+
+Korrektur: Der aktuelle Threadstatus ist maßgeblich. Geschlossene Threads
+werden aus den verfügbaren Lieferanten ausgeschlossen. Bei geändertem
+Angebot werden die passenden Timeout-Daten berücksichtigt. Der Agent erhält
+keine erfundenen Konditionen, wenn solche Angaben fehlen.
+
+Nachweis: Drei Varianten mit zuvor agreed/final_offer/open sowie ein geändertes
+Timeout-Angebot scheiterten vor der Korrektur und bestehen danach. Die Tests
+laufen über den lokalen HTTP-Adapter mit echten Snapshot- und Abschlussfunktionen.
+
+2. SIMULATOR: UNPASSENDER VERGLEICHSWERT
+
+Die lokale Berechnung von C_best ließ Lieferanten-Standardbedingungen und
+Pflichtbedingungen außer Acht. Außerdem nahm sie an, dass unit_price immer
+das erste verhandelbare Feld sei. Dadurch konnte der Simulator einen günstigeren,
+aber nicht zulässigen Vergleichsabschluss zugrunde legen. Auch die Erzeugung
+der Standardbedingungen hing von dieser Feldreihenfolge ab.
+
+Korrektur: Preisfelder werden anhand ihres Namens erkannt. Der Vergleich nutzt
+die individuellen Standardbedingungen, zulässige Optionen einschließlich
+zulässiger Standardwerte und prüft die Pflichtbedingungen. Falls kein zulässiger
+Vergleich vorhanden ist, ist reference_feasible=false und der lokale Score null;
+der endliche Ersatzwert C_best darf dann nicht als erreichbares Optimum gelten.
+
+Zwei Reihenfolgetests sowie Tests für unmögliche Anforderungen und die
+Standardbedingungen decken diese Fälle ab. Der veröffentlichte Kostenrechner
+cost.py wurde nicht verändert. Diese Korrektur betrifft ausschließlich unseren
+lokalen Simulator, nicht die Bewertung auf dem Arena-Server. Historische lokale
+Scores mit alten Simulatorversionen sind daher nicht ohne Weiteres vergleichbar.
+
+3. SIMULATOR UND PARSER: INDEXKLAUSELN IN ANGEBOTS-PDFS
+
+Der Simulator schrieb strukturierte Indexklauseln als Python-Dictionary ins PDF.
+Das entsprach nicht dem dokumentierten Klauselformat unseres Parsers. In der
+vertieften lokalen Auswertung wurden deshalb auch zugesagte Pakete als nicht
+vollständig dokumentiert abgelehnt. Die synthetischen Indexklauseln enthielten
+außerdem keinen Basismonat.
+
+Korrektur: Der Simulator schreibt das explizite Klauselformat mit Serie,
+Materialanteil, Deadband und Basismonat. Neue synthetische Fälle enthalten einen
+explizit festgelegten Basismonat. Fehlende Informationen realer Lieferanten
+werden dadurch nicht ergänzt. Der Parser unterstützt auch dezimale Material-
+anteile, ohne unklare Formate, ungültige Monate oder Prozente zu akzeptieren.
+
+Die Tests entdeckten zusätzlich einen Präzisionsfehler bei 33,3 Prozent:
+Binäre Division ergab 0,33299999999999996 statt des erlaubten Wertes 0,333.
+Die Umrechnung erfolgt nun dezimalgenau, damit identische Klauseln auch bei
+exakter Optionsprüfung identisch bleiben. Vier PDF-Roundtrips prüfen 30 Prozent,
+33,3 Prozent, 12,5 Prozent und einen periodischen Anteil.
+
+4. AGENT: GÜLTIGE PAKETE DURCH CENT-RUNDUNG VERWORFEN
+
+Die Preisberechnung löste zunächst den zum Kostenziel passenden Stückpreis und
+rundete dann auf den nächsten Cent. War diese Rundung nach oben gerichtet,
+konnte die tatsächliche Gesamtsumme das eigene Ziel überschreiten. Bei einer
+hohen verbindlichen Abnahmemenge und einem kleinen Bedarf reichte die bisherige
+Toleranz nicht aus: Ein grundsätzlich machbares Paket verschwand vollständig.
+
+Korrektur: Der errechnete Preis wird auf volle Cent abgerundet. Kostenprüfung,
+Pflichtbedingungen, verbindliche Käufergrenzen und die separate Prüfung der
+Lieferantenbeziehung bleiben erhalten. Es gibt keine D02-spezifischen Kennungen
+oder Kenntnis versteckter Reservierungspreise im Agenten.
+
+Drei Regressionen mit 5.000, 50.000 und 500.000 vertraglichen Stück scheitern mit
+der alten Preisfunktion, weil gar kein Angebot erzeugt wird. Mit der neuen
+Funktion entstehen gültige Pakete innerhalb des Zielbetrags.
+
+5. VERGLEICH MIT STÄRKEREN LOKALEN GEGNERN
+
+Die bisherigen synthetischen Gegner bewerteten fast nur Stückpreis und Zahlung.
+Die zusätzliche Option --economic-opponents bewertet auch Fracht, Finanzierung,
+Werkzeugzahlungen und Reklamationsbelastungen sowie ausdrücklich fiktive
+Überstundenkosten für beschleunigte Lieferung. Diese Regeln bleiben im Gegner;
+der Agent erhält sie nicht als Lieferantenwissen. Fünf Verhaltensstile und
+sieben Falltypen werden kombiniert. Diese Simulation ersetzt keine echten
+menschlichen oder modellbasierten Verhandlungen.
+
+Die Vorher-/Nachher-Läufe für die Rundung verwenden jeweils dieselbe korrigierte
+Testumgebung, dieselben Fälle, denselben Seed und dieselben Gegner. Verglichen
+werden zwei Versionen unseres Evidence-Agenten. Die zusätzlich ausgegebene
+Starter-Baseline ist NICHT dieser Vorher-Vergleich.
+
+140 Fälle, Seed 20261019:
+- Abschlüsse: 81 vorher, 82 nachher; kein verlorener Abschluss.
+- Auf 81 gemeinsamen Abschlüssen: mittlere relative Kostenänderung -0,04356 %.
+- Zehn Abschlüsse günstiger, zwei teurer, die übrigen gleich.
+
+200 weitere Fälle, Seed 20261020, nach der Korrektur ausgewählt und unverändert:
+- Abschlüsse: 129 vorher und nachher; kein verlorener Abschluss.
+- Auf 129 gemeinsamen Abschlüssen: mittlere relative Kostenänderung -0,00328 %.
+- 21 Abschlüsse günstiger, zwei teurer, die übrigen gleich.
+- Zwei nach der synthetischen Gegnerregel mögliche Abschlüsse bleiben verpasst.
+
+In beiden Vergleichen: keine gemessene Verletzung harter Grenzen und keine
+Notfallentscheidung des Evidence-Agenten. Die Verbesserungen sind klein und
+nicht in jedem Einzelfall positiv. Sie rechtfertigen keine Behauptung eines
+bestimmten neuen D02-Scores und keine allgemeine Gewinn-Garantie.
+
+Eine zusätzliche Konkurrenzpreis-Zielregel wurde separat an 100 einfachen und
+140 erweiterten Fällen erprobt. Sie zeigte keine Änderung der Ergebnisse und
+wurde wieder entfernt. Die Vergleichsumgebung wurde anschließend wegen des
+PDF-Fehlers korrigiert; ihre älteren Ergebnisdateien sind historische Diagnose,
+keine faire Grundlage für die oben genannten Rundungs-Vergleiche.
+
+ABSCHLUSSPRÜFUNG
+
+Finaler vollständiger Testlauf: 306 bestanden, 1 echter Arena-Test deaktiviert; keine Fehler.
+Gezielte neue Regressionen: 15 bestanden.
+Eingabestörvarianten: 600 von 600 bestanden.
+Statische Codeprüfung und Prüfung auf fehlerhafte Änderungen: bestanden.
+Die vollständigen Tests blockieren externe Netzwerkverbindungen standardmäßig.
+Der echte Arena-Test bleibt gemäß Auftrag deaktiviert.
+
+OFFEN UND NICHT BEHAUPTET
+
+Der bekannte echte D02-Score bleibt 38,90/100. Die jetzigen Änderungen wurden
+nicht gegen den gehosteten Gegner getestet. Besonders die Preisstrategie gegen
+unbekannte Gegner und die verbliebenen synthetisch möglichen, aber verpassten
+Abschlüsse bleiben Optimierungsfelder. Der Harness ist durch diese Prüfung
+robuster geworden; ein fehlerfreier Finalbetrieb ist damit nicht garantiert.
+Final-Zugang, Datenfreigabe und Einreichung wurden in dieser Prüfung nicht aktiviert.

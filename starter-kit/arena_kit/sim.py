@@ -22,6 +22,7 @@ import json
 import re
 import threading
 import time
+from decimal import Decimal
 from pathlib import Path
 
 from .cost import closing_terms, cost_breakdown, must_haves_ok, score, total_cost
@@ -38,6 +39,11 @@ SIGNALS = {"reply_delay_days": 1, "validity_days": 30}
 
 
 def _fmt(v):
+    if isinstance(v, dict) and {"series", "material_share", "deadband_pct", "base_month"} <= v.keys():
+        return (
+            f"{v['series']}, {Decimal(str(v['material_share'])) * 100:f}% material, "
+            f"deadband {v['deadband_pct']:g} %, base {v['base_month']}"
+        )
     return "none" if v is None else f"{v:.2f}" if isinstance(v, float) else str(v)
 
 
@@ -217,7 +223,7 @@ class Sim:
         }
         for i, sup in enumerate(case["suppliers"]):
             opening = round((current or case["buyer"]["fallback_unit_price"]) * (1 + OPEN_UP + 0.02 * i), 2)
-            standard = {f: (case["term_options"].get(f) or [None])[0] for f in case["negotiable"][1:]}
+            standard = {f: (case["term_options"].get(f) or [None])[0] for f in case["negotiable"] if f != "unit_price"}
             th = s["threads"][sup] = {
                 "key": sup.split(":", 1)[1],
                 "round": 0,
@@ -285,19 +291,23 @@ class Sim:
     def _end(self, s, reason, sup):
         case, ths = s["case"], s["threads"]
         c_open = min(total_cost(case, {"unit_price": th["opening"]}, th["standard"]) for th in ths.values())
-        # the best this script would ever accept: its floor price, any allowed values of the other terms
-        options = [case["term_options"].get(f) or [None] for f in case["negotiable"][1:]]
-        c_best = min(
-            total_cost(
-                case,
-                {
-                    **dict(zip(case["negotiable"][1:], combo, strict=True)),
-                    "unit_price": round(th["opening"] * FLOOR, 2),
-                },
-            )
-            for th in ths.values()
-            for combo in itertools.product(*options)
-        )
+        # Feasible reference for this script, independent of field ordering.
+        # Missing nonnegotiable values inherit each supplier's actual standards.
+        fields = [f for f in case["negotiable"] if f != "unit_price"]
+        candidates = []
+        for th in ths.values():
+            options = []
+            for field in fields:
+                values = list(case["term_options"].get(field) or [th["standard"].get(field)])
+                if field in th["standard"] and th["standard"][field] not in values:
+                    values.append(th["standard"][field])
+                options.append(values)
+            for combo in itertools.product(*options):
+                terms = {**dict(zip(fields, combo, strict=True)), "unit_price": round(th["opening"] * FLOOR, 2)}
+                if must_haves_ok(case, terms, th["standard"]):
+                    candidates.append(total_cost(case, terms, th["standard"]))
+        # No feasible scripted deal: keep a finite reference; do not invent a cheap one.
+        c_best = min(candidates, default=c_open)
         alt = case["buyer"].get("alternative") or {}
         c_alt = total_cost(case, alt["terms"]) if alt.get("terms", {}).get("unit_price") else None
         r = {
@@ -310,7 +320,8 @@ class Sim:
             "c_deal": None,
             "c_alt": c_alt,
             "c_best": c_best,
-            "score": score(c_open, c_alt, c_best) if c_alt else 0.0,
+            "reference_feasible": bool(candidates),
+            "score": score(c_open, c_alt, c_best) if c_alt and candidates else 0.0,
             "must_haves_ok": None,
             "cost_breakdown": None,
             "trace": [],
@@ -326,7 +337,7 @@ class Sim:
                 must_haves_ok=must_haves_ok(case, t),
                 cost_breakdown=cost_breakdown(case, t),
             )
-            r["score"] = score(c_open, r["c_deal"], c_best) if r["must_haves_ok"] else 0.0
+            r["score"] = score(c_open, r["c_deal"], c_best) if r["must_haves_ok"] and candidates else 0.0
         s.update(status="ended", end_reason=reason, result=r)
         for th in ths.values():
             th["closed"] = th["closed"] or reason

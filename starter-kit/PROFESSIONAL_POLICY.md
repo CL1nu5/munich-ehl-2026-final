@@ -1,8 +1,8 @@
-> Aktueller Stand: **291 Tests bestanden**, echter Arena-Test gesperrt.
-> D02-Zeitfehler lokal reproduziert und korrigiert: `D02_REVIEW.txt`.
+> Aktueller Stand: **306 Tests bestanden**, echter Arena-Test gesperrt.
+> Harness-, PDF- und Angebotskorrekturen: `HARNESS_DEEP_REVIEW.txt`.
+> Vorher/Nachher: 340 lokale Fälle; kleine Kostenvorteile, keine verlorenen Abschlüsse.
 > Bekannter echter Sandbox-Score: D01 92,66; D02 38,90; kein neuer gehosteter Lauf.
-> Wirtschaftliche Strategieexperimente ohne belegten Vorteil wurden zurückgenommen.
-> Frühere Modellmessungen und Simulatorwerte bleiben historische Befunde.
+> Frühere Simulatorwerte sind wegen der korrigierten Referenz nur historische Befunde.
 
 # Professionelle Verhandlungspolitik und vertiefte Bewertung
 

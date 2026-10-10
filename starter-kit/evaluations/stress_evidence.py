@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 from types import SimpleNamespace
 
-from arena_kit.cost import closing_terms, must_haves_ok, total_cost
+from arena_kit.cost import closing_terms, must_haves_ok, supplier_value, total_cost
 from arena_kit.docs import read_document
 from arena_kit.harness.economics import Economics
 from arena_kit.harness.plugins import Baseline
@@ -30,6 +30,19 @@ spec.loader.exec_module(module)
 class Opponent(Sim):
     """Opponent-private reservation rule; never supplied in buyer observations."""
 
+    economic = False
+
+    @classmethod
+    def value(cls, case, terms, std, rate, opening):
+        full = closing_terms(case, terms, std)
+        if not cls.economic:
+            return full["unit_price"] * (1 - rate * (full["payment_days"] - std["payment_days"]) / 360)
+        # Evaluator-only synthetic utility: freight, financing, tooling and
+        # chargebacks, plus explicit overtime for accelerated delivery.
+        # These are test assumptions, never revealed as buyer facts.
+        overtime = opening * 0.002 * max(0, std["lead_time_days"] - full["lead_time_days"])
+        return supplier_value(case, full, {"standard": std, "interest_rate": rate, "extra": -overtime})
+
     def __init__(self, case, style):
         super().__init__({case["case_id"]: case}, no_clock=True)
         self.style = style
@@ -41,8 +54,7 @@ class Opponent(Sim):
         std = closing_terms(case, {}, thread["standard"])
 
         def value(terms):
-            full = closing_terms(case, terms, thread["standard"])
-            return full["unit_price"] * (1 - rate * (full["payment_days"] - std["payment_days"]) / 360)
+            return self.value(case, terms, std, rate, thread["opening"])
 
         threshold = thread["opening"] * max(floor, 1 - 0.025 * thread["round"])
         if self.style == "stalled":
@@ -85,9 +97,11 @@ def feasible_agreement(case, style, parameters):
         threshold = opening * max(floor, 1 - 0.025 * (case["round_limit"] - 2))
         for values in itertools.product(*options):
             terms = dict(zip(names, values, strict=True))
-            pay = closing_terms(case, terms, std)["payment_days"]
-            multiplier = 1 - rate * (pay - std["payment_days"]) / 360
-            terms["unit_price"] = math.ceil(threshold / multiplier * 100) / 100
+            v1 = Opponent.value(case, {**terms, "unit_price": 1}, std, rate, opening)
+            slope = Opponent.value(case, {**terms, "unit_price": 2}, std, rate, opening) - v1
+            if slope <= 0:
+                continue
+            terms["unit_price"] = math.ceil(((threshold - v1) / slope + 1) * 100) / 100
             if must_haves_ok(case, terms, std) and policy.within_limits(sid, terms, std):
                 return True
     return False
@@ -154,7 +168,9 @@ def main():
     parser.add_argument("--seed", type=int)
     parser.add_argument("--output")
     parser.add_argument("--all-types", action="store_true")
+    parser.add_argument("--economic-opponents", action="store_true")
     args = parser.parse_args()
+    Opponent.economic = args.economic_opponents
     seed = 20261011 if args.validation else 20261010
     seed = args.seed if args.seed is not None else seed
     count = args.count if args.count is not None else (120 if args.validation else 60)
@@ -211,7 +227,13 @@ def main():
                 add("volume_per_year", [need, round(need * 1.1)])
                 add("tooling_eur", [0, 1000, 5000])
             elif case["type"] == "raw_material":
-                add("index_clause", [None, {"series": "CU-NOTATION", "material_share": 0.3, "deadband_pct": 5}])
+                add(
+                    "index_clause",
+                    [
+                        None,
+                        {"series": "CU-NOTATION", "material_share": 0.3, "deadband_pct": 5, "base_month": "2026-08"},
+                    ],
+                )
                 case["buyer"]["index_paths"] = {"CU-NOTATION": rng.choice([-0.2, 0.1, 0.25])}
             elif case["type"] == "capacity":
                 add("lead_time_days", [14, 28, 42])
@@ -252,6 +274,7 @@ def main():
     result = {
         "warning": "Synthetic local stress scenarios. Not hidden cases, real customers, or hosted Arena scores.",
         "seed": seed,
+        "economic_opponents": args.economic_opponents,
         "summary": summary,
         "scenarios": rows,
     }

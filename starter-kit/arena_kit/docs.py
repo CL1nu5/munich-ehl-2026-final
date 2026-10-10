@@ -3,6 +3,7 @@
 import io
 import math
 import re
+from decimal import Decimal
 
 LABELS = {
     "Unit price (EUR)": "unit_price",
@@ -23,7 +24,7 @@ SECTIONS = {
     "Terms fixed by your enquiry": "fixed",
     "Agreed terms": "agreed",
 }
-CLAUSE = re.compile(r"(\S+), (\d+)% material, deadband ([\d.]+) %, base (\S+)")
+CLAUSE = re.compile(r"(\S+), ([\d.]+)% material, deadband ([\d.]+) %, base (\S+)")
 
 
 def read_document(name, data):
@@ -52,13 +53,13 @@ def _value(field, text):
         if not m:
             raise ValueError("Unrecognized index clause")
         series, share, deadband, base = m.groups()
-        if not 0 <= int(share) <= 100 or not 0 <= float(deadband) <= 100:
+        if not 0 <= float(share) <= 100 or not 0 <= float(deadband) <= 100:
             raise ValueError("Invalid index clause percentages")
         if not re.fullmatch(r"\d{4}-(?:0[1-9]|1[0-2])", base):
             raise ValueError("Invalid index clause base month")
         return {
             "series": series,
-            "material_share": int(share) / 100,
+            "material_share": float(Decimal(share) / 100),
             "deadband_pct": float(deadband),
             "base_month": base,
         }
