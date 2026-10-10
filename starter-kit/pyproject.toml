@@ -1,0 +1,30 @@
+[project]
+name = "arena-kit"
+version = "0.1.0"
+description = "Starter kit for the Tacto Negotiation Arena: API client, example buyer agents, contract simulator, MCP server over the data package"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = ["httpx>=0.27", "openpyxl>=3.1", "pypdf>=5"]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=1.0"]
+mcp = ["mcp>=2.3,<3"]
+sim = ["fastapi>=0.115", "uvicorn>=0.30"]
+
+[project.scripts]
+arena = "arena_kit.cli:main"
+arena-sim = "arena_kit.sim:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

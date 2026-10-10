@@ -1,0 +1,118 @@
+{
+ "case_id": "case:S03",
+ "set": "practice",
+ "type": "renewal",
+ "title": "Motor IE3 4 kW: framework renewal",
+ "briefing": "Simulator example. You buy part:350010 for Hollerau Pumpenwerke from sup:70520. Need: 8490 pc a year for 2 year(s). The supplier in the simulator is a plain script, not a real bot.",
+ "trigger_doc": null,
+ "parts": [
+  "part:350010"
+ ],
+ "suppliers": [
+  "sup:70520"
+ ],
+ "negotiable": [
+  "unit_price",
+  "payment_days",
+  "contract_months",
+  "incoterm"
+ ],
+ "fixed_terms": {
+  "lead_time_days": 35,
+  "volume_per_year": 8490,
+  "index_clause": null,
+  "tooling_eur": 0
+ },
+ "term_options": {
+  "payment_days": [
+   14,
+   30,
+   45,
+   60,
+   90
+  ],
+  "contract_months": [
+   12,
+   24
+  ],
+  "incoterm": [
+   "EXW",
+   "FCA",
+   "DAP"
+  ]
+ },
+ "buyer": {
+  "need_per_year": 8490,
+  "horizon_years": 2,
+  "current_unit_price": 217.77,
+  "fallback_unit_price": 250.44,
+  "interest_rate": 0.08,
+  "reference_payment_days": 60,
+  "need_lead_time_days": 42,
+  "category_goal": "routine",
+  "fallback_risk_pct": 5,
+  "index_risk_pct": 2,
+  "late_cost_per_day": 200,
+  "cost_per_defect": 50,
+  "freight_eur_per_unit": {
+   "EXW": 6.53,
+   "FCA": 4.36,
+   "DAP": 0.0
+  },
+  "index_paths": {},
+  "must_haves": [],
+  "alternative": {
+   "kind": "quote",
+   "ref": "quote:7100042",
+   "terms": {
+    "unit_price": 245.59,
+    "payment_days": 30,
+    "lead_time_days": 42,
+    "incoterm": "DAP"
+   }
+  }
+ },
+ "round_limit": 10,
+ "refs": [
+  "sc:70520@2026Q3",
+  "idx:CU-NOTATION@2025-08",
+  "idx:CU-NOTATION@2026-08",
+  "idx:LCI-C@2025-08",
+  "quote:7100042"
+ ],
+ "facts": {
+  "sc:70520@2026Q3": {
+   "colour": "green",
+   "otd_confirmed_pct": 83.0,
+   "otd_pct": 81.1,
+   "ppm": 764,
+   "quarter": "2026Q3",
+   "supplier": "sup:70520"
+  },
+  "idx:CU-NOTATION@2025-08": {
+   "month": "2025-08",
+   "series": "CU-NOTATION",
+   "value": 852.1524
+  },
+  "idx:CU-NOTATION@2026-08": {
+   "month": "2026-08",
+   "series": "CU-NOTATION",
+   "value": 1266.6289
+  },
+  "idx:LCI-C@2025-08": {
+   "month": "2025-08",
+   "series": "LCI-C",
+   "value": 117.0
+  },
+  "quote:7100042": {
+   "date": "2025-01-15",
+   "incoterm": "DAP",
+   "lead_time_days": 42,
+   "part": "part:350010",
+   "payment_days": 30,
+   "price_unit": 1,
+   "supplier": "sup:70510",
+   "unit_price": 245.59
+  }
+ }
+}

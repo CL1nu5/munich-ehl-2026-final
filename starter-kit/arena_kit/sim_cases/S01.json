@@ -1,0 +1,93 @@
+{
+ "case_id": "case:S01",
+ "set": "practice",
+ "type": "price_increase",
+ "title": "Adapter piece HI: a price increase",
+ "briefing": "Simulator example. You buy part:320050 for Hollerau Pumpenwerke from sup:70270. Need: 6650 pc a year for 1 year(s). The supplier in the simulator is a plain script, not a real bot.",
+ "trigger_doc": null,
+ "parts": [
+  "part:320050"
+ ],
+ "suppliers": [
+  "sup:70270"
+ ],
+ "negotiable": [
+  "unit_price",
+  "payment_days"
+ ],
+ "fixed_terms": {
+  "lead_time_days": 42,
+  "volume_per_year": 6650,
+  "contract_months": 12,
+  "index_clause": null,
+  "incoterm": "FCA",
+  "tooling_eur": 0
+ },
+ "term_options": {
+  "payment_days": [
+   14,
+   30,
+   45,
+   60,
+   90
+  ]
+ },
+ "buyer": {
+  "need_per_year": 6650,
+  "horizon_years": 1,
+  "current_unit_price": 15.88,
+  "fallback_unit_price": 18.26,
+  "interest_rate": 0.08,
+  "reference_payment_days": 60,
+  "need_lead_time_days": 42,
+  "category_goal": "leverage",
+  "fallback_risk_pct": 3,
+  "index_risk_pct": 1,
+  "late_cost_per_day": 200,
+  "cost_per_defect": 50,
+  "freight_eur_per_unit": {
+   "EXW": 0.48,
+   "FCA": 0.32,
+   "DAP": 0.0
+  },
+  "index_paths": {},
+  "must_haves": [],
+  "alternative": {
+   "kind": "none",
+   "ref": null,
+   "terms": {}
+  }
+ },
+ "round_limit": 10,
+ "refs": [
+  "sc:70270@2026Q3",
+  "idx:LCI-C@2025-08",
+  "idx:PPI-C2431@2025-08",
+  "idx:PPI-C2431@2026-08"
+ ],
+ "facts": {
+  "sc:70270@2026Q3": {
+   "colour": "amber",
+   "otd_confirmed_pct": 88.5,
+   "otd_pct": 84.6,
+   "ppm": 1531,
+   "quarter": "2026Q3",
+   "supplier": "sup:70270"
+  },
+  "idx:LCI-C@2025-08": {
+   "month": "2025-08",
+   "series": "LCI-C",
+   "value": 117.0
+  },
+  "idx:PPI-C2431@2025-08": {
+   "month": "2025-08",
+   "series": "PPI-C2431",
+   "value": 115.0
+  },
+  "idx:PPI-C2431@2026-08": {
+   "month": "2026-08",
+   "series": "PPI-C2431",
+   "value": 129.1
+  }
+ }
+}

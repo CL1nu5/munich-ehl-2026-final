@@ -1,0 +1,110 @@
+{
+ "case_id": "case:S02",
+ "set": "practice",
+ "type": "rfq",
+ "title": "Motor bracket HB: two quotes",
+ "briefing": "Simulator example. You buy part:330030 for Hollerau Pumpenwerke from sup:70340, sup:70360. Need: 18790 pc a year for 2 year(s). The supplier in the simulator is a plain script, not a real bot.",
+ "trigger_doc": null,
+ "parts": [
+  "part:330030"
+ ],
+ "suppliers": [
+  "sup:70340",
+  "sup:70360"
+ ],
+ "negotiable": [
+  "unit_price",
+  "payment_days",
+  "lead_time_days"
+ ],
+ "fixed_terms": {
+  "volume_per_year": 18790,
+  "contract_months": 24,
+  "index_clause": null,
+  "incoterm": "DAP",
+  "tooling_eur": 0
+ },
+ "term_options": {
+  "payment_days": [
+   14,
+   30,
+   45,
+   60,
+   90
+  ],
+  "lead_time_days": [
+   21,
+   28,
+   35,
+   42,
+   49
+  ]
+ },
+ "buyer": {
+  "need_per_year": 18790,
+  "horizon_years": 2,
+  "current_unit_price": 15.63,
+  "fallback_unit_price": 17.97,
+  "interest_rate": 0.08,
+  "reference_payment_days": 60,
+  "need_lead_time_days": 42,
+  "category_goal": "leverage",
+  "fallback_risk_pct": 3,
+  "index_risk_pct": 1,
+  "late_cost_per_day": 200,
+  "cost_per_defect": 50,
+  "freight_eur_per_unit": {
+   "EXW": 0.47,
+   "FCA": 0.31,
+   "DAP": 0.0
+  },
+  "index_paths": {},
+  "must_haves": [],
+  "alternative": {
+   "kind": "none",
+   "ref": null,
+   "terms": {}
+  }
+ },
+ "round_limit": 10,
+ "refs": [
+  "sc:70340@2026Q3",
+  "sc:70360@2026Q3",
+  "idx:PPI-C241@2025-08",
+  "idx:PPI-C241@2026-08",
+  "idx:LCI-C@2025-08"
+ ],
+ "facts": {
+  "sc:70340@2026Q3": {
+   "colour": "green",
+   "otd_confirmed_pct": 90.4,
+   "otd_pct": 88.5,
+   "ppm": 489,
+   "quarter": "2026Q3",
+   "supplier": "sup:70340"
+  },
+  "sc:70360@2026Q3": {
+   "colour": "amber",
+   "otd_confirmed_pct": 84.0,
+   "otd_pct": 76.0,
+   "ppm": 762,
+   "quarter": "2026Q3",
+   "supplier": "sup:70360"
+  },
+  "idx:PPI-C241@2025-08": {
+   "month": "2025-08",
+   "series": "PPI-C241",
+   "value": 99.4
+  },
+  "idx:PPI-C241@2026-08": {
+   "month": "2026-08",
+   "series": "PPI-C241",
+   "value": 105.9
+  },
+  "idx:LCI-C@2025-08": {
+   "month": "2025-08",
+   "series": "LCI-C",
+   "value": 117.0
+  }
+ }
+}
