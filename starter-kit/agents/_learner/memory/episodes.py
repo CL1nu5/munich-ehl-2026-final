@@ -13,19 +13,6 @@ from .runlocate import connect
 REASONS = 12
 
 
-def signature(run_dir):
-    """Cheap fingerprint of which cases have finished - re-extract only when it changes."""
-    con = connect(run_dir)
-    try:
-        rows = con.execute(
-            "SELECT id, json_extract(value, '$.result') IS NOT NULL, "
-            "coalesce(json_extract(value, '$.agent_state.closed'), 0) FROM cases ORDER BY id"
-        ).fetchall()
-    finally:
-        con.close()
-    return tuple((r[0], bool(r[1]), bool(r[2])) for r in rows if r[1] or r[2])
-
-
 def _replies(con, session_id):
     """Supplier replies to our messages, per supplier, in order: [{status, price, claims}]."""
     out = {}
@@ -62,7 +49,7 @@ def _replies(con, session_id):
 
 
 def extract(run_dir, exclude=None):
-    """[episode] for every case of the run that has ended or that our agent has closed."""
+    """[episode] for confirmed results of this explicit run only."""
     con = connect(run_dir)
     try:
         rows = con.execute("SELECT id, value FROM cases ORDER BY id").fetchall()
@@ -76,7 +63,7 @@ def extract(run_dir, exclude=None):
                 continue
             st = rec.get("agent_state") or {}
             result = rec.get("result")
-            if not result and not st.get("closed"):
+            if not result or not result.get("ended", "score" in result):
                 continue
             case = rec.get("case") or {}
             sups = st.get("sup") or {}

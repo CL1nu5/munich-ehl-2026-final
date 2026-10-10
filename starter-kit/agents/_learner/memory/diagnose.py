@@ -49,8 +49,8 @@ def _kinds_for_results(log, sid, refs, n):
 def diagnose(ep):
     out = []
     cid = ep["case_id"]
-    res = ep.get("result") or {}
     for sid, replies in (ep.get("replies") or {}).items():
+        first_lesson = len(out)
         statuses = [r.get("status") for r in replies]
         tags = ", ".join((ep["suppliers"].get(sid) or {}).get("tags") or []) or "untagged"
         # Pushed after a final offer and the supplier walked.
@@ -81,7 +81,7 @@ def diagnose(ep):
                         "price",
                         "WALKED_EARLY",
                         f"A supplier ({tags}) walked away without a final offer; open closer to its "
-                        "offer and concede in visible steps.",
+                        "offer is a hypothesis; departure may have other causes.",
                         cid,
                     )
                 )
@@ -95,7 +95,7 @@ def diagnose(ep):
                         "do",
                         "price",
                         "TOO_SOFT",
-                        f"A supplier ({tags}) agreed to our first ask at once; anchor lower next time.",
+                        f"A supplier ({tags}) agreed to our first ask; a lower anchor is an untested hypothesis.",
                         cid,
                     )
                 )
@@ -132,7 +132,8 @@ def diagnose(ep):
                                     "do",
                                     "claims",
                                     f"CLAIM_MOVED:{kind}",
-                                    f"Verified {kind} arguments moved a supplier ({tags}) on price.",
+                                    f"Price fell after verified {kind} arguments ({tags}); "
+                                    "changed terms and other causes remain confounded.",
                                     cid,
                                     0.7,
                                 )
@@ -145,8 +146,8 @@ def diagnose(ep):
                                     "avoid",
                                     "claims",
                                     f"CLAIM_IGNORED:{kind}",
-                                    f"Verified {kind} arguments did not move a supplier ({tags}); "
-                                    "trade on other levers instead.",
+                                    f"Price did not fall after verified {kind} arguments ({tags}); "
+                                    "this does not establish that they were ineffective.",
                                     cid,
                                     0.7,
                                 )
@@ -168,39 +169,6 @@ def diagnose(ep):
                         0.5,
                     )
                 )
-    # Outcome-level lessons from the harness result (exact score and cost breakdown).
-    if res.get("score") is not None:
-        breakdown = res.get("cost_breakdown") or {}
-        if res.get("deal") and res["score"] < 0.4:
-            worst = sorted(
-                ((k, v) for k, v in breakdown.items() if k not in ("price",) and (v or 0) > 0),
-                key=lambda kv: -kv[1],
-            )[:1]
-            for k, v in worst:
-                out.append(
-                    lesson(
-                        "global",
-                        "",
-                        "do",
-                        k,
-                        f"LEFT:{k}",
-                        f"A weak deal (score {res['score']:.2f}) still paid EUR {v:,.0f} on {k}; "
-                        f"negotiate {k.replace('_', ' ')} explicitly.",
-                        cid,
-                        0.6,
-                    )
-                )
-        if not res.get("deal") and not ep.get("has_alternative"):
-            out.append(
-                lesson(
-                    "global",
-                    "",
-                    "avoid",
-                    "closing",
-                    "NO_DEAL_NO_ALT",
-                    "A case without an alternative ended with no deal (score 0); always close on the best "
-                    "acceptable offer.",
-                    cid,
-                )
-            )
+        for item in out[first_lesson:]:
+            item["supplier"] = sid
     return out

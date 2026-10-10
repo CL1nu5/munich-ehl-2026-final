@@ -2,10 +2,10 @@
 
 import math
 
-from ..cost import must_haves_ok, total_cost
 from ..docs import quote_terms, standard_terms
-from ..play import live_threads, standing
+from ..play import live_threads
 from .state import encode
+from .valuation import ranked_offers
 
 
 def documented(events):
@@ -19,20 +19,14 @@ def documented(events):
     return False
 
 
-def acceptable(case, events):
-    offer_id, terms = standing(events)
-    std = standard_terms(events)
-    if not offer_id or not documented(events):
-        return False
-    if any(f not in terms and f not in std and f not in case.get("fixed_terms", {}) for f in case["negotiable"]):
+def acceptable(case, events, offer_id=None):
+    if not documented(events):
         return False
     try:
-        cost = total_cost(case, terms, std)
-        alt = case["buyer"].get("alternative") or {}
-        limit = (
-            total_cost(case, alt["terms"]) if alt.get("kind") not in (None, "none") and alt.get("terms") else math.inf
+        return any(
+            s["beats_alternative"] and (offer_id is None or s["term_sheet_id"] == offer_id)
+            for s in ranked_offers(case, events)
         )
-        return math.isfinite(cost) and must_haves_ok(case, terms, std) and cost <= limit
     except (ValueError, TypeError, KeyError, ZeroDivisionError):
         return False
 
@@ -41,9 +35,12 @@ def close_action(case, threads):
     live = live_threads(threads)
     candidates = []
     for sid in live:
-        if acceptable(case, threads[sid]):
-            offer_id, terms = standing(threads[sid])
-            candidates.append((total_cost(case, terms, standard_terms(threads[sid])), sid, offer_id))
+        if documented(threads[sid]):
+            candidates.extend(
+                (s["cost"], sid, s["term_sheet_id"])
+                for s in ranked_offers(case, threads[sid])
+                if s["beats_alternative"]
+            )
     if candidates:
         _, sid, offer_id = min(candidates)
         return {"supplier_id": sid, "message": {"action": {"type": "accept", "term_sheet_id": offer_id}}}
@@ -83,7 +80,7 @@ def validate(case, threads, actions):
             if cmd["type"] == "accept":
                 if set(cmd) != {"type", "term_sheet_id"}:
                     raise ValueError("Invalid accept")
-                if cmd["term_sheet_id"] != standing(threads[sid])[0] or not acceptable(case, threads[sid]):
+                if not acceptable(case, threads[sid], cmd["term_sheet_id"]):
                     raise ValueError("Unsafe or stale acceptance")
             elif set(cmd) != {"type"}:
                 raise ValueError("Invalid walk_away")

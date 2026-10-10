@@ -47,3 +47,10 @@ class Budget:
         if self.wave_left is None:
             return False
         return self.wave_left - WAVE_GUARD < max(max_latency, 30) + 25
+
+    def horizon(self, sent, moves_left, latencies):
+        available = moves_left
+        if self.wave_left is not None:
+            round_seconds = max(latencies, default=60) + max(1, self.total)
+            available = min(available, max(1, int((self.wave_left - WAVE_GUARD) / round_seconds)))
+        return max(2, sent + available)

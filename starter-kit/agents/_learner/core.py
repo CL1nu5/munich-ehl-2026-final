@@ -54,6 +54,9 @@ def initial_state(case, p, cc):
 def prepare(context, cache):
     case = context["case"]
     p = params.load(context.get("parameters"))
+    p.update(
+        {k: v for k, v in context.get("runtime", {}).items() if k in ("data_dir", "decision_seconds", "model_timeout")}
+    )
     started = time.monotonic()
     cc = case_cache(case, p, cache)
     state = initial_state(case, p, cc)
@@ -74,6 +77,14 @@ def decide(observation, state, services, cache):
         cc = case_cache(case, p, cache)
         state = initial_state(case, p, cc)
     p = state.get("p") or params.load({})
+    p = {
+        **p,
+        **{
+            k: v
+            for k, v in observation.get("runtime", {}).items()
+            if k in ("data_dir", "decision_seconds", "model_timeout")
+        },
+    }
     cc = case_cache(case, p, cache, harness_package(p, services))
     for sid, d in cc["dossier"]["suppliers"].items():  # tags from the package actually in use
         state["sup"].setdefault(sid, {})["tags"] = d.get("tags", [])
@@ -96,3 +107,32 @@ def decide(observation, state, services, cache):
     state["llm"]["calls"] = state["llm"].get("calls", 0) + gw.calls
     state["runner"] = runner
     return {"actions": out["actions"], "state": compact(state)}
+
+
+def on_result(context, state, services):
+    """Called only after the engine persisted a confirmed result; never delays acceptance."""
+    result = context.get("result") or {}
+    if not result.get("ended", "score" in result):
+        return state
+    state["closed"] = True
+    state["reflection"] = {"source": "det", "lessons": [], "feedback": {}}
+    # Deterministic diagnostics consume the actual result through history. Optional model reflection
+    # is advisory and never gets causal credit from the score or changes knobs without evidence.
+    p = state.get("p") or {}
+    if p.get("llm") and p.get("memory", True) and services is not None:
+        raw = Gateway(services).json(
+            graph.prompts.reflector(
+                {
+                    "case": {"type": context["case"].get("type"), "negotiable": context["case"]["negotiable"]},
+                    "outcome": result,
+                    "decisions": state.get("log", [])[-12:],
+                    "suppliers": {
+                        sid: {"preferences": s.get("preferences"), "tags": s.get("tags")}
+                        for sid, s in state.get("sup", {}).items()
+                    },
+                }
+            )
+        )
+        if isinstance(raw, dict):
+            state["reflection"] = {"source": "llm", "lessons": graph.prompts.clean_lessons(raw), "feedback": {}}
+    return compact(state)

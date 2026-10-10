@@ -484,11 +484,9 @@ def test_engine_with_a_mocked_model_uses_it_and_reflects(tmp_path):
     logs = [e for c in CASES for e in states[c]["agent_state"]["log"]]
     assert any(e["src"] == "llm" for e in logs)
     assert any(states[c]["agent_state"].get("reflection", {}).get("source") == "llm" for c in CASES)
-    # S01's reflection (a relationship supplier) is retrieved for S02's relationship suppliers, not for S03's
-    assert any(
-        k.startswith("archetype|relationship|tone|do") for k in states["case:S02"]["agent_state"]["mem"]["lessons"]
-    )
-    assert not any("relationship|tone" in k for k in states["case:S03"]["agent_state"]["mem"]["lessons"])
+    # One reflected case is a hypothesis, not transferable policy evidence.
+    assert not any("relationship|tone" in k for k in states["case:S02"]["agent_state"]["mem"]["lessons"])
+    assert all(states[c].get("reflected") for c in CASES)
 
 
 def test_agent_never_writes_into_the_repository(tmp_path):
@@ -651,7 +649,7 @@ def test_an_agreement_is_held_while_a_cheaper_rival_negotiates():
     assert r["type"] == "close" and r["supplier_id"] == "sup:a"
 
 
-def test_menu_keeps_only_sheets_close_to_the_cheapest_of_their_level():
+def test_menu_does_not_erase_structural_alternatives_on_buyer_cost_alone():
     menu = [
         {"mid": "M1", "level": "step", "c": 1464865.0},
         {"mid": "M2", "level": "step", "c": 1475230.0},  # P10: +0.7 %
@@ -659,7 +657,7 @@ def test_menu_keeps_only_sheets_close_to_the_cheapest_of_their_level():
         {"mid": "M4", "level": "big", "c": 1490000.0},
         {"mid": "M5", "level": "big", "c": 1492000.0},
     ]
-    assert [m["mid"] for m in graph.within_band(menu)] == ["M1", "M4", "M5"]
+    assert [m["mid"] for m in graph.within_band(menu)] == ["M1", "M2", "M3", "M4", "M5"]
 
 
 def test_a_mutual_standstill_is_broken_after_one_held_round():
@@ -702,7 +700,7 @@ def test_our_dearest_sent_sheet_still_counts_as_our_ask():
     sheets = [s["terms"] for s in out["actions"][0]["message"]["term_sheets"]]
     std = ledger_mod.build(case, threads)[sid]["std"]
     dearest = max(sheets, key=lambda t: total_cost(case, t, std))
-    assert len(sheets) > 1 and total_cost(case, dearest, std) > min(total_cost(case, t, std) for t in sheets) * 1.001
+    assert len(sheets) > 1 and total_cost(case, dearest, std) > min(total_cost(case, t, std) for t in sheets)
     assert out["state"]["sup"][sid]["c_ask"] == pytest.approx(total_cost(case, dearest, std))
     reply = sim.message("test", o["session_id"], sid, out["actions"][0]["message"])
     reply["term_sheets"][0]["terms"] = dict(dearest)  # it takes exactly the sheet dearest for us

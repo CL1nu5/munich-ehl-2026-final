@@ -9,12 +9,13 @@ schedule; `trade` packages are worth exactly as much to it as its own offer but 
 import itertools
 import math
 
-from arena_kit.cost import RELATIONSHIP_GOALS, must_haves_ok, supplier_value, total_cost
+from arena_kit.cost import RELATIONSHIP_GOALS, must_haves_ok, supplier_value
+from arena_kit.harness.valuation import effort, value
 
 from . import priors
 
 MAX_COMBOS = 300
-PER_LEVEL = 3
+PER_LEVEL = 8
 
 
 def lever_domains(case, std):
@@ -90,26 +91,19 @@ def supplier_model(case, led, tags, dossier_sup, parts_dossier):
     b = case["buyer"]
     if b.get("category_goal") in RELATIONSHIP_GOALS:
         row = should_cost_row(parts_dossier, led.get("supplier_id"))
-        full = row["unit_cost"] if row else None
+        # Generic plant estimates are a prior, not a supplier's revealed cost floor.
+        full = row["unit_cost"] if row and row.get("supplier_id") == led.get("supplier_id") else None
+        own_plant = full is not None
         if full is None and led.get("price"):
-            full = led["price"] * (1 - ((b.get("sustainable_margin_pct") or 8) + 2) / 100)
+            opening = next((p for p in led.get("prices", []) if p), led["price"])
+            full = opening * (1 - ((b.get("sustainable_margin_pct") or 8) + 2) / 100)
         if led.get("breakdown_total"):
             full = led["breakdown_total"]
         if full:
             model["full_cost"] = full
+            model["cost_uncertainty_pct"] = (row or {}).get("confidence_pct", 15)
+            model["cost_source"] = row.get("id") if own_plant else "opening-price prior"
     return model
-
-
-def effort(levers, model):
-    """EUR per unit a package costs the supplier beyond cash: faster delivery or a tighter ppm commitment
-    (overtime, extra inspection). A rough prior: 0.1 % of the price per day faster, 0.1 % per 100 ppm."""
-    std, ref = model["standard"], model.get("ref_price") or 0.0
-    out = 0.0
-    if levers.get("lead_time_days") is not None and std.get("lead_time_days") is not None:
-        out += 0.001 * ref * max(0, std["lead_time_days"] - levers["lead_time_days"])
-    if levers.get("ppm_commitment") is not None and std.get("ppm_commitment") is not None:
-        out += 0.00001 * ref * max(0, std["ppm_commitment"] - levers["ppm_commitment"])
-    return out
 
 
 def _value(case, terms, model):
@@ -133,8 +127,8 @@ def cost(case, terms, std, model):
     try:
         sup = None
         if case["buyer"].get("category_goal") in RELATIONSHIP_GOALS and model.get("full_cost"):
-            sup = {**model, "extra": model.get("extra", 0.0) - effort(terms, model)}
-        c = total_cost(case, terms, std, sup)
+            sup = model
+        c = value(case, terms, std, sup)["cost"]
         return c if math.isfinite(c) else None
     except Exception:
         return None
@@ -157,8 +151,10 @@ def anchor_price(case, led, tags, dossier, drop):
         }.get(t, 1.0)
     target = standing * (1 - min(0.35, drop * factor))
     row = should_cost_row(dossier.get("parts"), led.get("supplier_id"))
-    if row:
-        target = max(target, row["unit_cost"])
+    if row and row.get("supplier_id") == led.get("supplier_id"):
+        lower = row["unit_cost"] * (1 - (row.get("confidence_pct") or 15) / 100)
+        # Even an own-plant estimate cannot contradict the supplier's observed offer.
+        target = max(target, min(lower, standing * (1 - drop)))
     current = b.get("current_unit_price")
     if current and case.get("type") in ("price_increase", "renewal", "raw_material") and current < standing:
         target = min(target, current)
@@ -199,15 +195,23 @@ def build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat):
             changes = sum(levers.get(k) != base.get(k) for k in levers)
             found.append((c, changes, terms))
         found.sort(key=lambda x: (x[0], x[1]))  # ties: stay close to the supplier's own terms
+        # Keep each lever's alternatives represented before filling with cheap near-duplicates.
+        # Supplier security (indexation/duration) is deliberately outside supplier_value's cash formula.
+        diverse, represented = [], set()
+        for candidate in found:
+            terms = candidate[2]
+            features = {(f, str(terms.get(f))) for f in names}
+            if not diverse or features - represented:
+                diverse.append(candidate)
+                represented |= features
+        ordered = diverse + [x for x in found if x not in diverse]
         picked = 0
-        for c, _, terms in found:
+        for c, _, terms in ordered:
             key = tuple(sorted((k, str(v)) for k, v in terms.items()))
             profile = tuple(sorted((k, str(v)) for k, v in terms.items() if k != "unit_price"))
             same_level = [m for m in menu if m["level"] == level]
             if key in seen or profile in {m["profile"] for m in same_level}:
                 continue
-            if any(abs(m["c"] - c) < max(1.0, 0.001 * c) for m in same_level):
-                continue  # an alternative must differ for us, not only on paper
             seen.add(key)
             menu.append(
                 {

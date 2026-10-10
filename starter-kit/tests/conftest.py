@@ -1,6 +1,5 @@
+import asyncio
 import socket
-import threading
-import time
 
 import pytest
 
@@ -16,26 +15,33 @@ class Clock:
 
 
 @pytest.fixture
-def sim():
-    """arena-sim on a free local port: (base_url, Sim, Clock). Event code 'sim'."""
+def sim(monkeypatch):
+    """Exercise the HTTP protocol in process, including sync clients and concurrent threads."""
     pytest.importorskip("fastapi")
-    import uvicorn
+    import httpx
 
     from arena_kit.sim import Sim, create_app, load_cases
 
     clock = Clock()
     state = Sim(load_cases(), clock=clock)
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        port = s.getsockname()[1]
-    server = uvicorn.Server(uvicorn.Config(create_app(state), port=port, log_level="warning"))
-    thread = threading.Thread(target=server.run, daemon=True)
-    thread.start()
-    while not server.started:
-        time.sleep(0.01)
-    yield f"http://127.0.0.1:{port}", state, clock
-    server.should_exit = True
-    thread.join()
+    app = create_app(state)
+    original = httpx.HTTPTransport.handle_request
+
+    def handle(transport, request):
+        if request.url.host != "127.0.0.1" or request.url.port != 18080:
+            return original(transport, request)
+
+        async def dispatch():
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app)) as client:
+                reply = await client.request(
+                    request.method, request.url, headers=request.headers, content=request.read()
+                )
+                return httpx.Response(reply.status_code, headers=reply.headers, content=reply.content, request=request)
+
+        return asyncio.run(dispatch())
+
+    monkeypatch.setattr(httpx.HTTPTransport, "handle_request", handle)
+    yield "http://127.0.0.1:18080", state, clock
 
 
 def pytest_addoption(parser):

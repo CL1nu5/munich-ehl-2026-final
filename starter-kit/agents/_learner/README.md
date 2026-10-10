@@ -1,93 +1,94 @@
-# learner: a negotiation agent that learns within its run
+# learner: negotiation with cautious learning inside one run
 
-Linus's concept. For every decision a small graph of sub-agents runs (LangGraph, with a plain
-sequential fallback). Code computes every number; the model reads the supplier and writes. When a
-case ends, the agent reflects on it, and the next cases **of the same run** start from those lessons.
-Every run starts with an empty memory, so repeated runs on the same cases cannot overfit.
+Code values terms and validates decisions; an optional model interprets the
+supplier's messages and writes emails. LangGraph orchestrates each decision,
+with an equivalent sequential fallback.
 
-```
-prepare (no model):   Dossier Builder · Claim Cataloguer · Run-Memory Reader
-decide:  Observer -> Router -+-> Closer -> Reflector (LLM, if time)        -> accept / walk away
-                             +-> Offer Builder -> Negotiator (LLM, 1 call)  -+-> Critic -> e-mails
-                                               -> Strategist -> Writer (2)  -+
-                                               -> Deterministic policy      -+
+```text
+prepare: dossier + claim catalogue
+decide:  observe -> route -> close -> return acceptance immediately
+                         -> diverse menu -> model or deterministic choice -> critic
+result:  persist Arena result -> background reflection
 ```
 
-| Sub-agent | What it does |
-|---|---|
-| Dossier Builder (`dossier.py`) | SQL over the data package plus keyword tagging of notes, letters, news and quote remarks into supplier archetypes (`priors.py`: cash_short, price_frozen, hedged_forward, ...). Reads the Sunday release when present. |
-| Claim Cataloguer (`claims.py`) | Data arguments that pass the arena's check, with the figure computed from `facts.json` (index pairs, scorecard, quotes, orders, should-cost, forecast, notice period). Each ID is cited once per case. |
-| Run-Memory Reader (`memory/`) | Finds this run's journal (`.runs/<run>/run.sqlite`, read-only), extracts the finished cases, diagnoses them and merges the lessons. |
-| Observer (`ledger.py`) | Per thread: standing offer and its cost C, concessions, statuses, claim results, attachments; checks our last prediction. |
-| Router / Closer (`policy.py`) | Accept, walk away or negotiate, by fixed rules (never the model). |
-| Offer Builder (`offers.py`) | Term sheets of equal value to the supplier (`cost.supplier_value`), cheapest for us first, at concession levels set by reciprocity and a deadline schedule. |
-| Negotiator / Strategist / Writer (`prompts.py`) | The model picks packages and claims from the menu, predicts the reply, and writes the e-mail with placeholders. |
-| Critic (`writer.py`) | Fills in the figures, strips leaks (urgency, budget, no alternative), stray figures and IDs, and validates the message. |
-| Reflector (`graph.reflect`) | At the close: 1-4 lessons scoped to supplier, archetype, case type, goal or global, plus whether the lessons it used held. |
+## Decisions and evidence
 
-How the learning works:
+Every term sheet in the supplier's latest message is considered. Older sheets
+are not accepted. The ledger, offer builder and last-ask comparison share the
+same valuation function. Known buyer costs and the estimated relationship
+penalty are exposed separately. Supplier costs, financing and effort remain
+assumptions; the public data cannot reveal the Arena's hidden economics. The
+generic harness fallback evaluates known costs when it has no supplier model.
 
-- **Deterministic diagnostics** in `memory/diagnose.py`:
-  - Pushed after a final offer and the supplier walked.
-  - Walked away early.
-  - Agreed to our first ask (we were too soft).
-  - Contradicted claims, and claims that did or did not move the supplier.
-  - When the supplier gave its final offer.
-  - Cost components left on the table, from the exact score.
-- **Recursion:** lessons gain or lose support from later outcomes. The Reflector's held/failed verdicts and the scores of cases that used a lesson both count. A lesson contradicted more than supported is retired.
-- **Knobs:** lessons change behaviour even without the model, through knobs (`memory/consolidate.knobs`):
-  - stop pushing final offers;
-  - anchor harder or softer;
-  - block a claim kind;
-  - shorten the concession horizon.
-- **Where memory lives:** only in the harness journal of the current run. The agent stores its reflection in its own returned state, which the engine journals. It never writes files.
-- **Learning order:** within a Live Final wave all cases start together, so learning carries from wave to wave. Locally, `parallel = 1` or `2` in the TOML makes later cases see earlier ones.
+Menus retain different payment, index and other nonprice terms even when those
+packages cost more than the cheapest candidate. Repeated counteroffers and
+verbatim, model-interpreted statements create preferences with source evidence.
+These preferences rank packages; they are distinct from binding terms and
+must-haves. The model can propose allowed nonprice terms. Code computes their
+price, checks cost and validates the resulting sheet. A generic should-cost
+estimate cannot override an observed supplier price as a hard floor.
 
-## Run
+The concession horizon uses actual remaining moves and wave time. There is no
+practice-specific four-round cap. Breakdown questions are tracked as asked,
+answered or declined, including requests in model-written prose.
 
-From `starter-kit/`. The harness does not load `.env`, so export the keys from it first (nothing is printed):
+## Learning and isolation
+
+`services.history()` supplies only the owning run's confirmed results, tagged
+with its run ID. Workers do not discover journals by scanning directories.
+Each experiment keeps its configuration, state, attachments, model budget and
+results in a separate journal. Source fingerprints include agent helpers and
+dependency files, so changing these prevents an old run from resuming silently.
+
+A single outcome creates a hypothesis, not a policy adjustment. Behavioural
+changes require at least three distinct cases; scopes spanning suppliers also
+require two distinct suppliers. Repeated rounds and overlapping archetypes do
+not multiply support. Conflicting anchor evidence reduces confidence. Anchor
+adjustments are bounded to ±10%. A final score and an LLM's retrospective
+judgment do not establish which claim caused a concession; entire claim kinds
+are never blocked by this mechanism.
+
+The engine persists a confirmed result before invoking optional `on_result`.
+Deterministic diagnostics are available to subsequent cases immediately.
+Optional model reflection skips busy capacity and never delays acceptance.
+Asynchronous completion order can still affect which confirmed cases are
+available to the next decision; run isolation does not imply identical outcomes.
+
+## Local usage
+
+From `starter-kit/`, without Arena or model calls:
 
 ```bash
-export LLM_API_KEY="$(grep '^LLM_API_KEY=' ../.env | cut -d= -f2- | tr -d '"')"
-export ARENA_API_KEY="$(grep '^ARENA_API_KEY=' ../.env | cut -d= -f2- | tr -d '"')"
-
-uv run --frozen arena-harness agents check --agent learner                         # contract, offline
-uv run --frozen arena-harness run --config configs/learner.toml                    # simulator, no model
-uv run --frozen arena-harness run --config configs/learner_openai.toml --allow-model   # simulator + gpt-6-luna
-uv run --frozen python -m agents._learner.inspect RUN_ID                            # what that run learned
-
-# hosted (uses the Arena key; practice consumes quota)
-uv run --frozen arena-harness doctor --profile practice --config configs/learner_final.toml
-uv run --frozen arena-harness run --profile practice --config configs/learner_final.toml \
-  --allow-arena --allow-model --max-cases 10
+uv run --frozen arena-harness agents check --agent learner
+uv run --frozen arena-harness run --config configs/learner.toml
+uv run --frozen arena-harness batch --config configs/learner.toml --copies 5
+uv run --frozen arena-harness resume-batch BATCH_ID
+uv run --frozen arena-harness audit RUN_ID
+uv run --frozen python -m agents._learner.inspect RUN_ID
 ```
 
-Configs:
+The batch default is two sessions per run and ten total. Repeat `--config` for
+different experiments instead of `--copies`. See [HARNESS.md](../../HARNESS.md)
+for explicit hosted authorization, resource limits and recovery.
 
-| Config | Use |
+| Configuration | Purpose |
 |---|---|
-| `learner.toml` | Simulator, no model, one case after another. |
-| `learner_openai.toml` | Simulator with `gpt-6-luna` (reasoning effort medium), 2 cases in parallel. |
-| `learner_final.toml` | Practice batches and the Live Final: 10 in parallel, 1500 model calls. |
+| `learner.toml` | Local deterministic simulator |
+| `learner_openai.toml` | Optional remote model; requires `--allow-model` |
+| `learner_final.toml` | Hosted settings; final remains one exclusive run |
 
-The model configs have `model_timeout = 35` in `[parameters]`, equal to `[model].timeout` (35 s is the harness
-maximum), and `decision_seconds = 45` both at the top level and in `[parameters]` (the agent does not read
-the top-level value). A decision only starts a model call that can finish inside its budget, which is also
-capped by the thread's 60 s answer window; otherwise it plays the deterministic policy.
+`decision_seconds` at the top level and `[model].timeout` are authoritative;
+the harness passes the effective remaining budget into each decision. Do not
+duplicate these under `[parameters]`. Agent parameters include `llm`,
+`two_call`, `memory`, `max_lessons` and `anchor_drop`. Legacy `round_budget` and
+`runs_dir` parameters no longer control the learner.
 
-Parameters (`[parameters]` in the TOML; defaults in `params.py`):
+## Evaluation limits
 
-| Parameter | Effect |
-|---|---|
-| `llm` | Use the model at all. |
-| `two_call` | Allow strategist + writer when the clock fits two calls. |
-| `model_timeout` | Mirror of `[model].timeout`; the agent only starts a call that can finish in time. |
-| `decision_seconds` | Mirror of the top-level `decision_seconds` (default 30); keep both equal. |
-| `memory` | Learn from finished cases of this run. |
-| `anchor_drop` | First ask below the standing value, before priors and lessons. |
-| `round_budget` | Rounds we plan to use per thread. |
-| `runs_dir` | Location of the runs directory, if not the repo's `.runs/`. |
-| `data_dir` | Location of the data package, if not the repo's `data/`. |
-
-Simulator scores only check the plumbing: the scripted supplier ignores tone, non-price terms and
-claim figures.
+The simulator tests scheduling and protocol correctness; its scripted supplier
+does not measure email quality or realistic negotiation strategy. Synthetic
+tests vary IDs, price scales, offer order and nonprice conditions. Recorded
+prefix audits expose missed choices without inventing subsequent replies or a
+counterfactual score. A performance claim requires a later, separately
+authorized evaluation on unseen cases. Empty memory alone cannot prevent
+overfitting. See [EVALUATION.md](../../EVALUATION.md).

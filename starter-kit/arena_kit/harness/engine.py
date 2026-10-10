@@ -13,6 +13,7 @@ import uuid
 from ..client import ArenaError
 from ..play import live_threads, moves_left
 from .agent_process import AgentProcess
+from .resources import Resources
 from .state import Journal, digest, redact
 from .transport import Models, Transport, UncertainRequest, component
 from .validation import close_action, validate
@@ -21,22 +22,26 @@ TRANSIENT_EXIT = 75
 
 
 class Engine:
-    def __init__(self, cfg, journal, *, api=None, models=None):
+    def __init__(self, cfg, journal, *, api=None, models=None, resources=None):
         self.cfg, self.journal = cfg, journal
+        self.resources = resources or Resources([journal])
         self.api = api or Transport(
             cfg,
             journal,
             url=os.environ.get("HARNESS_SIM_URL") if cfg["profile"] == "sim" else None,
             key="local-harness" if cfg["profile"] == "sim" else None,
+            pacer=self.resources.pacer,
         )
-        self.models = models or Models(cfg, journal)
+        self.models = models or Models(cfg, journal, shared=self.resources.models)
+        self.reflections = set()
+        self.selected_cases = None
         self.stop = asyncio.Event()
         self.quota_exhausted = False
         self.practice_left = None
         self.caps = {}
         self.slots = asyncio.Semaphore(cfg["parallel"])
 
-    async def preflight(self):
+    async def preflight(self, check_sessions=True):
         me = await self.api.request("GET", "me")
         if me.get("status", "active") != "active":
             raise ValueError("Team key is not active")
@@ -71,16 +76,22 @@ class Engine:
 
                 if not (Path(self.cfg["data"]) / "release-sunday" / "facts.json").is_file():
                     raise ValueError("Public Sunday release missing: download it before arming final")
-        owned = {c.get("session_id") for c in self.journal.cases().values()}
+        if check_sessions:
+            await self.check_sessions()
+        if self.cfg["profile"] == "practice" and me.get("practice", {}).get("left", 0) < 1:
+            self.quota_exhausted = True
+            if check_sessions and not any(
+                c.get("session_id") and not c.get("result") for c in self.journal.cases().values()
+            ):
+                raise ValueError("Practice quota exhausted")
+
+    async def check_sessions(self):
+        owned = self.resources.owned_sessions()
         for set_ in ("practice", "sandbox", "final") if self.cfg["profile"] != "sim" else ("practice",):
             sessions = await self.api.request("GET", "sessions", params={"set": set_})
             for session in sessions:
                 if session["status"] == "open" and session["session_id"] not in owned:
                     raise ValueError("Unowned open Arena session; resume its original run before starting another")
-        if self.cfg["profile"] == "practice" and me.get("practice", {}).get("left", 0) < 1:
-            self.quota_exhausted = True
-            if not any(c.get("session_id") and not c.get("result") for c in self.journal.cases().values()):
-                raise ValueError("Practice quota exhausted")
 
     async def documents(self, sid, message):
         document_deadline = time.monotonic() + 12
@@ -155,7 +166,8 @@ class Engine:
 
     async def case(self, case):
         async with self.slots:
-            return await self.play_case(case)
+            async with self.resources.session(self.journal, case["case_id"]):
+                return await self.play_case(case)
 
     async def play_case(self, case):
         cid = case["case_id"]
@@ -164,7 +176,7 @@ class Engine:
             return
         if self.stop.is_set() and not stored.get("session_id"):
             return
-        agent = AgentProcess(self.cfg, self.models)
+        agent = AgentProcess(self.cfg, self.models, self.journal)
         pending = {}
         try:
             state = stored.get("agent_state", {})
@@ -349,6 +361,32 @@ class Engine:
                     task.cancel()
             await asyncio.gather(*pending.values(), return_exceptions=True)
             await agent.close()
+            completed = self.journal.cases().get(cid, {})
+            if completed.get("result") and not completed.get("reflected"):
+                task = asyncio.create_task(self.reflect_result(cid))
+                self.reflections.add(task)
+                task.add_done_callback(self.reflections.discard)
+
+    async def reflect_result(self, cid):
+        record = self.journal.cases()[cid]
+        agent = AgentProcess(self.cfg, self.models, self.journal)
+        try:
+            state = copy.deepcopy(record.get("agent_state") or {})
+            # Analysis may use idle capacity, but live decisions get the model slots first.
+            if self.resources.leases or self.resources.models.locked() or self.models.sem.locked():
+                state.setdefault("p", {})["llm"] = False
+            result = await agent.call(
+                "on_result",
+                self.cfg["model"].get("timeout", 20) + 5,
+                context={"case": record["case"], "result": record["result"]},
+                state=state,
+            )
+            self.journal.case(cid, agent_state=result, reflected=True)
+        except Exception as e:
+            self.journal.event("reflection_error", case=cid, reason=type(e).__name__)
+            self.journal.case(cid, reflected=True)
+        finally:
+            await agent.close()
 
     def record_result(self, cid, snapshot):
         self.journal.case(
@@ -367,31 +405,39 @@ class Engine:
             raise ValueError("Case definition changed during run")
         self.journal.case(cid, case=case, case_hash=digest(stable))
 
-    async def run(self):
+    async def select_cases(self):
+        if self.journal.cases():
+            return [x["case"] for x in self.journal.cases().values()]
+        set_ = "practice" if self.cfg["profile"] == "sim" else self.cfg["profile"]
+        available = await self.api.request("GET", "cases", params={"set": set_})
+        cases = [c for c in available if c.get("hosted", True)]
+        requested = set(self.cfg["cases"])
+        if requested:
+            cases = [c for c in cases if c["case_id"] in requested]
+            if {c["case_id"] for c in cases} != requested:
+                raise ValueError("Requested cases are unknown or not hosted")
+        limit = self.cfg["max_cases"]
+        if requested and len(cases) > limit:
+            raise ValueError("Case selection exceeds max_cases; raise it explicitly")
+        cases = sorted(cases, key=lambda c: c["case_id"])[:limit]
+        if not cases:
+            raise ValueError("No cases selected")
+        for case in cases:
+            self.remember(case)
+        return cases
+
+    async def run(self, preflight=True):
         tasks = {}
         try:
-            await self.preflight()
+            if preflight:
+                await self.preflight()
             if self.cfg["profile"] != "final":
-                if self.journal.cases():
-                    cases = [x["case"] for x in self.journal.cases().values()]
-                else:
-                    set_ = "practice" if self.cfg["profile"] == "sim" else self.cfg["profile"]
-                    available = await self.api.request("GET", "cases", params={"set": set_})
-                    cases = [c for c in available if c.get("hosted", True)]
-                    requested = set(self.cfg["cases"])
-                    if requested:
-                        cases = [c for c in cases if c["case_id"] in requested]
-                        if {c["case_id"] for c in cases} != requested:
-                            raise ValueError("Requested cases are unknown or not hosted")
-                    limit = self.cfg["max_cases"]
-                    if requested and len(cases) > limit:
-                        raise ValueError("Case selection exceeds max_cases; raise it explicitly")
-                    cases = sorted(cases, key=lambda c: c["case_id"])[:limit]
-                    if not cases:
-                        raise ValueError("No cases selected")
-                    for case in cases:
-                        self.remember(case)
-                if self.cfg["profile"] == "practice":
+                cases = self.selected_cases if self.selected_cases is not None else await self.select_cases()
+                # Resume lease owners before new cases can occupy all per-run worker slots.
+                cases = sorted(
+                    cases, key=lambda c: (self.journal.folder.name, c["case_id"]) not in self.resources.leases
+                )
+                if self.cfg["profile"] == "practice" and not self.quota_exhausted:
                     unopened = sum(not self.journal.cases()[c["case_id"]].get("session_id") for c in cases)
                     if self.practice_left is None or unopened > self.practice_left:
                         raise ValueError("Selected cases exceed remaining practice quota")
@@ -439,6 +485,7 @@ class Engine:
                 if not task.done():
                     task.cancel()
             await asyncio.gather(*tasks.values(), return_exceptions=True)
+            await asyncio.gather(*list(self.reflections), return_exceptions=True)
             await self.api.close()
             await self.models.close()
 

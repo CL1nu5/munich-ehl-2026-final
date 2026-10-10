@@ -73,8 +73,7 @@ def route(case, ledgers, ready, c_alt, knobs, last_round):
     for sid in sorted(ready, key=lambda s: s == protected):  # the protected fallback is decided last
         led = ledgers[sid]
         if led["status"] == "agreed" and led.get("acceptable"):
-            # an agreement is our fallback while a rival can still beat it (practice P05: accepting at
-            # the first "agreed" ended an RFQ after one round)
+            # An agreement is our fallback while a rival can still beat it.
             if led["moves_left"] >= 2 and [s for s in open_rivals(sid) if _may_beat(ledgers[s], led["c"])]:
                 holds[sid] = True
                 continue
@@ -85,7 +84,7 @@ def route(case, ledgers, ready, c_alt, knobs, last_round):
         pushable = knobs.get("allow_final_push", True) and led["pushes_after_final"] == 0 and led["moves_left"] >= 2
         # push only when its walking costs us nothing: our alternative is at least as good, or a cheaper
         # final offer stays as fallback. Open rivals are no such guarantee, and no deal scores 0 when the
-        # alternative is no better than the opening (practice P04: pushed, walked, 0).
+        # alternative is no better than the opening.
         alt_as_good = fallback_exists and led["c"] is not None and c_alt <= led["c"]
         safe = alt_as_good or (protected not in (None, sid) and not pushes)
         if pushable and safe:

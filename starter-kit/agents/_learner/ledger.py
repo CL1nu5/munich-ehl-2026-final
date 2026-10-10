@@ -2,9 +2,9 @@
 
 import math
 
-from arena_kit.cost import total_cost
 from arena_kit.docs import quote_terms, standard_terms
 from arena_kit.harness.validation import acceptable
+from arena_kit.harness.valuation import ranked_offers, value
 from arena_kit.play import ENDED, latest, moves_left, standing
 
 TEXT_CHARS = 1200
@@ -23,7 +23,7 @@ def _quote_sections(events):
     return {}
 
 
-def build(case, threads):
+def build(case, threads, models=None):
     out = {}
     for sid, events in threads.items():
         led = {"supplier_id": sid}
@@ -32,12 +32,24 @@ def build(case, threads):
         except StopIteration:
             continue
         offer_id, terms = standing(events)
+        model = (models or {}).get(sid)
+        ranked = ranked_offers(case, events, model)
+        eligible = [s for s in ranked if s["beats_alternative"]]
+        if eligible or ranked:
+            best = (eligible or ranked)[0]
+            offer_id, terms = best["term_sheet_id"], best["terms"]
+        led["offers"] = ranked
+        led["model"] = model
         led.update(offer_id=offer_id, terms=terms, price=terms.get("unit_price"), status=last.get("status"))
         led["ended"] = last.get("status") in ENDED
         led["std"] = standard_terms(events)
         led["stated_open"] = _quote_sections(events).get("stated", {})
         try:
-            c = total_cost(case, terms, led["std"]) if terms else math.inf
+            valuation = value(case, terms, led["std"], model) if terms else {}
+            c = valuation.get("cost", math.inf)
+            led.update(
+                known_cost=valuation.get("known_cost"), relationship_estimate=valuation.get("relationship_estimate")
+            )
         except Exception:
             c = math.inf
         led["c"] = c if math.isfinite(c) else None
@@ -56,6 +68,7 @@ def build(case, threads):
                 led["claims_total"][r.get("result")] = led["claims_total"].get(r.get("result"), 0) + 1
         led["from"] = last.get("from")
         led["body"] = (last.get("body") or "")[:TEXT_CHARS]
+        led["message_id"] = last.get("message_id")
         led["signals"] = last.get("signals") or {}
         prices = [p for p in led["prices"] if p]
         led["move_pct"] = round((prices[-2] - prices[-1]) / prices[-2] * 100, 2) if len(prices) >= 2 else None
@@ -75,7 +88,7 @@ def build(case, threads):
             "breakdown" in (a.get("name") or "").lower() for m in supplier_msgs for a in m.get("attachments") or []
         )
         try:
-            led["acceptable"] = bool(offer_id) and not led["ended"] and acceptable(case, events)
+            led["acceptable"] = bool(eligible) and not led["ended"] and acceptable(case, events, offer_id)
         except Exception:
             led["acceptable"] = False
         out[sid] = led
@@ -89,6 +102,10 @@ def digest(led):
         "from": led.get("from"),
         "standing_terms": led.get("terms"),
         "standing_cost_eur": led.get("c"),
+        "known_cost_eur": led.get("known_cost"),
+        "relationship_estimate_eur": led.get("relationship_estimate"),
+        "supplier_cost_assumption": led.get("model"),
+        "current_offers": led.get("offers"),
         "price_path": led.get("prices"),
         "status_path": led.get("statuses"),
         "our_messages": led.get("rounds"),

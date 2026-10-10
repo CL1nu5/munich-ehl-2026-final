@@ -1,9 +1,7 @@
 """Offline tests for the learner's run memory: locate, diagnose, consolidate, knobs, robustness."""
 
 import json
-import os
 import sys
-import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,7 +21,7 @@ CASE = load_cases()["case:S01"]
 SUP = "sup:70270"
 
 
-def episode(case_id, statuses, prices=None, tags=("cash_short",), score=None, claims=None, log=None, reflection=None):
+def episode(case_id, statuses, prices=None, tags=("cash_short",), score=0.5, claims=None, log=None, reflection=None):
     prices = prices or [10.0 - i * 0.1 for i in range(len(statuses))]
     return {
         "case_id": case_id,
@@ -44,52 +42,31 @@ def episode(case_id, statuses, prices=None, tags=("cash_short",), score=None, cl
     }
 
 
-def test_walk_after_a_pushed_final_offer_disables_pushing():
-    ep = episode("case:A", ["open", "final_offer", "walked_away"])
-    codes = {x["code"] for x in diagnose(ep)}
-    assert "WALKED_AFTER_PUSH" in codes
-    view = consolidate.view([ep], CASE, {SUP: ["cash_short"]})
-    assert view["knobs"]["allow_final_push"] is False
-    # the lesson does not apply to an unrelated supplier kind in another case type
-    other = {**CASE, "type": "rfq"}
-    assert consolidate.view([ep], other, {"sup:1": ["price_frozen"]})["knobs"]["allow_final_push"] is True
+def test_final_offer_learning_needs_repeated_confirmed_cases():
+    one = episode("case:A", ["open", "final_offer", "walked_away"])
+    assert consolidate.view([one], CASE, {SUP: ["cash_short"]})["knobs"]["allow_final_push"] is True
+    eps = [episode(f"case:{i}", ["open", "final_offer", "walked_away"]) for i in range(3)]
+    assert consolidate.view(eps, CASE, {SUP: ["cash_short"]})["knobs"]["allow_final_push"] is False
+    assert (
+        consolidate.view(eps, {**CASE, "type": "rfq"}, {"sup:other": ["cash_short"]})["knobs"]["allow_final_push"]
+        is True
+    )
 
 
-def test_too_soft_and_too_aggressive_move_the_anchor():
-    soft = consolidate.view([episode("case:A", ["agreed"])], CASE, {SUP: ["cash_short"]})
-    assert soft["knobs"]["drop_mult"][SUP] > 1
-    hard = consolidate.view([episode("case:B", ["open", "walked_away"])], CASE, {SUP: ["cash_short"]})
-    assert hard["knobs"]["drop_mult"][SUP] < 1
+def test_anchors_are_bounded_and_require_independent_cases():
+    soft = [episode(f"case:{i}", ["agreed"]) for i in range(3)]
+    assert consolidate.view(soft[:1] * 10, CASE, {SUP: ["cash_short"]})["knobs"]["drop_mult"][SUP] == 1
+    assert consolidate.view(soft, CASE, {SUP: ["cash_short"]})["knobs"]["drop_mult"][SUP] == 1.1
+    hard = [episode(f"case:w{i}", ["open", "walked_away"]) for i in range(3)]
+    assert consolidate.view(hard, CASE, {SUP: ["cash_short"]})["knobs"]["drop_mult"][SUP] == 0.9
+    assert consolidate.view(soft + hard, CASE, {SUP: ["cash_short"]})["knobs"]["drop_mult"][SUP] == 1
 
 
-def test_contradicted_claims_block_that_kind():
+def test_contradicted_claim_does_not_block_a_whole_category():
     log = [{"sup": SUP, "refs": ["r1"], "claims": [{"kind": "idx", "ids": ["r1"]}]}]
     ep = episode("case:A", ["open", "open"], claims={1: ["contradicted"]}, log=log)
     view = consolidate.view([ep], CASE, {SUP: []})
-    assert view["knobs"]["blocked_claims"] == ["idx"]
-    # generic model advice to cite data does not retire the guard
-    advice = [
-        episode(
-            f"case:{i}",
-            ["open"],
-            reflection={
-                "lessons": clean_lessons(
-                    {
-                        "lessons": [
-                            {
-                                "scope_level": "global",
-                                "polarity": "do",
-                                "lever": "claims",
-                                "lesson": f"Cite verified data early {i}.",
-                            }
-                        ]
-                    }
-                )
-            },
-        )
-        for i in "BCDE"
-    ]
-    assert consolidate.view([ep, *advice], CASE, {SUP: []})["knobs"]["blocked_claims"] == ["idx"]
+    assert view["knobs"]["blocked_claims"] == []
 
 
 def test_claim_results_are_attributed_by_id_not_by_position():
@@ -113,79 +90,55 @@ def test_first_message_claims_are_scored_against_the_opening_price():
     assert "CLAIM_MOVED:idx" in {x["code"] for x in diagnose(ep)}
 
 
-def test_one_observation_moves_a_knob_once_however_many_tags():
+def test_one_observation_never_moves_knobs_even_with_many_tags():
     tags = ("relationship", "weak_costing", "not_strategic", "cash_short")
     soft = consolidate.view([episode("case:A", ["agreed"], tags=tags)], CASE, {SUP: list(tags)})
-    assert soft["knobs"]["drop_mult"][SUP] == 1.25
-    final = episode("case:A", ["final_offer"], tags=("relationship",))
-    final["suppliers"] = {"sup:other": {"tags": ["relationship"]}}
-    final["replies"] = {"sup:other": final["replies"][SUP]}
-    one = consolidate.view([final], CASE, {SUP: ["relationship"]})
-    assert SUP not in one["knobs"]["horizon"]  # one case of another supplier is not enough
+    assert soft["knobs"]["drop_mult"][SUP] == 1
+    assert soft["hypotheses"] > 0 and not soft["lessons"]
     own = consolidate.view([episode("case:B", ["open", "final_offer"])], CASE, {SUP: ["cash_short"]})
-    assert own["knobs"]["horizon"][SUP] >= 3
+    assert SUP not in own["knobs"]["horizon"]
 
 
-def test_lessons_gain_or_lose_support_from_outcomes():
-    taught = episode(
-        "case:A",
-        ["open"],
-        reflection={
-            "lessons": clean_lessons(
-                {
-                    "lessons": [
-                        {
-                            "scope_level": "archetype",
-                            "scope_value": "cash_short",
-                            "polarity": "do",
-                            "lever": "payment_days",
-                            "lesson": "Offer faster payment for a lower price.",
-                        }
-                    ]
-                }
-            )
-        },
-    )
-    key = consolidate.view([taught], CASE, {SUP: ["cash_short"]})["lessons"][0]["key"]
-    used_well = episode("case:B", ["open"], score=0.9, log=[{"lessons": [key]}])
-    used_badly = [
-        episode(f"case:{i}", ["open"], score=0.1, log=[{"lessons": [key]}], reflection={"feedback": {key: "failed"}})
-        for i in "CDE"
+def test_scores_and_model_verdicts_do_not_create_causal_support():
+    taught = episode("case:A", ["agreed"])
+    merged = consolidate.merge([taught])
+    key = next(iter(merged))
+    used = [
+        episode(
+            f"case:{i}",
+            ["open"],
+            score=score,
+            log=[{"lessons": [key]}],
+            reflection={"feedback": {key: "held" if score > 0.5 else "failed"}},
+        )
+        for i, score in enumerate([0.9, 0.8, 0.1, 0.2])
     ]
-    merged = consolidate.merge([taught, used_well])
-    assert merged[key]["support"] == 1.5 and merged[key]["status"] == "active"
-    merged = consolidate.merge([taught, *used_badly])
-    assert merged[key]["status"] == "retired"
-    assert not consolidate.retrieve(merged, CASE, {SUP: ["cash_short"]})
+    item = consolidate.merge([taught, *used])[key]
+    assert item["support"] == 1 and item["contradict"] == 0 and item["status"] == "hypothesis"
+    assert 0 < item["confidence"] < 1
+    taught["result"] = None
+    assert not consolidate.merge([taught])
 
 
 def test_retrieval_prefers_specific_matching_scopes():
-    eps = [episode("case:A", ["agreed"], tags=("cash_short",))]
+    eps = [episode(f"case:{i}", ["agreed"], tags=("cash_short",)) for i in range(3)]
     lessons = consolidate.view(eps, CASE, {SUP: ["cash_short"]})["lessons"]
     assert lessons and lessons[0]["scope"]["level"] == "supplier"
-    assert {x["scope"]["level"] for x in lessons} <= {"supplier", "archetype", "case_type", "goal", "global"}
-    assert not consolidate.view(eps, CASE, {"sup:9": ["full_order_book"]})["lessons"]
+    assert not consolidate.view(eps, CASE, {"sup:9": ["cash_short"]})["lessons"]
+    # A distinct supplier in a distinct completed case permits archetype transfer.
+    other = episode("case:other", ["agreed"])
+    other["suppliers"] = {"sup:other": {"tags": ["cash_short"]}}
+    other["replies"] = {"sup:other": other["replies"][SUP]}
+    assert consolidate.view(eps + [other], CASE, {"sup:new": ["cash_short"]})["lessons"]
 
 
-def test_run_lookup_matches_only_the_live_run_with_this_case(tmp_path):
-    def make(name, status, case=CASE, age=0):
-        j = Journal(tmp_path / name)
-        j.case(case["case_id"], case=case, case_hash=runlocate.stable_hash(case))
-        if status:
-            j.put("status", status)
-        j.close()
-        if age:
-            for f in (tmp_path / name).glob("run.sqlite*"):
-                os.utime(f, (time.time() - age, time.time() - age))
-
-    make("old-running", "running", age=3600)  # stale: never ours
-    make("done", "completed")
-    make("other-case", "running", case={**CASE, "title": "changed"})
-    assert runlocate.find(CASE, tmp_path) is None
-    make("live", "running")
-    assert runlocate.find(CASE, tmp_path).name == "live"
-    # the case definition the final adds while open does not change the match
-    assert runlocate.find({**CASE, "open": True, "seconds_left": 300}, tmp_path).name == "live"
+def test_identical_live_cases_do_not_enable_implicit_history(tmp_path):
+    for name in ("first", "newer"):
+        journal = Journal(tmp_path / name)
+        journal.case(CASE["case_id"], case=CASE, case_hash=runlocate.stable_hash(CASE), result={"score": 1})
+        journal.put("status", "running")
+        journal.close()
+    assert memory.refresh(CASE, {"runs_dir": str(tmp_path)}, {SUP: []}, {})["episodes"] == 0
 
 
 def test_memory_refresh_never_raises_on_a_broken_journal(tmp_path):
@@ -234,4 +187,4 @@ def test_unrelated_model_lessons_do_not_retire_each_other():
         refl("case:C", "avoid", "Avoid splitting the difference early."),
     ]
     merged = consolidate.merge(eps)
-    assert all(x["status"] == "active" for x in merged.values())
+    assert all(x["status"] == "hypothesis" for x in merged.values())

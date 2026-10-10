@@ -32,6 +32,11 @@ class Agent:
         except Exception as e:
             return emergency(observation, state, type(e).__name__)
 
+    def on_result(self, context, state, services):
+        from agents._learner.core import on_result
+
+        return on_result(context, state, services)
+
 
 def emergency(observation, state, reason):
     """Last resort: ask a question (no term sheets) while rounds last, then the harness's safe close."""

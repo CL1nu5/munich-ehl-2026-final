@@ -218,6 +218,7 @@ def test_model_budget_atomic_and_persistent(journal, monkeypatch):
 
     execute(scenario())
     assert len(seen) == 2 and all(x["max_tokens"] == 64 for x in seen)
+    assert all("service_tier" not in x for x in seen)
     assert "never-log-this-secret" not in (journal.folder / "run.sqlite").read_bytes().decode(errors="ignore")
 
 
@@ -248,6 +249,66 @@ def test_reasoning_effort_is_validated(tmp_path):
     )
     with pytest.raises(ValueError, match="reasoning_effort"):
         load(parser().parse_args(["run", "--config", str(path)]))
+
+
+@pytest.mark.parametrize("config_name", ["learner_openai", "learner_final"])
+@pytest.mark.parametrize("served_tier", ["fast", "priority", "default", None])
+def test_luna_fast_mode_is_sent_and_actual_tier_is_reported(journal, config_name, served_tier):
+    cfg = load(parser().parse_args(["run", "--config", f"configs/{config_name}.toml", "--allow-model"]))
+    journal.put("config", cfg)
+    seen = []
+
+    def handle(request):
+        seen.append(json.loads(request.content))
+        response = {"choices": [{"message": {"content": "ok"}}], "usage": {"total_tokens": 10}}
+        if served_tier is not None:
+            response["service_tier"] = served_tier
+        return httpx.Response(200, json=response)
+
+    async def scenario():
+        broker = Models(cfg, journal, transport=httpx.MockTransport(handle))
+        assert await broker.complete([]) == "ok"
+        await broker.close()
+
+    execute(scenario())
+    assert len(seen) == 1
+    assert seen[0]["service_tier"] == "fast"
+    assert seen[0]["model"] == "gpt-6-luna" and seen[0]["reasoning_effort"] == "medium"
+    result = report(journal)
+    assert result["model_service_tier_requested"] == "fast"
+    assert result["model_service_tiers"] == {served_tier or "unknown": 1}
+    event = next(e["value"] for e in result["events"] if e["kind"] == "model")
+    assert event["service_tier_requested"] == "fast" and event["service_tier"] == served_tier
+
+
+def test_invalid_service_tier_is_rejected_before_requests(tmp_path):
+    path = tmp_path / "model.toml"
+    path.write_text(
+        '[model]\nname = "gpt-6-luna"\nbase_url = "https://api.openai.com/v1"\n'
+        'max_calls = 1\nmax_output_tokens = 64\nservice_tier = "fats"\n'
+    )
+    with pytest.raises(ValueError, match="service_tier"):
+        load(parser().parse_args(["run", "--config", str(path)]))
+
+
+def test_rejected_fast_tier_does_not_retry_or_silently_change_tier(journal):
+    cfg = load(parser().parse_args(["run", "--config", "configs/learner_openai.toml", "--allow-model"]))
+    journal.put("config", cfg)
+    seen = []
+
+    def handle(request):
+        seen.append(json.loads(request.content)["service_tier"])
+        return httpx.Response(400, json={"error": {"message": "Service tier not allowed for this project"}})
+
+    async def scenario():
+        broker = Models(cfg, journal, transport=httpx.MockTransport(handle))
+        with pytest.raises(httpx.HTTPStatusError):
+            await broker.complete([])
+        await broker.close()
+
+    execute(scenario())
+    assert seen == ["fast"]
+    assert report(journal)["model_service_tiers"] == {"unknown": 1}
 
 
 def test_ambiguous_model_call_is_not_retried(journal):
