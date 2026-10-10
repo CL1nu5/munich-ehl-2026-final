@@ -183,6 +183,17 @@ def _logged_ids(state):
     return case_wide, per_sup
 
 
+def _holds(led):
+    """Its replies in a row (after the opening quote) that kept the previous price."""
+    prices = [p for p in (led.get("prices") or [])[1:] if p is not None]
+    n = 0
+    for a, b in zip(reversed(prices[:-1]), reversed(prices[1:]), strict=False):
+        if abs(a - b) > 1e-9:
+            break
+        n += 1
+    return n
+
+
 def _stalled(led, rounds=2):
     prices = [p for p in led.get("prices") or [] if p is not None]
     return len(prices) > rounds and len(set(prices[-(rounds + 1) :])) == 1
@@ -277,7 +288,9 @@ def menu(ctx):
         )
         levels = {}
         if v_asp is not None and v_stand is not None:
-            values = concession_values(s, k, horizon, v_asp, v_stand, (knobs.get("drop_mult") or {}).get(sid, 1.0))
+            values = concession_values(
+                s, k, horizon, v_asp, v_stand, (knobs.get("drop_mult") or {}).get(sid, 1.0), _holds(led)
+            )
             if final_push or led["status"] == "final_offer":
                 values["trade"] = v_stand
             span = v_stand - v_asp
@@ -341,6 +354,11 @@ def menu(ctx):
     )
     pending = [s for s, led in leds.items() if not led.get("ended") and s not in ctx["ready"]]
     mode = ctx["budget"].mode(_llm_ok(ctx), refresh, ctx["p"].get("two_call") and not pending)
+    if len(ctx["ready"]) >= SERIAL_READY and mode in ("merged", "two"):
+        # The arena answers the messages of one session one after another (~18 s each): with three suppliers
+        # to answer at once, a 15 s model call let the third supplier's 60 s window run out (practice RFQ:
+        # replies after 36, 54 and 72 s, the third recorded as our timeout). Decide without the model.
+        mode = "det"
     if mirrors and all(mirrors.get(sid) or holds.get(sid) for sid in r["suppliers"]):
         mode = "det"  # sending its own package back needs no model
     return {
@@ -355,6 +373,7 @@ def menu(ctx):
     }
 
 
+SERIAL_READY = 3  # this many suppliers to answer at once: no model call (see menu)
 MENU_BAND = 0.003  # sheets of one level may cost us at most this much more than the level's cheapest
 
 
@@ -548,11 +567,15 @@ STALL_SHARE = 0.10  # share of the remaining gap we concede when it did not move
 MOVE_SHARE = 0.10  # share of the remaining gap we concede when it moved ...
 RECIPROCITY = 0.5  # ... plus this share of its concession (in value to it)
 MAX_SHARE = 0.4  # never more than this share of the remaining gap before the end game
+# It held its price twice in a row: its final offer at that price usually follows (practice P02, P03, P11 in
+# several runs: holds, then "final offer" at the held price, while our small steps stayed below it). Any deal
+# below the held price beats that final offer, so we step further towards it - still below it.
+HOLD_SHARE = 0.3
 END_SHARE = 0.3  # share of the remaining gap per round in the end game
 
 
-def concession_values(s, k, horizon, v_asp, v_stand, drop_mult=1.0):
-    """Supplier-value target of our next ask ("step")."""
+def concession_values(s, k, horizon, v_asp, v_stand, drop_mult=1.0, holds=0):
+    """Supplier-value target of our next ask ("step"); `holds`: rounds it has kept its price in a row."""
     prev = s.get("v_ask", v_asp)
     their = max(0.0, (s.get("v_stand_prev") or v_stand) - v_stand)
     remaining = max(0.0, v_stand - prev)
@@ -561,6 +584,8 @@ def concession_values(s, k, horizon, v_asp, v_stand, drop_mult=1.0):
         step = v_asp
     elif k >= horizon - 2:
         step = prev + END_SHARE * remaining
+    elif their <= 1e-6 and holds >= 2:
+        step = prev + HOLD_SHARE * remaining
     elif their <= 1e-6:
         step = prev + STALL_SHARE * soft * remaining
     else:
