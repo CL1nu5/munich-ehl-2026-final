@@ -6,3 +6,6 @@ __pycache__/
 .ruff_cache/
 .DS_Store
 .claude/settings.local.json
+
+# Harness journals, transcripts, reports and local simulator state
+.runs/

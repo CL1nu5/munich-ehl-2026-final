@@ -1,0 +1,7 @@
+agent = "baseline"
+parallel = 10
+decision_seconds = 30
+max_cases = 1
+poll_seconds = 5
+
+[parameters]

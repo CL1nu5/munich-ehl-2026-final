@@ -1,0 +1,16 @@
+agent = "starter_llm"
+parallel = 10
+max_cases = 1
+
+# Configure a model you have access to; no keys in this file.
+# Remote endpoints require --allow-model; LLM_API_KEY comes from the environment.
+[model]
+name = "YOUR_MODEL"
+base_url = "http://127.0.0.1:11434/v1"
+max_calls = 10
+max_output_tokens = 1024
+parallel = 2
+timeout = 20
+# Optional estimates only; enter your provider's actual prices.
+# input_usd_per_million = 0.0
+# output_usd_per_million = 0.0

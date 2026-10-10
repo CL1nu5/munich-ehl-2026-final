@@ -1,5 +1,8 @@
 # Tacto Negotiation Arena - starter kit
 
+For team experiments and the final, use [the arena-harness CLI](HARNESS.md): local
+simulation by default, plugin agents, durable recovery, budgets and comparable reports.
+
 A Python client for the arena API, two example buyer agents that negotiate by e-mail, helpers that
 read the suppliers' documents and price a term sheet, a runner that plays many cases in parallel,
 `arena-sim` - a local simulator of the arena's API - and a read-only MCP server over the data
