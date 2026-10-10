@@ -1,0 +1,21 @@
+# learner agent for the Live Final / full practice batches: all cases of a wave in parallel.
+# Needs LLM_API_KEY and ARENA_API_KEY in the environment; no keys in this file.
+agent = "learner"
+parallel = 10
+decision_seconds = 45   # a 35 s model call + margin; the arena allows 60 s per message
+
+[parameters]
+round_budget = 4   # practice: suppliers sent their final offer in rounds 2-4
+llm = true
+two_call = true
+model_timeout = 35   # keep equal to [model].timeout
+decision_seconds = 45   # keep equal to the top-level decision_seconds
+
+[model]
+name = "gpt-6-luna"
+base_url = "https://api.openai.com/v1"
+reasoning_effort = "medium"
+max_calls = 1500   # ~5 waves x 6 cases x 15 decisions x 1-2 calls, plus reflections
+max_output_tokens = 16000
+parallel = 10
+timeout = 35   # the harness maximum

@@ -221,6 +221,35 @@ def test_model_budget_atomic_and_persistent(journal, monkeypatch):
     assert "never-log-this-secret" not in (journal.folder / "run.sqlite").read_bytes().decode(errors="ignore")
 
 
+def test_reasoning_effort_uses_completion_token_limit(journal):
+    model = {"name": "x", "base_url": "https://mock.invalid/v1", "max_calls": 1, "max_output_tokens": 64}
+    cfg = config(allow_model=True, model=model | {"reasoning_effort": "medium"})
+    seen = []
+
+    def handle(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+
+    async def scenario():
+        broker = Models(cfg, journal, transport=httpx.MockTransport(handle))
+        assert await broker.complete([]) == "ok"
+        await broker.close()
+
+    execute(scenario())
+    assert seen[0]["reasoning_effort"] == "medium" and seen[0]["max_completion_tokens"] == 64
+    assert "max_tokens" not in seen[0]
+
+
+def test_reasoning_effort_is_validated(tmp_path):
+    path = tmp_path / "model.toml"
+    path.write_text(
+        '[model]\nname = "x"\nbase_url = "https://mock.invalid/v1"\n'
+        'max_calls = 1\nmax_output_tokens = 64\nreasoning_effort = "mediun"\n'
+    )
+    with pytest.raises(ValueError, match="reasoning_effort"):
+        load(parser().parse_args(["run", "--config", str(path)]))
+
+
 def test_ambiguous_model_call_is_not_retried(journal):
     cfg = config(
         allow_model=True,

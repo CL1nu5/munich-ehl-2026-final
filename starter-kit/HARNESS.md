@@ -89,6 +89,10 @@ practice batch. Preflight refuses unowned open sessions and insufficient quota.
 For an LLM, copy `configs/model.example.toml`, select a real model and endpoint,
 and set `LLM_API_KEY` in the environment. Configure positive `max_calls` and
 `max_output_tokens`; `parallel` and `timeout` control the shared model gateway.
+Optional `reasoning_effort` (`none`, `minimal`, `low`, `medium`, `high`, `xhigh`)
+targets OpenAI reasoning models: the request then carries `reasoning_effort` and
+uses `max_completion_tokens` instead of `max_tokens`. Without it the request is
+unchanged.
 Remote models require `--allow-model`, independently of `--allow-arena`.
 Loopback HTTP endpoints are supported without remote-model permission.
 
