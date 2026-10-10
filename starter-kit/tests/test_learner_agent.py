@@ -689,3 +689,26 @@ def test_an_offer_matching_our_ask_in_value_but_dearer_for_us_is_not_accepted():
     out["state"]["sup"][sid]["c_ask"] = ledger_mod.build(case, threads)[sid]["c"] * 0.97
     out2 = agent.decide(observation(case, threads), out["state"], None)
     assert not out2["actions"][0]["message"].get("action")
+
+
+def test_our_dearest_sent_sheet_still_counts_as_our_ask():
+    sim = new_sim()
+    o = opened(sim, "case:S03")
+    case, threads = o["case"], o["threads"]
+    agent = Agent()
+    state = agent.prepare({"case": case, "parameters": {"llm": False, "memory": False}})
+    out = agent.decide(observation(case, threads), state, None)
+    sid = case["suppliers"][0]
+    sheets = [s["terms"] for s in out["actions"][0]["message"]["term_sheets"]]
+    std = ledger_mod.build(case, threads)[sid]["std"]
+    dearest = max(sheets, key=lambda t: total_cost(case, t, std))
+    assert len(sheets) > 1 and total_cost(case, dearest, std) > min(total_cost(case, t, std) for t in sheets) * 1.001
+    assert out["state"]["sup"][sid]["c_ask"] == pytest.approx(total_cost(case, dearest, std))
+    reply = sim.message("test", o["session_id"], sid, out["actions"][0]["message"])
+    reply["term_sheets"][0]["terms"] = dict(dearest)  # it takes exactly the sheet dearest for us
+    reply["status"] = "open"
+    threads[sid] += [{**out["actions"][0]["message"], "from": "buyer"}, reply]
+    for att in reply.get("attachments", []):
+        att["text"] = read_document(att["name"], sim.attachment("test", o["session_id"], att["attachment_id"])[0])
+    out2 = agent.decide(observation(case, threads), out["state"], None)
+    assert out2["actions"][0]["message"].get("action", {}).get("type") == "accept"

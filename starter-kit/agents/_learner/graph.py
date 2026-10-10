@@ -352,7 +352,8 @@ def concession_values(s, k, horizon, v_asp, v_stand, drop_mult=1.0):
         step = min(step, prev + 0.75 * (v_stand - prev))  # a real move, but never all the way to its offer
     elif their <= 1e-6:
         # no concession without a move from its side - but only once: repeating the same sheets runs into
-        # its final offer at its own price (practice P02, P03, P07, P11, P18)
+        # its final offer at its own price (practice P02, P03, P07, P11, P18). With a short horizon the
+        # end game below starts first.
         step = prev + STALL_STEP * (v_stand - prev) if s.get("held") else prev
     else:
         step = min(prev + RECIPROCITY / max(drop_mult, 0.5) * their, max(cap, prev))
@@ -584,7 +585,7 @@ def critic(ctx):
             v_asp, v_stand = ctx["vals"][sid]
             s["f"] = ctx["shares"][sid][level]
             s["v_ask"] = v_asp + s["f"] * (v_stand - v_asp)
-            s["c_ask"] = min(menu_by_id[m]["c"] for m in choice.get("sheet_ids") or [] if m in menu_by_id)
+            s["c_ask"] = _dearest(case, sheets, led["std"])
         s["sent_at"] = time.time()
         s["last_status"] = led["status"]
         if choice.get("read"):
@@ -616,6 +617,19 @@ def critic(ctx):
             }
         )
     return {"actions": actions}
+
+
+def _dearest(case, sheets, std):
+    """Our cost of the dearest sheet we sent, priced like the ledger prices its offers: any of them is a
+    deal we asked for."""
+    costs = []
+    for t in sheets:
+        try:
+            costs.append(total_cost(case, t, std))
+        except Exception:
+            return None
+    finite = [c for c in costs if math.isfinite(c)]
+    return max(finite) if finite and len(finite) == len(costs) else None
 
 
 def _thread_subject(events):
