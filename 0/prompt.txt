@@ -1,19 +1,3 @@
-ok aber was sind das für daten die shon im repo sind und welche habe sollen die auch noch rein und die strategie oder so oder context drinnen lassen oder nicht weil es veraltet sein kann oder für die anderen nicht hifreich ist oder schon habae die hooks erlaubt aber mache sie in zukufnt direkt selbst und mache commit mit freature branch und merge request so wollen wir abteinten as eben alles beirt ist aber context oder strategy nur machen wenn wirklich für andere hifreich oder nützlich
-
----
-
-glaueb der commit bringt nichts oder der merge request
-
----
-
-schließe
-
----
-
-Dieses Projekt ist teil einer Hackathon Challenge wir sollen ein Agentensystem entwerfen, welches Angebote verhandelt. Verhandelt wird über eine API die Infos liegen in den docs. Nun brauchen wir einen harness welcher zum einen die kominikation mit der api übernimmt und sicher stellt das nur ein run gleichzeit ausgeführt wird und metriken ausgibt wie gut der eigentliche run damit wir es intern vergleichen können. Es soll als sandbox fungieren um leicht verschidene konzepte oder ansätze testen zu können mit guter struktur. also einen ort für die modelle. am besten soll das ganze über die cli funktionieren und vorallem für die hackathon abgeabe schon funktionieren. Also du siehst ja auch am Setup dann, dass das Ganze wirklich live funktionieren muss und wir haben nur diesen einen Versuch und das muss wirklich alles rock solid funktionieren. Also schau wirklich, dass das Ganze dann auch funktioniert und sehr robust ist und genau an deren Anforderungen, aber jetzt auch im Test für uns schon ohne Probleme funktioniert und wir dann testen können und nicht unsere API-Credits verschießen, aber dann auch dort wirklich solid funktioniert auf den anderen Rechnern und Vielleicht auch so ein bisschen wie bei freqtrade, wo alles schon richtig stabil und gut stabil funktioniert. Überleg auch, welche Tools und Sprache und der Aufbau, Struktur und alles dann jetzt ist und Und wir das dann eben einmal testen können und auch mit der API funktioniert und dann aber wirklich sicher sind, wenn der richtige API-Key verwendet wird, dass das Ganze ohne das zu verschießen und stabil ist und gut klappt, dass dann jeder von uns gleich eine eigene Idee implementieren kann, wir dann vergleichen, welche die beste ist.
-
----
-
 PLEASE IMPLEMENT THIS PLAN:
 # CLI-Harness für sichere Experimente und das Live-Finale
 
