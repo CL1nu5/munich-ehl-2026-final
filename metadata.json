@@ -1,0 +1,21 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4N5BQ1GYA2PKNF3WW2F2EJ3",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "starter-kit/agents/_learner/graph.py",
+    "starter-kit/agents/_learner/inspect.py",
+    "starter-kit/agents/_learner/offers.py",
+    "starter-kit/tests/test_boost_edge.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
