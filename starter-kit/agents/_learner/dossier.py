@@ -138,11 +138,13 @@ def supplier_dossier(pkg, sid, parts):
         (sid,),
         limit=10,
     )
-    news += [
+    release_news = [
         {k: r.get(k) for k in ("id", "date", "topic", "headline")}
         for r in _release_rows(pkg, "news")
         if r.get("supplier_id") == sid and r.get("topic") not in ("noise", "market")
     ]
+    # The release is newer than the package: newest first, so prompt cut-offs keep it.
+    news = sorted(release_news, key=lambda n: n.get("date") or "", reverse=True) + news
     d["news"] = news
     for n in news:
         for name, spec in ARCHETYPES.items():
@@ -158,9 +160,12 @@ def supplier_dossier(pkg, sid, parts):
     )
     for doc in docs:
         doc["base"] = pkg.root
-    for r in _release_rows(pkg, "documents"):
-        if r.get("supplier_id") == sid and not str(r.get("id", "")).endswith("-N"):
-            docs.append({**{k: r.get(k) for k in ("id", "date", "kind", "subject", "file")}, "base": pkg.release})
+    release_docs = [
+        {**{k: r.get(k) for k in ("id", "date", "kind", "subject", "file")}, "base": pkg.release}
+        for r in _release_rows(pkg, "documents")
+        if r.get("supplier_id") == sid and not str(r.get("id", "")).endswith("-N")
+    ]
+    docs = sorted(release_docs, key=lambda doc: doc.get("date") or "", reverse=True) + docs
     d["documents"] = [{k: doc.get(k) for k in ("id", "date", "kind", "subject")} for doc in docs[:12]]
     for doc in docs:
         text = _read(doc["base"], doc.get("file") or "")
@@ -180,7 +185,21 @@ def supplier_dossier(pkg, sid, parts):
             tag(name, q["id"], sentence)
     if (d["late_payment_days"] or 0) >= 7:
         tag("unpaid", None, f"We paid its invoices {d['late_payment_days']} days late on average.")
+    _clear_outdated(d, news)
     return d
+
+
+def _clear_outdated(d, news):
+    """Drop a news-based tag when newer news ends it (e.g. a shortage followed by 'supply back to normal')."""
+    for name, spec in ARCHETYPES.items():
+        if name not in d["tags"] or not spec.get("cleared_by"):
+            continue
+        cause = max((n.get("date") or "" for n in news if n.get("topic") in spec["news"]), default=None)
+        ended = max((n.get("date") or "" for n in news if n.get("topic") in spec["cleared_by"]), default=None)
+        if cause and ended and ended > cause:
+            d["tags"].remove(name)
+            d["evidence"].pop(name, None)
+            d["notes"] = [n for n in d["notes"] if n["tag"] != name]
 
 
 def part_dossier(pkg, part):
