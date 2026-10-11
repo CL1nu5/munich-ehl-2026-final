@@ -6,6 +6,7 @@ same for every run. What the agent learns lives in the run memory (`memory/`), n
 
 # tag -> detection (lower-case phrases in notes/letters/quote remarks, news topics) and advice.
 # `rate`: what money now is worth to such a supplier per year (cost.supplier_value).
+# `cleared_by`: news topics that, when newer than every news behind the tag, mean it no longer holds.
 # `levers`: {field: "+"|"-"} - moving the field this way is cheap for us to give and valued by it.
 ARCHETYPES = {
     "cash_short": {
@@ -18,7 +19,7 @@ ARCHETYPES = {
             "shop floor was idle",
             "short hours",
         ],
-        "news": ["credit_watch", "credit_downgrade", "restructuring", "short_time_work"],
+        "news": ["credit_watch", "credit_downgrade", "restructuring", "short_time_work", "insolvency"],
         "rate": 0.18,
         "levers": {"payment_days": "-"},
         "advice": "Short of cash: faster payment is worth more to it than price; trade earlier payment for a "
@@ -62,6 +63,7 @@ ARCHETYPES = {
             "head-office directive",
             "list conditions",
             "prices as per current list",
+            "individual price reductions",
         ],
         "news": [],
         "rate": 0.07,
@@ -70,7 +72,7 @@ ARCHETYPES = {
         "call-off flexibility, contract length and Incoterm instead.",
     },
     "hedged_forward": {
-        "phrases": ["forward until", "not our reality", "material covered until"],
+        "phrases": ["forward until", "not our reality", "material covered until", "fixed prices until"],
         "news": ["energy_contract"],
         "rate": 0.07,
         "levers": {},
@@ -82,6 +84,7 @@ ARCHETYPES = {
     "full_order_book": {
         "phrases": ["order intake is very strong", "binding 12-month commitment"],
         "news": ["full_order_book", "allocation", "big_order", "chip_shortage"],
+        "cleared_by": ["supply_normalises", "free_capacity"],  # newer news that ends the shortage
         "rate": 0.07,
         "levers": {"contract_months": "+"},
         "advice": "Sold out: it has the leverage. Secure supply with a longer binding commitment; avoid "

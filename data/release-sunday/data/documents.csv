@@ -1,0 +1,6 @@
+id,date,kind,supplier_id,part_ids,subject,author,file,asked_pct,asked_price,effective_date,notice_days
+doc:20261005-70250-S2,2026-10-05,letter,sup:70250,,Payment of invoices from November,Drehteile Fuchsreiter GmbH,correspondence/20261005-70250-S2.md,,,,
+doc:20261001-70510-S5,2026-10-01,letter,sup:70510,,Price list 2027,Antriebstechnik Nordmark AG,correspondence/20261001-70510-S5.md,,,,
+doc:20261002-70720-S6,2026-10-02,letter,sup:70720,,Bar steel purchasing,Stahlhandel Rupprecht-Kessel GmbH,correspondence/20261002-70720-S6.md,,,,
+doc:20261008-70650-S10,2026-10-08,letter,sup:70650,,Prices and conditions in the Strelvo group,Verbindungstechnik Mairhofer GmbH,correspondence/20261008-70650-S10.md,,,,
+doc:20261009-HPW-MEMO,2026-10-09,memo,,,"Market memo, October 2026","Hollerau Pumpenwerke, Purchasing",correspondence/20261009-HPW-MEMO.md,,,,
