@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4M4F8E5XHN1YCHV9EQ5HB4D",
   "strategy": "manual-commit",
   "branch": "next-iter-linus",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "starter-kit/EVALUATION.md",
     "starter-kit/agents/_learner/graph.py",
@@ -18,13 +18,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 134,
-    "cache_creation_tokens": 183422,
-    "cache_read_tokens": 8465140,
-    "output_tokens": 47155,
-    "api_call_count": 67
+    "input_tokens": 150,
+    "cache_creation_tokens": 193277,
+    "cache_read_tokens": 11266849,
+    "output_tokens": 52322,
+    "api_call_count": 74
   }
 }
