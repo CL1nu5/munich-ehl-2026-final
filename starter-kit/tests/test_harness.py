@@ -397,6 +397,20 @@ def test_acceptance_requires_quote_must_haves_and_alternative():
         )
 
 
+def test_a_later_offer_whose_quote_did_not_load_stays_acceptable():
+    # Standard terms come from the latest readable quote of the thread; the offered terms from the sheet.
+    case, threads = opened()
+    sid = next(iter(threads))
+    later = copy.deepcopy(threads[sid][0])
+    sheet = later["term_sheets"][0]
+    sheet["term_sheet_id"] = sheet["term_sheet_id"] + "-later"
+    for att in later["attachments"]:
+        att.pop("text", None)
+        att["error"] = "Document unavailable or unreadable"
+    events = [threads[sid][0], {"from": "buyer", "body": "x", "term_sheets": []}, later]
+    assert acceptable(case, events, sheet["term_sheet_id"])
+
+
 def test_report_never_hides_missing_scores(journal):
     case = next(iter(load_cases().values()))
     journal.case("one", case=case, case_hash="a", result={"score": 0.9, "deal": True})
@@ -715,3 +729,27 @@ def test_oversized_or_secret_request_rejected_before_network(journal, monkeypatc
 
     execute(scenario())
     assert journal.pending() == []
+
+
+def test_engine_runs_when_the_document_parser_process_fails(journal, monkeypatch):
+    # The parser subprocess failed for every quote late in a long practice run; quotes are then parsed
+    # in-process, so final offers stay acceptable.
+    spawn = asyncio.create_subprocess_exec
+
+    async def broken(*args, **kwargs):
+        if "arena_kit.harness.document_worker" in args:
+            raise OSError("Too many open files")
+        return await spawn(*args, **kwargs)
+
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", broken)
+
+    async def scenario():
+        cfg = config()
+        sim, api = api_fixture(cfg, journal)
+        assert await Engine(cfg, journal, api=api).run() == 0
+        result = report(journal)
+        assert result["coverage"] == 1
+
+    execute(scenario())
+    kinds = [r["kind"] for r in journal.db.execute("SELECT kind FROM events")]
+    assert "document_fallback" in kinds and "document_error" not in kinds

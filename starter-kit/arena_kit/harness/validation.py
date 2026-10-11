@@ -9,11 +9,15 @@ from .valuation import ranked_offers
 
 
 def documented(events):
+    """A readable quote PDF in the thread, the latest one that loaded (as `standard_terms` reads it): the
+    standard terms do not change within a thread, the offered terms come with the term sheet. In an RFQ the
+    arena serves a session's requests one after another, and the latest quote's download timed out behind
+    the other bidders' messages (practice: final offers counted as undocumented, were pushed, bidders walked)."""
     for msg in reversed(events):
         for att in msg.get("attachments") or []:
-            if att.get("name", "").startswith("quote"):
+            if att.get("name", "").startswith("quote") and att.get("text") and not att.get("error"):
                 try:
-                    return bool(quote_terms(att.get("text", "")).get("stated")) and not att.get("error")
+                    return bool(quote_terms(att["text"]).get("stated"))
                 except (ValueError, TypeError):
                     return False
     return False

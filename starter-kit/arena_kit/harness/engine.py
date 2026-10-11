@@ -11,6 +11,7 @@ import time
 import uuid
 
 from ..client import ArenaError
+from ..docs import read_document
 from ..play import live_threads, moves_left
 from .agent_process import AgentProcess
 from .resources import Resources
@@ -19,6 +20,9 @@ from .transport import Models, Transport, UncertainRequest, component
 from .validation import close_action, validate
 
 TRANSIENT_EXIT = 75
+
+
+DOCUMENT_ATTEMPTS = 3  # loads of one attachment (each within the 12 s document budget of its pass)
 
 
 class Engine:
@@ -96,8 +100,9 @@ class Engine:
     async def documents(self, sid, message):
         document_deadline = time.monotonic() + 12
         for att in message.get("attachments") or []:
-            if not att.get("attachment_id") or "text" in att or att.get("error"):
+            if not att.get("attachment_id") or "text" in att or att.get("attempts", 0) >= DOCUMENT_ATTEMPTS:
                 continue
+            att["attempts"] = att.get("attempts", 0) + 1
             name = hashlib.sha256((sid + ":" + att["attachment_id"]).encode()).hexdigest()
             file = self.journal.folder / "attachments" / name
             try:
@@ -110,40 +115,52 @@ class Engine:
                         self.api.request(
                             "GET", f"sessions/{component(sid)}/attachments/{component(att['attachment_id'])}", raw=True
                         ),
-                        min(5, document_deadline - time.monotonic()),
+                        min(10, document_deadline - time.monotonic()),
                     )
                     file.parent.mkdir(exist_ok=True)
                     file.write_bytes(data)
                 if len(data) > 10 * 1024 * 1024:
                     raise ValueError("Attachment exceeds 10 MiB")
-                parser = await asyncio.create_subprocess_exec(
-                    sys.executable,
-                    "-m",
-                    "arena_kit.harness.document_worker",
-                    att["name"],
-                    str(file),
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.DEVNULL,
-                )
+                parser = None
                 try:
+                    parser = await asyncio.create_subprocess_exec(
+                        sys.executable,
+                        "-m",
+                        "arena_kit.harness.document_worker",
+                        att["name"],
+                        str(file),
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.DEVNULL,
+                    )
                     output, _ = await asyncio.wait_for(
                         parser.communicate(), max(0.01, min(5, document_deadline - time.monotonic()))
                     )
                     if parser.returncode or len(output) > 1024 * 1024:
                         raise ValueError("Document parse failed or text too large")
                     att["text"] = output.decode("utf-8")
+                except (ValueError, TimeoutError, OSError) as e:
+                    # Late in a long run the parser process failed for every further quote (practice: an RFQ's
+                    # final offers then counted as undocumented, were pushed instead of accepted, and two
+                    # bidders walked). The arena's own small files are parsed in-process instead.
+                    if len(data) > 1024 * 1024:
+                        raise
+                    self.journal.event(
+                        "document_fallback", session=sid, attachment=att["attachment_id"], reason=repr(e)[:200]
+                    )
+                    att["text"] = await asyncio.wait_for(asyncio.to_thread(read_document, att["name"], data), 5)
                 finally:
-                    if parser.returncode is None:
+                    if parser is not None and parser.returncode is None:
                         parser.kill()
                         await parser.wait()
-            except (ArenaError, ValueError, TimeoutError, OSError):
+                att.pop("error", None)
+            except (ArenaError, ValueError, TimeoutError, OSError) as e:
                 att["error"] = "Document unavailable or unreadable"
-                self.journal.event("document_error", session=sid, attachment=att["attachment_id"])
+                self.journal.event("document_error", session=sid, attachment=att["attachment_id"], reason=repr(e)[:200])
             except UncertainRequest:
                 raise
-            except Exception:
+            except Exception as e:
                 att["error"] = "Document parsing failed"
-                self.journal.event("document_error", session=sid, attachment=att["attachment_id"])
+                self.journal.event("document_error", session=sid, attachment=att["attachment_id"], reason=repr(e)[:200])
         return message
 
     async def snapshot(self, sid):
