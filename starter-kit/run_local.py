@@ -18,7 +18,8 @@ def load_credentials():
             if sep and key in {"OPENAI_API_KEY", "LLM_API_KEY", "ARENA_API_KEY"}:
                 parts = shlex.split(value, comments=True)
                 if len(parts) == 1 and parts[0]:
-                    os.environ.setdefault(key, parts[0])
+                    if not os.environ.get(key):
+                        os.environ[key] = parts[0]
     if not os.environ.get("LLM_API_KEY") and os.environ.get("OPENAI_API_KEY"):
         os.environ["LLM_API_KEY"] = os.environ["OPENAI_API_KEY"]
 
@@ -27,7 +28,9 @@ def main():
     load_credentials()
     os.chdir(ROOT)
     args = sys.argv[1:] or ["doctor", "--config", "configs/learner_openai.toml"]
-    profile = next((args[i + 1] for i, arg in enumerate(args[:-1]) if arg == "--profile"), "sim")
+    from arena_kit.harness.cli import parser
+
+    profile = getattr(parser().parse_args(args), "profile", "sim")
     if profile != "sim" and not os.environ.get("ARENA_API_KEY"):
         if not sys.stdin.isatty():
             raise SystemExit("ARENA_API_KEY must be supplied securely before a hosted command.")

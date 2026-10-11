@@ -12,7 +12,7 @@ import uuid
 
 from ..client import ArenaError
 from ..docs import read_document
-from ..play import live_threads, moves_left
+from ..play import latest, live_threads, moves_left, standing
 from .agent_process import AgentProcess
 from .resources import Resources
 from .state import Journal, digest, redact
@@ -174,7 +174,26 @@ class Engine:
             self.journal.event(
                 "thread_state", session=sid, supplier=supplier, timeouts=len(thread.get("timeouts") or [])
             )
-            threads[supplier] = thread["messages"]
+            # Timeout state is authoritative even when the server adds no email.
+            # Never revive a closed supplier or accept the ID from an older message.
+            events = copy.deepcopy(thread["messages"])
+            offer_id = thread.get("offer_id", standing(events)[0])
+            status = thread.get("status", latest(events).get("status"))
+            if thread.get("closed") or offer_id != standing(events)[0] or status != latest(events).get("status"):
+                timeout = next((t for t in reversed(thread.get("timeouts") or []) if t.get("offer_id") == offer_id), {})
+                terms = timeout.get("terms", {}) if offer_id != standing(events)[0] else standing(events)[1]
+                events.append(
+                    {
+                        "from": "arena",
+                        "status": "walked_away" if thread.get("closed") else status,
+                        "body": "Reconciled current server thread state.",
+                        "attachments": [],
+                        "term_sheets": [{"term_sheet_id": offer_id, "terms": terms}]
+                        if offer_id and not thread.get("closed")
+                        else [],
+                    }
+                )
+            threads[supplier] = events
             deadlines[supplier] = captured_at + (
                 state.get("seconds_left") if state.get("seconds_left") is not None else 60
             )

@@ -2,6 +2,8 @@ import csv
 import json
 from pathlib import Path
 
+import pytest
+
 from agents._learner.dossier import digest, supplier_dossier
 from arena_kit.data import DataPackage
 
@@ -66,3 +68,30 @@ def test_explicit_model_key_is_not_overwritten(tmp_path, monkeypatch):
     monkeypatch.setenv("LLM_API_KEY", "synthetic-explicit-value")
     run_local.load_credentials()
     assert run_local.os.environ["LLM_API_KEY"] == "synthetic-explicit-value"
+
+
+def test_empty_environment_does_not_hide_existing_local_key(tmp_path, monkeypatch):
+    import run_local
+
+    (tmp_path / ".env.local").write_text("OPENAI_API_KEY=synthetic-existing-key\n")
+    monkeypatch.setattr(run_local, "ROOT", tmp_path)
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+    monkeypatch.setenv("LLM_API_KEY", "")
+    run_local.load_credentials()
+    assert run_local.os.environ["LLM_API_KEY"] == "synthetic-existing-key"
+
+
+@pytest.mark.parametrize("profile_args", [["--profile", "practice"], ["--profile=practice"]])
+def test_hosted_profile_requires_key_before_harness_start(tmp_path, monkeypatch, profile_args):
+    import arena_kit.harness.cli as cli
+    import run_local
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(run_local, "ROOT", tmp_path)
+    monkeypatch.setattr(run_local, "load_credentials", lambda: None)
+    monkeypatch.delenv("ARENA_API_KEY", raising=False)
+    monkeypatch.setattr(run_local.sys, "argv", ["run_local.py", "doctor", *profile_args])
+    monkeypatch.setattr(run_local.sys.stdin, "isatty", lambda: False)
+    monkeypatch.setattr(cli, "main", lambda: pytest.fail("Harness must not start without Arena key"))
+    with pytest.raises(SystemExit, match="ARENA_API_KEY must be supplied securely"):
+        run_local.main()
