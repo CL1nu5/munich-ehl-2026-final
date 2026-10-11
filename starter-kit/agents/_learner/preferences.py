@@ -36,17 +36,35 @@ def observe(case, events, previous=None):
             for sheet in theirs:
                 if sheet["terms"][field] not in values:
                     values.append(sheet["terms"][field])
+            old = counters.get(field, {})
             if all(s["terms"].get(field) not in values for s in ours):
-                old = counters.get(field, {})
                 count = old.get("count", 0) + 1 if old.get("values") == values else 1
                 counters[field] = {"values": values, "count": count, "source": source}
-                if count >= 2:
-                    out["fields"][field] = {"values": values, "source": source, "basis": "repeated counteroffers"}
+            elif old.get("values") == values:
+                # it countered with this before and keeps it now that we offered it: still insisting (practice
+                # P18: a reset here let us drop the index clause again after the supplier had required it)
+                counters[field] = {"values": values, "count": old["count"] + 1, "source": source}
             else:
                 counters.pop(field, None)
                 if msg.get("status") == "agreed":
                     out["fields"].pop(field, None)
+                continue
+            if counters[field]["count"] >= 2:
+                out["fields"][field] = {
+                    "values": _widen(case, field, values),
+                    "source": source,
+                    "basis": "repeated counteroffers",
+                }
     return out
+
+
+def _widen(case, field, values):
+    """A supplier that keeps sending an index clause insists on being indexed, not on one deadband: every
+    clause the case allows qualifies (each is repriced to the same cost for us)."""
+    if field != "index_clause" or not values or not all(values):
+        return values
+    options = [o for o in case.get("term_options", {}).get(field) or [] if o]
+    return values + [o for o in options if o not in values]
 
 
 def update(case, led, preferences, signals):
@@ -87,12 +105,16 @@ def can_ask_breakdown(preferences):
 def filter_questions(text, preferences):
     if can_ask_breakdown(preferences):
         return text
-    # Drop repeated requests, including requests hidden in the model-written body.
+    # Drop repeated requests, including requests hidden in the model-written body. Lines stay lines: joining
+    # sentences with newlines split "Dear Mr. Seidl," into two lines.
     return "\n".join(
-        sentence
-        for sentence in re.split(r"(?<=[.!?])\s+|\n", text)
-        if not (
-            BREAKDOWN.search(sentence)
-            and ("?" in sentence or re.search(r"\b(?:please|could|share|send)\b", sentence, re.I))
+        " ".join(
+            sentence
+            for sentence in re.split(r"(?<=[.!?])\s+", line)
+            if not (
+                BREAKDOWN.search(sentence)
+                and ("?" in sentence or re.search(r"\b(?:please|could|share|send)\b", sentence, re.I))
+            )
         )
+        for line in text.split("\n")
     )

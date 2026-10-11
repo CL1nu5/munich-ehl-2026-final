@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 import httpx
 import pytest
@@ -143,6 +144,32 @@ def test_durable_operation_survives_new_client(journal):
 
     execute(scenario())
     assert seen == [op["id"]]
+
+
+@pytest.mark.parametrize("seconds_left, sends", [(5, 1), (55, 2)])
+def test_late_message_is_not_retried_after_a_transient_error(journal, seconds_left, sends):
+    calls = []
+    path = "sessions/s1/threads/sup%3A1/messages"
+
+    def handle(request):
+        calls.append(request)
+        if len(calls) == 1:
+            return httpx.Response(503, json={"detail": "busy"})
+        return httpx.Response(200, json={"status": "open"})
+
+    async def scenario():
+        api = Transport(config(), journal, transport=httpx.MockTransport(handle))
+        deadline = time.monotonic() + seconds_left
+        if sends == 1:
+            with pytest.raises(ArenaError) as e:
+                await api.request("POST", path, body={"message": {"body": "x"}}, deadline=deadline)
+            assert e.value.status == 409
+        else:
+            assert (await api.request("POST", path, body={"message": {"body": "x"}}, deadline=deadline))["status"]
+        await api.close()
+
+    execute(scenario())
+    assert len(calls) == sends and not journal.pending()
 
 
 @pytest.mark.parametrize("status", [401, 403, 409, 422, 429])
@@ -368,6 +395,20 @@ def test_acceptance_requires_quote_must_haves_and_alternative():
                 }
             ],
         )
+
+
+def test_a_later_offer_whose_quote_did_not_load_stays_acceptable():
+    # Standard terms come from the latest readable quote of the thread; the offered terms from the sheet.
+    case, threads = opened()
+    sid = next(iter(threads))
+    later = copy.deepcopy(threads[sid][0])
+    sheet = later["term_sheets"][0]
+    sheet["term_sheet_id"] = sheet["term_sheet_id"] + "-later"
+    for att in later["attachments"]:
+        att.pop("text", None)
+        att["error"] = "Document unavailable or unreadable"
+    events = [threads[sid][0], {"from": "buyer", "body": "x", "term_sheets": []}, later]
+    assert acceptable(case, events, sheet["term_sheet_id"])
 
 
 def test_report_never_hides_missing_scores(journal):
@@ -688,3 +729,27 @@ def test_oversized_or_secret_request_rejected_before_network(journal, monkeypatc
 
     execute(scenario())
     assert journal.pending() == []
+
+
+def test_engine_runs_when_the_document_parser_process_fails(journal, monkeypatch):
+    # The parser subprocess failed for every quote late in a long practice run; quotes are then parsed
+    # in-process, so final offers stay acceptable.
+    spawn = asyncio.create_subprocess_exec
+
+    async def broken(*args, **kwargs):
+        if "arena_kit.harness.document_worker" in args:
+            raise OSError("Too many open files")
+        return await spawn(*args, **kwargs)
+
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", broken)
+
+    async def scenario():
+        cfg = config()
+        sim, api = api_fixture(cfg, journal)
+        assert await Engine(cfg, journal, api=api).run() == 0
+        result = report(journal)
+        assert result["coverage"] == 1
+
+    execute(scenario())
+    kinds = [r["kind"] for r in journal.db.execute("SELECT kind FROM events")]
+    assert "document_fallback" in kinds and "document_error" not in kinds

@@ -77,7 +77,7 @@ ARCHETYPES = {
         "advice": "Hedged its material/energy forward: index moves reach its costs only when the hedge ends, so "
         "an index-based increase or an index clause is not justified before then - say so, citing its own "
         "letter or quote remark; our own index claims meet 'not our reality', use volume, contract length "
-        "and history instead.",
+        "and the timing of its own hedge instead.",
     },
     "full_order_book": {
         "phrases": ["order intake is very strong", "binding 12-month commitment"],
@@ -122,6 +122,15 @@ GENERAL = [
     "A final offer is its last word: push further only when we have a real alternative.",
     "Never concede a lever (payment, contract, index clause, lead time, quality terms) outside the packages: "
     "each one is priced in, and the supplier takes whichever package is dearest for us.",
+    "Suppliers move most in their first replies and turn to a final offer after a few rounds: put the "
+    "strongest claims into the first message instead of saving them.",
+    "Prose arguments without data draw 'which figures is that based on?': mention volumes, forecasts, market "
+    "moves or rivals only through a claim. When the supplier asks which volume we commit to, code states our "
+    "binding volume in figures - do not answer it vaguely yourself.",
+    "What we paid before (price history) does not change a supplier's calculation; falling cost drivers, rival "
+    "quotes, forecast growth and contract notice periods do.",
+    "When the supplier insists on a term (an index clause, a payment term), keep it in the packages from then "
+    "on; code reprices it so it costs us the same.",
 ]
 
 

@@ -11,6 +11,7 @@ import time
 import uuid
 
 from ..client import ArenaError
+from ..docs import read_document
 from ..play import live_threads, moves_left
 from .agent_process import AgentProcess
 from .resources import Resources
@@ -19,6 +20,9 @@ from .transport import Models, Transport, UncertainRequest, component
 from .validation import close_action, validate
 
 TRANSIENT_EXIT = 75
+
+
+DOCUMENT_ATTEMPTS = 3  # loads of one attachment (each within the 12 s document budget of its pass)
 
 
 class Engine:
@@ -96,8 +100,9 @@ class Engine:
     async def documents(self, sid, message):
         document_deadline = time.monotonic() + 12
         for att in message.get("attachments") or []:
-            if not att.get("attachment_id") or "text" in att or att.get("error"):
+            if not att.get("attachment_id") or "text" in att or att.get("attempts", 0) >= DOCUMENT_ATTEMPTS:
                 continue
+            att["attempts"] = att.get("attempts", 0) + 1
             name = hashlib.sha256((sid + ":" + att["attachment_id"]).encode()).hexdigest()
             file = self.journal.folder / "attachments" / name
             try:
@@ -110,40 +115,52 @@ class Engine:
                         self.api.request(
                             "GET", f"sessions/{component(sid)}/attachments/{component(att['attachment_id'])}", raw=True
                         ),
-                        min(5, document_deadline - time.monotonic()),
+                        min(10, document_deadline - time.monotonic()),
                     )
                     file.parent.mkdir(exist_ok=True)
                     file.write_bytes(data)
                 if len(data) > 10 * 1024 * 1024:
                     raise ValueError("Attachment exceeds 10 MiB")
-                parser = await asyncio.create_subprocess_exec(
-                    sys.executable,
-                    "-m",
-                    "arena_kit.harness.document_worker",
-                    att["name"],
-                    str(file),
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.DEVNULL,
-                )
+                parser = None
                 try:
+                    parser = await asyncio.create_subprocess_exec(
+                        sys.executable,
+                        "-m",
+                        "arena_kit.harness.document_worker",
+                        att["name"],
+                        str(file),
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.DEVNULL,
+                    )
                     output, _ = await asyncio.wait_for(
                         parser.communicate(), max(0.01, min(5, document_deadline - time.monotonic()))
                     )
                     if parser.returncode or len(output) > 1024 * 1024:
                         raise ValueError("Document parse failed or text too large")
                     att["text"] = output.decode("utf-8")
+                except (ValueError, TimeoutError, OSError) as e:
+                    # Late in a long run the parser process failed for every further quote (practice: an RFQ's
+                    # final offers then counted as undocumented, were pushed instead of accepted, and two
+                    # bidders walked). The arena's own small files are parsed in-process instead.
+                    if len(data) > 1024 * 1024:
+                        raise
+                    self.journal.event(
+                        "document_fallback", session=sid, attachment=att["attachment_id"], reason=repr(e)[:200]
+                    )
+                    att["text"] = await asyncio.wait_for(asyncio.to_thread(read_document, att["name"], data), 5)
                 finally:
-                    if parser.returncode is None:
+                    if parser is not None and parser.returncode is None:
                         parser.kill()
                         await parser.wait()
-            except (ArenaError, ValueError, TimeoutError, OSError):
+                att.pop("error", None)
+            except (ArenaError, ValueError, TimeoutError, OSError) as e:
                 att["error"] = "Document unavailable or unreadable"
-                self.journal.event("document_error", session=sid, attachment=att["attachment_id"])
+                self.journal.event("document_error", session=sid, attachment=att["attachment_id"], reason=repr(e)[:200])
             except UncertainRequest:
                 raise
-            except Exception:
+            except Exception as e:
                 att["error"] = "Document parsing failed"
-                self.journal.event("document_error", session=sid, attachment=att["attachment_id"])
+                self.journal.event("document_error", session=sid, attachment=att["attachment_id"], reason=repr(e)[:200])
         return message
 
     async def snapshot(self, sid):
@@ -225,7 +242,8 @@ class Engine:
             async def send(action):
                 supplier, message = action["supplier_id"], action["message"]
                 path = f"sessions/{component(sid)}/threads/{component(supplier)}/messages"
-                reply = await self.api.request("POST", path, body={"message": message})
+                deadline = deadlines.get(supplier)
+                reply = await self.api.request("POST", path, body={"message": message}, deadline=deadline)
                 if reply.get("ended") or "result" in reply:
                     return reply
                 deadlines[supplier] = time.monotonic() + 60
@@ -235,6 +253,7 @@ class Engine:
                 return reply
 
             force_close = False
+            resync = False  # a thread went late or ended under us: refresh all threads, keep negotiating
             close_attempts = 0
             rejected = set()  # term sheet IDs the arena refused to accept
             while live_threads(threads):
@@ -250,9 +269,12 @@ class Engine:
                             if e.status not in (409, 422):
                                 raise
                             self.journal.event("reconcile", case=cid, status=e.status)
-                            force_close = force_close or e.status == 422
-                            # Other requests may still be in flight; only refresh after they settle.
-                            force_close = True
+                            if e.status == 422:
+                                force_close = True
+                            else:
+                                # 409: this thread was late or has ended. With several suppliers the others are
+                                # still open: closing the whole case here accepted a moving RFQ bid early.
+                                resync = True
                 cap = self.caps.get(case.get("wave"), float("inf"))
                 if not force_close and (self.stop.is_set() or time.monotonic() >= cap - 90):
                     self.journal.event(
@@ -260,6 +282,23 @@ class Engine:
                     )
                 force_close = force_close or self.stop.is_set() or time.monotonic() >= cap - 90
                 ready = [s for s in live_threads(threads) if s not in pending]
+                late = [s for s in ready if deadlines.get(s, float("inf")) <= time.monotonic()]
+                if not force_close and (resync or late):
+                    # A late thread has a follow-up from the supplier we have not seen; deciding on the stale
+                    # thread would fail the decision deadline and close the case. Refresh once in-flight
+                    # requests have settled.
+                    if pending:
+                        await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)
+                        continue
+                    self.journal.event("resync", case=cid, late=late, after_conflict=resync)
+                    resync = False
+                    snapshot, threads, deadlines = await self.snapshot(sid)
+                    if snapshot["status"] == "ended":
+                        self.record_result(cid, snapshot)
+                        return
+                    if [s for s in live_threads(threads) if deadlines.get(s, float("inf")) <= time.monotonic()]:
+                        force_close = True  # still late after a refresh: close as before rather than loop
+                    continue
                 if force_close:
                     if pending:
                         await asyncio.wait(pending.values(), timeout=0.1, return_when=asyncio.FIRST_COMPLETED)

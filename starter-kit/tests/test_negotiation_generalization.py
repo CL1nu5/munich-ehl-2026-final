@@ -311,3 +311,69 @@ def test_model_signals_and_proposals_pass_through_complete_decision(invalid_prop
     if not invalid_proposal:
         assert all(s["terms"]["payment_days"] == 90 for s in sheets)
     assert out["state"]["llm"]["calls"] == 1
+
+
+def test_an_insisted_clause_stays_insisted_after_we_offered_it_once():
+    case, threads = scenario(101)
+    sid = case["suppliers"][0]
+    plain = threads[sid][0]["term_sheets"][0]["terms"]
+    indexed = {**plain, "index_clause": case["term_options"]["index_clause"][1]}
+    for number, ours in enumerate((plain, indexed)):  # it counters with a clause, we offer it, it keeps it
+        threads[sid].append({"from": "buyer", "body": "Proposal", "term_sheets": [{"terms": ours}]})
+        reply = copy.deepcopy(threads[sid][0])
+        reply.update(message_id=f"counter:{number}", status="open")
+        reply["term_sheets"] = [{"term_sheet_id": f"offer:c{number}", "terms": indexed}]
+        threads[sid].append(reply)
+    pref = preferences.observe(case, threads[sid])
+    assert case["term_options"]["index_clause"][1] in pref["fields"]["index_clause"]["values"]
+    assert None not in pref["fields"]["index_clause"]["values"]
+
+
+def test_question_filter_keeps_lines_whole():
+    pref = {"questions": {"breakdown": {"status": "declined"}}}
+    text = "Dear Mr. Seidl,\nThank you. Could you send the cost breakdown? We value your support."
+    assert preferences.filter_questions(text, pref) == "Dear Mr. Seidl,\nThank you. We value your support."
+
+
+def test_index_claims_cite_only_a_recent_fall():
+    from agents._learner import claims
+
+    values = {"2025-09": 100, "2026-03": 110, "2026-06": 120, "2026-09": 112}
+    facts = {f"idx:S@{m}": {"series": "S", "month": m, "value": v} for m, v in values.items()}
+    window = claims._best_decline(facts, "S", sorted(values))
+    assert window == ("2026-06", "2026-09", -6.7)
+    rising = {f"idx:R@{m}": {"series": "R", "month": m, "value": 100 + i} for i, m in enumerate(sorted(values))}
+    assert claims._best_decline(rising, "R", sorted(values)) is None
+
+
+def test_placeholders_stand_alone_and_questions_are_asked_once():
+    from agents._learner import writer
+
+    case = {"negotiable": ["unit_price", "payment_days"]}
+    sheets = [{"unit_price": 5.0, "payment_days": 30}, {"unit_price": 5.1, "payment_days": 60}]
+    claim = {"cid": "C1", "ids": ["po:1", "po:2"], "sentence": "Our orders were at EUR 5.84 (po:1, po:2)."}
+    body = (
+        "Dear Ms Lechner,\nThank you. Our orders were at {{CLAIM:C1}}\n"
+        "Please consider the alternatives in {{SHEETS}}. Which option fits your planning best?\nBest regards"
+    )
+    text, refs, _ = writer.compose(case, body, [claim], sheets, ["Which of these options best fits your planning?"])
+    assert text.count("Our orders were at") == 1 and refs == ["po:1", "po:2"]
+    assert "alternatives in" not in text and "Option B: unit price EUR 5.10" in text
+    assert text.count("?") == 1
+
+
+def test_a_volume_question_is_answered_in_figures():
+    from agents._learner import writer
+
+    case = {
+        "negotiable": ["unit_price", "payment_days"],
+        "fixed_terms": {"volume_per_year": 6110, "contract_months": 12},
+        "briefing": "Need: 6110 pc a year.",
+        "buyer": {"need_per_year": 6110},
+    }
+    sheets = [{"unit_price": 1.0, "payment_days": 30}]
+    answer = writer.volume_answer(
+        case, sheets, "A binding higher volume would help us. Which volume can you commit to?"
+    )
+    assert answer == "Our binding volume is 6,110 pc a year over 12 months, 6,110 pc in total."
+    assert writer.volume_answer(case, sheets, "Our price reflects our costs.") is None

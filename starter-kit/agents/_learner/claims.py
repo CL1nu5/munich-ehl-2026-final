@@ -2,7 +2,7 @@
 
 Rules follow brief/api.md "What counts": one argument per sentence, the figure in the same sentence
 as its IDs, tolerance ±0.5 pp / ±0.5 %, at most 3 checked per message, each ID once per case.
-Only claims that help the buyer are listed; the model chooses among them by `cid`.
+Only claims that help the buyer are listed (an index only when it fell); the model chooses among them by `cid`.
 """
 
 import re
@@ -12,6 +12,9 @@ from .offers import should_cost_row
 ID_RE = re.compile(r"\b(?:po|idx|sc|ctr|doc|quote|offer|qn|fc|cost|news|rfq|sup|part):[\w.\-@#]+")
 FAVOURABLE_NEWS = {"free_capacity", "short_time_work"}
 MAX_PER_MESSAGE = 3
+# What we paid before is no cost argument to a supplier: in every practice reply (23, seven suppliers) price
+# history came back "it holds, but it does not change our calculation". It stays available, ranked last.
+PRICE_HISTORY_STRENGTH = 0.15
 
 
 def ids_in(text):
@@ -45,9 +48,45 @@ def series_index(facts):
     return out
 
 
-def _minus_year(month):
+def _ym(month):
     y, m = month.split("-")
-    return f"{int(y) - 1}-{m}"
+    return int(y) * 12 + int(m) - 1
+
+
+# Index windows: the arena checks 2 IDs of one series, at most 12 months apart, ending within the data's last
+# 12 months. A rising driver only confirms the supplier's case ("Your figures confirm our case: that driver
+# rose" in every practice reply that got one), so only a fall is an argument. We cite the steepest recent fall:
+# ending in the series' last RECENT months (an old fall is not the supplier's reality now), at least MIN_SPAN
+# months long (a one-month dip reads as noise).
+RECENT = 6
+MIN_SPAN = 3
+MIN_FALL = -1.0
+
+
+def _best_decline(facts, series, months):
+    """(earlier, later, change rounded to 0.1) of the steepest recent fall of `series`, or None."""
+    if not months or months[-1] < "2025-10":
+        return None
+    last = _ym(months[-1])
+    best = None
+    for later in months:
+        if _ym(later) <= last - RECENT:
+            continue
+        b = facts.get(f"idx:{series}@{later}") or {}
+        for earlier in months:
+            span = _ym(later) - _ym(earlier)
+            if not MIN_SPAN <= span <= 12:
+                continue
+            a = facts.get(f"idx:{series}@{earlier}") or {}
+            if not a.get("value") or b.get("value") is None:
+                continue
+            change = round((b["value"] / a["value"] - 1) * 100, 1)
+            key = (change, -span, -_ym(later))  # steepest; ties: the longer, then the more recent window
+            if best is None or key < best[0]:
+                best = (key, earlier, later, change)
+    if best is None or best[3] > MIN_FALL:
+        return None
+    return best[1], best[2], best[3]
 
 
 def _pct(x):
@@ -90,20 +129,11 @@ def build_catalog(case, facts, dossier, sid, standing_price=None, asked_pct=None
         for d in part.get("cost_drivers", []):
             weights[d.get("series_id")] = max(weights.get(d.get("series_id"), 0), d.get("weight") or 0)
     for s in sorted(series):
-        later = (months.get(s) or [None])[-1]
-        if not later or later < "2025-10":
+        window = _best_decline(facts, s, months.get(s) or [])
+        if window is None:
             continue
-        earlier = _minus_year(later)
-        a, b = facts.get(f"idx:{s}@{earlier}"), facts.get(f"idx:{s}@{later}")
-        if not a or not b or not a.get("value"):
-            continue
-        change = (b["value"] / a["value"] - 1) * 100
-        rounded = round(change, 1)
-        # helps the buyer when it fell, or rose by at most half of what the supplier asks for
-        bar = max(0.0, asked_pct / 2) if asked_pct is not None else 0.0
-        if rounded > bar:
-            continue
-        strength = 0.4 + min(0.5, (bar - rounded + 1) / 10) + min(0.1, weights.get(s, 0) / 3)
+        earlier, later, rounded = window
+        strength = 0.5 + min(0.4, -rounded / 10) + min(0.1, weights.get(s, 0) / 3)
         add(
             "idx",
             [f"idx:{s}@{earlier}", f"idx:{s}@{later}"],
@@ -196,7 +226,7 @@ def build_catalog(case, facts, dossier, sid, standing_price=None, asked_pct=None
                     "%",
                     f"Our forecast for this part is up {f['change_pct']:.1f}% ({fcs[-1]}).",
                     "volume",
-                    0.4,
+                    0.5,  # moved 5 of 7 practice suppliers it was cited to
                 )
 
     # Order history: 2-8 recent orders of this part from this supplier at one price, below the offer.
@@ -221,7 +251,7 @@ def build_catalog(case, facts, dossier, sid, standing_price=None, asked_pct=None
                     "EUR",
                     f"Our recent orders of this part were at {_eur(price)} per unit ({', '.join(ids)}).",
                     "price_down",
-                    0.4,
+                    PRICE_HISTORY_STRENGTH,
                 )
 
     # News about this supplier that weakens its position.

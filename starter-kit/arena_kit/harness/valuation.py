@@ -27,7 +27,8 @@ def value(case, terms, standard=None, supplier=None):
 
 
 def effort(terms, model):
-    """Estimated supplier effort for tighter lead time/quality; explicitly a prior."""
+    """Estimated supplier effort for tighter lead time/quality; explicitly a prior. `lead_effort`: share of
+    the price a day below its standard lead time costs it (overtime; more for a supplier without capacity)."""
     std, ref = model.get("standard") or {}, model.get("ref_price") or 0.0
     days = (
         max(0, std["lead_time_days"] - terms["lead_time_days"])
@@ -39,7 +40,7 @@ def effort(terms, model):
         if std.get("ppm_commitment") is not None and terms.get("ppm_commitment") is not None
         else 0
     )
-    return ref * (0.001 * days + 0.00001 * ppm)
+    return ref * (model.get("lead_effort", 0.001) * days + 0.00001 * ppm)
 
 
 def ranked_offers(case, events, supplier=None):

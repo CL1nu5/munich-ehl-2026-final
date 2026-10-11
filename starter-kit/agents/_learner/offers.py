@@ -84,6 +84,9 @@ def should_cost_row(parts_dossier, sid):
     return None
 
 
+FULL_BOOK_LEAD_EFFORT = 0.003
+
+
 def supplier_model(case, led, tags, dossier_sup, parts_dossier):
     """Our estimate of the supplier for `supplier_value` / the relationship term."""
     model = {
@@ -92,6 +95,10 @@ def supplier_model(case, led, tags, dossier_sup, parts_dossier):
         "usual_rate": 0.07,
         "ref_price": led.get("price") or 0.0,
     }
+    if "full_order_book" in tags:
+        # Sold out: a shorter lead time than its own means overtime (practice: two such suppliers charged 0.2-0.5 %
+        # of the price per day, "a shorter Lieferzeit means overtime; that is priced in", against our 0.1 % prior).
+        model["lead_effort"] = FULL_BOOK_LEAD_EFFORT
     b = case["buyer"]
     if b.get("category_goal") in RELATIONSHIP_GOALS:
         row = should_cost_row(parts_dossier, led.get("supplier_id"))
@@ -211,6 +218,14 @@ def price_for_cost(case, levers, std, model, c_target, lo, hi):
         return cost(case, {**levers, "unit_price": round(p, 2)}, std, model)
 
     c_lo, c_hi = c(lo), c(hi)
+    if c_hi is not None and (c_lo is None or c_lo > c_target):
+        # With a relationship goal C is not monotonic: far below the supplier's cost the margin penalty makes
+        # a lower price dearer for us. Start from the cheapest price on a grid (practice P02: a repriced index
+        # clause was dropped because half the price cost more than the target).
+        grid = [(c(lo + (hi - lo) * i / 40), lo + (hi - lo) * i / 40) for i in range(41)]
+        grid = [(cg, p) for cg, p in grid if cg is not None]
+        if grid:
+            c_lo, lo = min(grid)
     if c_lo is None or c_hi is None or c_lo > c_target:
         return None
     if c_hi <= c_target:

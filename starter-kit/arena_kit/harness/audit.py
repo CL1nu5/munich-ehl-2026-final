@@ -46,9 +46,12 @@ def audit(folder):
         if path == "sessions":
             session, cid = reply.get("session_id"), sent.get("case_id")
             if session and cid in records:
+                # `threads` holds the quote e-mails with term sheets and the quote PDF; `opening` is the
+                # structured /moves form without them (kept as the fallback for older journals).
+                opening = reply.get("threads") or {s: [m] for s, m in (reply.get("opening") or {}).items()}
                 sessions[session] = (
                     cid,
-                    {sid: [hydrate(session, msg)] for sid, msg in reply.get("opening", {}).items()},
+                    {sid: [hydrate(session, msg) for msg in msgs] for sid, msgs in opening.items()},
                 )
             continue
         parts = unquote(path).split("/")

@@ -92,3 +92,109 @@ showed four defects and one strategic gap:
 The replays reuse the suppliers' recorded replies, so they check our moves, not the suppliers'
 reactions to them. No practice session was used for this revision; the local simulator scores
 0.787 against 0.759 before it (scripted supplier - not a live estimate).
+
+## Revision after practice run `20261010T203905Z-7eb05c71`
+
+That run (code `84c3940`) scored 0.649. Its traces, the suppliers' back-office logs (`GET
+/v1/sessions/{sid}/backoffice`, after the end) and the replies of all four hosted runs of the day
+were read across cases. Changes are limited to patterns seen with several suppliers, not to one case:
+
+| Finding | Evidence | Change |
+|---|---|---|
+| Citing a *rising* index confirms the supplier's case | "Your figures confirm our case: that driver rose" after LCI-C +2.7 % in P01, P02, P04, P05 (14 replies) | Index claims only for a fall: the steepest window of 3-12 months ending in the series' last 6 months, at least -1 % (e.g. AS-14404 -5.5 % 2026-06 → 2026-09 against a supplier's "+5.9 % in twelve months") |
+| Price history does not move suppliers | 0 of 23 `po` citations moved a supplier (seven suppliers): "it holds, but it does not change our calculation" | `po` claims rank last; the playbook says so |
+| Volume questions unanswered | "Which volume can you commit to? Please send the exact figures" in P02, P04, P05, P11, P18; our prose stayed vague; in P05 the cheapest bidder (back office: about to make a final offer) withdrew after the next vague reply | Code answers in figures from the sheets: "Our binding volume is 6,110 pc a year over 12 months, ..." |
+| Broken e-mail text | "Our recent orders ... were at Our recent orders ...", "consider the alternatives in We could agree ...", the same question twice, "Dear Mr.\nSeidl," | A claim placeholder replaces its whole sentence; packages get their own lines; reworded repeat questions are dropped; the question filter keeps lines whole; templates greet the signer by name and no longer ask about costs after a refusal |
+| An insisted index clause was dropped again | P08, P18: "the index clause must remain in place", yet rounds 3-4 offered no clause: the insistence counter reset when we offered the clause once, and the insisted deadband was missing from the pruned menu | The counter survives our matching it; an insisted clause accepts any allowed deadband; a missing combination is built from the cheapest sheet and repriced |
+| No index clause was ever tried unless demanded | `supplier_value` counts cash only, so a clause always looked dearer | Opening round: one sheet with the widest-deadband clause at the same cost for us, when the case allows it and the supplier quoted none (not in P02: there our relationship cost makes it dearer) |
+| Repricing failed for relationship goals | `price_for_cost` bisected from half the price, where the margin penalty makes C non-monotonic | Bisection starts from the cheapest price on a grid |
+| One more round for almost nothing | P05: the cheapest bidder sat 0.7 % above our ask and walked after our next step | Accept when the offer is within 5 % of the way from the opening cost to our last ask |
+| `audit` replayed round 0 from the structured `opening` (no term sheets, no PDF) | offline replays showed e-mails without packages in round 0 | `audit` uses the session's `threads` |
+
+Not changed, but limiting: every supplier issues its final offer at a fairly fixed round (P10 round
+2, P08 3, P02 4, P01 5-6 in all four runs, whatever our anchor), while our concession schedule
+assumes up to ten rounds; and we never push a final offer without a safe fallback. No practice
+session was used for this revision; the local simulator still scores 0.787.
+
+## Recursive practice loop (night of 10-11 October)
+
+Each iteration played all ten practice cases once with the full hosted setup (`learner_openai.toml`),
+was compared with the last committed state and either committed or reverted. One run per change is
+noisy: identical asks drew supplier replies whose scores differed by up to 0.25 in a case (P08: 0.47-0.72
+with the same 4.59 first ask). Changes were therefore kept only when a pattern recurred across several
+suppliers or a defect was reproduced offline (journal replay through `decide()`); no rule is keyed to a
+case or supplier.
+
+| Run | Change | Mean | Kept |
+|---|---|---:|---|
+| `99ae196c` | the revision above (falling indices only, volume answers, near-ask acceptance) | 0.675 | yes |
+| `123f3d95` | first ask 25 % below the standing price, smaller steps | 0.648 | no |
+| `44606ca7` | the supplier's cheaper alternative levers carried into our packages; RFQ asks never above a rival's offer | 0.703 | yes |
+| `91ad699b` | sheet-ID and validation fixes, 25 % anchor cap | 0.631 | fixes only (P18 lost to an arena 503, see below) |
+| `41aa4864` | one argument per kind and message | 0.681 | yes |
+| `e4b3ea96` | larger step after two holds; no model call with three suppliers waiting | 0.689 | yes |
+| `bef03321` | 409 resync in the engine, no index claims to hedged suppliers, 25 % anchor cap | 0.672 | resync and hedged rule |
+| `f9c789a3` | only levers that stay cheap for us at the supplier's own price | 0.678 | yes |
+| `3b8b6cf9` | two arguments in every opening message, insisted values in robust sheets | interrupted (network) | no; the transport fix (no retry close to the deadline) kept |
+| `697cf46d` | RFQ: a cheaper rival bid leads every message it is new in | 0.679 (RFQ 0.67 → 0.82) | yes |
+| `6e1b739c` | index falls cited to hedged suppliers again | 0.670; 0.745 on the nine cases without the price-increase supplier's withdrawal (0.715 before) | yes |
+| `26e559b2` | sold-out suppliers: a day below their lead time costs them 0.3 % of the price (prior 0.1 %) | 0.722 | yes |
+| `376d6bfc` | quote PDFs parsed in-process when the parser process fails | 0.697 | harness fix (see below) |
+| `de4e01f0` | no concession while a bidder announced a further step after checking our data | 0.693 (RFQ 0.71) | no |
+| `21598534` | the same, and the next ask close to its price after that step | 0.691 (RFQ 0.71) | no |
+| `b5a5717d` | opening index probe built on our lead sheet (its payment term, not 14 days) | 0.652 (group supplier withdrew; stainless 0.45) | no |
+| `ecec1e5f` | confirmation of the kept state (`2631678`) | 0.713 | - |
+| `eb4c1217` | a fresh checked argument in every later message | 0.687 | no |
+
+Findings that drove the changes:
+
+- **Anchors.** Asks more than 25 % below the supplier's current price drew "your offer is far below any
+  calculation we can make" (five replies, three suppliers, none at 24 % or less) and a third of the usual
+  first concession (6.05 → 5.76 instead of 5.36, 5.74 → 5.61 instead of 5.51, 36.0 → 32.5 instead of 30.5).
+- **Concession timing.** Suppliers concede on their own schedule and issue a final offer after a few rounds
+  (often after two "holds"); the size of our step did not change the size of theirs. After two holds the
+  final offer usually came at the held price, so any agreement below it is a gain.
+- **Levers.** Suppliers mostly answer with their own price on the levers we send. A lower price with 30
+  days' payment came back as 430.01 with 30 days instead of 432.94 with 90 days (dearer for us). Packages
+  are now kept only if their levers are also cheap for us at the supplier's own price.
+- **Alternative packages reveal valuations.** A capacity-constrained supplier offered a longer lead time
+  for 6 % less; we kept asking for the short lead time and its final offer dropped the alternative. Our
+  next packages now carry the alternative's levers (snapped to allowed values) at the same cost for us;
+  P10 rose from 0.57-0.59 in every earlier run to 0.66.
+- **Arguments.** A second argument of the same kind in one message ("duplicate", "already taken into
+  account") wastes one of three checked slots; price history never moved a supplier; index falls meet
+  "not our reality" from suppliers whose material is hedged forward.
+- **Arena timing.** The arena answers one session's messages one after another (replies after 36, 54 and
+  72 s to three simultaneous messages), so the third RFQ bidder's 60 s window could expire. With three
+  suppliers waiting we decide without the model. A 409 on one late thread used to close the whole case
+  (the harness accepted a still-moving bid); the engine now refreshes all threads and continues. In one
+  run an arena 503 was retried after the arena had already recorded our timeout and the supplier's final
+  offer; the retried message read as a push after the final offer and the supplier withdrew.
+- **Rival quotes in RFQs.** Bidders shown a *much lower* rival quote give half the step at once and the
+  rest after checking it (back office: "I give half the step now and check the rest", then "Checked: give
+  the rest of the step"). The three RFQ runs that scored 0.81-0.85 cited the rival in the opening message;
+  the later ones (0.66) let the model choose and cited index and delivery data instead. The cheapest rival
+  bid now leads every message to a dearer bidder in which it is new.
+- **Hedged suppliers and index falls.** Two stainless-bar suppliers answer an index fall with "not our
+  reality", yet their first counter came lower with it (5.36-5.46 against 5.42-5.69; 5.4-5.6 against
+  5.5-5.9 over 21 runs each). The rule that dropped such claims is gone. In the same run a group supplier
+  withdrew in round 4 after four ordinary counters (one of 22 sessions of that case; it received no index
+  claim either way).
+- **Lead time with sold-out suppliers.** Both suppliers tagged with a full order book priced a shorter lead
+  time at 0.2-0.5 % of the price per day ("a shorter Lieferzeit means overtime; that is priced in"; 33.80 at
+  42 days against 31.90 at 54). Our prior of 0.1 % made the short lead time look cheap, so we only ever got
+  the long one when the supplier offered it. With 0.3 % for such suppliers our first packages already carry
+  the longer lead time at a lower price (capacity case 0.58 → 0.66, as in its best earlier runs).
+- **Quote downloads in RFQs.** The arena serves one session's requests one after another; a quote PDF
+  download could time out behind the other bidders' messages. Final offers then counted as undocumented,
+  were pushed instead of accepted, and bidders walked. The latest readable quote of the thread now documents
+  an offer (the standard terms do not change within a thread), and quotes are parsed in-process when the
+  parser process fails.
+- **Announced steps.** A bidder shown a much lower rival quote answers "we will come back to you on price"
+  and next moves to our standing ask or its floor, whichever is higher. Holding our ask in that round made
+  one bidder agree 0.59 lower, but in both runs the cheapest bidder withdrew after its step (asks 4.5 % and
+  1.2 % below its price), against one withdrawal in nine earlier runs. Not kept.
+- **Kept state.** Two runs of the kept agent scored 0.722 and 0.713. The loop stopped at the team's 300
+  practice sessions. Ideas tested and dropped: holding the ask while a bidder checks our data, an index probe
+  on our lead sheet's levers, a forced argument in later messages (replies to round-2 messages with an
+  argument had moved 1.08 % against 0.31 % without, but forcing one did not raise the score).

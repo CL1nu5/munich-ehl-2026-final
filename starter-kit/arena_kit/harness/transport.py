@@ -51,7 +51,11 @@ class Transport:
         if method == "POST" and self.cfg["profile"] != "sim" and not self.cfg["allow_arena"]:
             raise ValueError("Arena mutation is not authorized")
 
-    async def request(self, method, path, *, body=None, params=None, operation_id=None, raw=False):
+    async def request(self, method, path, *, body=None, params=None, operation_id=None, raw=False, deadline=None):
+        """`deadline` (monotonic) for a message: past RETRY_MARGIN before it, a transient failure is not
+        retried - the arena may record our timeout and the supplier's follow-up first, and a late copy of the
+        message then reads as an answer to that follow-up (practice: a retried message after a 503 arrived
+        as a push after the supplier's final offer, which withdrew)."""
         self.allowed(method, path)
         op = None
         if method == "POST":
@@ -98,6 +102,9 @@ class Transport:
             retry = response.status_code in (500, 502, 503, 504) or (
                 response.status_code == 429 and retry_after.isdigit() and 0 < int(retry_after) <= 5
             )
+            if retry and op and deadline is not None and time.monotonic() > deadline - RETRY_MARGIN:
+                self.journal.finish(op["id"], {"status": 409, "detail": "not retried: too late"}, "rejected")
+                raise ArenaError(409, f"Transient HTTP {response.status_code} too close to the reply deadline")
             if retry:
                 if attempt < 3:
                     await asyncio.sleep(float(retry_after) if retry_after.isdigit() else 0.5 * 2**attempt)
@@ -122,6 +129,9 @@ class Transport:
             if op:
                 self.journal.finish(op["id"], data)
             return data
+
+
+RETRY_MARGIN = 30  # seconds a retried message needs before its reply deadline
 
 
 class Models:
