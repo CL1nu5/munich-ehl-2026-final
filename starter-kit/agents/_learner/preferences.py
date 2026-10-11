@@ -8,6 +8,19 @@ REFUSAL = re.compile(
 )
 
 
+ASSENT = re.compile(r"\b(?:agreeable|agree|accept(?:able)?|happy to|pleased to|einverstanden|akzeptieren)\b", re.I)
+COUNTERCONDITION = re.compile(
+    r"\b(?:require|must|only|cannot|can't|won't|not|never|insist|prefer|standard|"
+    r"muss|müssen|bestehen|bevorzugen|nicht|nur|ausschließlich)\b",
+    re.I,
+)
+
+
+def assent_only(evidence):
+    """Accepting our proposed package does not prove that other packages are unacceptable."""
+    return bool(ASSENT.search(evidence)) and not COUNTERCONDITION.search(evidence)
+
+
 def observe(case, events, previous=None):
     out = dict(previous or {})
     out["fields"] = dict(out.get("fields") or {})
@@ -77,6 +90,8 @@ def update(case, led, preferences, signals):
         if field not in case["negotiable"] or field == "unit_price":
             continue
         if not isinstance(evidence, str) or len(evidence) < 12 or evidence not in (led.get("body") or ""):
+            continue
+        if assent_only(evidence):
             continue
         if not isinstance(values, list) or not values or len(values) > 8:
             continue

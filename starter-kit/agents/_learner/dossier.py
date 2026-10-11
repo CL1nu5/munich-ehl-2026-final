@@ -144,7 +144,7 @@ def supplier_dossier(pkg, sid, parts):
         if r.get("supplier_id") == sid and r.get("topic") not in ("noise", "market")
     ]
     # The release is newer than the package: newest first, so prompt cut-offs keep it.
-    news = sorted(release_news, key=lambda n: n.get("date") or "", reverse=True) + news
+    news = sorted(release_news + news, key=lambda n: (n.get("date") or "", n.get("id") or ""), reverse=True)
     d["news"] = news
     for n in news:
         for name, spec in ARCHETYPES.items():
@@ -165,7 +165,7 @@ def supplier_dossier(pkg, sid, parts):
         for r in _release_rows(pkg, "documents")
         if r.get("supplier_id") == sid and not str(r.get("id", "")).endswith("-N")
     ]
-    docs = sorted(release_docs, key=lambda doc: doc.get("date") or "", reverse=True) + docs
+    docs = sorted(release_docs + docs, key=lambda d: (d.get("date") or "", d.get("id") or ""), reverse=True)
     d["documents"] = [{k: doc.get(k) for k in ("id", "date", "kind", "subject")} for doc in docs[:12]]
     for doc in docs:
         text = _read(doc["base"], doc.get("file") or "")

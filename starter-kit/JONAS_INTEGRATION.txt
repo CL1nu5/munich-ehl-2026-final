@@ -1,0 +1,49 @@
+Integration von Jonas' neuestem Stand – 11.10.2026
+
+Neue Basis
+Jonas-Branch: feature/jonas-linus-enhanced, a357bab.
+In main übernommen durch PR #9, Merge-Commit 35027a9.
+Lokaler Arbeitszweig: codex/jonas-mac-integration.
+Der vorherige Mac-Stand f91912e bleibt zusätzlich unter
+archive/pre-jonas-integration-20261011 erhalten.
+
+Vergleich und Auswahl
+Jonas' neue Lieferantenerkennung und seine Projektkonfiguration werden
+vollständig aus dem aktuellen Teamstand übernommen. Die Erkennung war
+inhaltlich bereits bei uns vorhanden; unser früherer Cherry-Pick davon wird
+nicht ein zweites Mal eingebaut. Jonas' Modellkonfiguration bleibt erhalten.
+
+Zusätzlich übernommen, weil im Teamstand noch nicht enthalten:
+- Offizielles Sonntags-Datenpaket und Priorisierung neuer Lieferantenbelege.
+- Offizieller lokaler Final-Rehearsal-Simulator samt Prüfungen.
+- Mac-Starter mit vorhandenen, weiterhin von Git ausgeschlossenen Schlüsseln.
+- Abgleich mit dem aktuellen Arena-Status nach Thread-Timeouts.
+- Schutz vor zu späten Wiederholungen fehlgeschlagener Nachrichten.
+- Wiederverwendung erfolgreich gelesener Anhänge, getrennt je Sitzung.
+- Unterscheidung zwischen Zustimmung und einer Lieferantenforderung.
+- Zugehörige lokale Fehler- und Integrationstests.
+
+Nicht übernommen
+Die lediglich binär abweichende Kopie von world.sqlite wurde nicht
+übertragen. Jonas' Datenbank bleibt bytegleich erhalten. Beide Versionen
+haben nach logischem Vergleich denselben Inhalt, 24 Tabellen und eine
+fehlerfreie SQLite-Integritätsprüfung. Der frühere Evidence-Agent und
+verworfene Verhandlungsexperimente wurden nicht wieder eingebaut.
+
+Einordnung
+Die zusätzlichen Korrekturen beheben lokal reproduzierte Fehler; sie sind
+kein Beweis, dass der Agent mehr Arena-Punkte erzielt als Jonas' Stand.
+Es gab hier keinen neuen Practice-, Hosted-Sandbox- oder Modellaufruf.
+Der letzte echte Score von 69,76 % gehört zum vorherigen Lauf, nicht zu
+dieser Integration. Der neue Stand wird lokal gesichert, nicht in main
+gepusht oder für das Finale eingereicht.
+
+Abschließende Prüfung
+- Vollständige Tests auf dem kombinierten Stand: 216 bestanden,
+  1 Hosted-Test absichtlich nicht ausgeführt; Laufzeit 97,06 Sekunden.
+- Ruff über alle gegenüber main geänderten Python-Dateien erfolgreich.
+- git diff --check erfolgreich.
+- Lokaler Bereitschaftscheck erfolgreich, alle vorhandenen Laufjournale
+  vollständig und SQLite-integritätsgeprüft; model_called=false.
+- Jonas' Branch und main am Ende erneut auf GitHub geprüft: unverändert
+  a357bab bzw. 35027a9. Damit ist der zuletzt verfügbare Stand enthalten.

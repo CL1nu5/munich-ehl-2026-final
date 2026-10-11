@@ -1,0 +1,70 @@
+Sonntags-Review und Branch-Aufräumen – 11.10.2026
+
+Ausgangspunkt
+Letzter echter Lauf: 20261011T071158Z-19398269, Code 67fadcd.
+69,76 % Durchschnitt, 10/10 Abschlüsse. Die größten Lücken lagen bei P02
+(36,84 %), P18 (46,15 %) und P08 (53,76 %). Dieser Review startet keinen
+weiteren Practice-/Sandbox-Lauf und verwendet keine externe Modell-API.
+90 % sind ein Ziel, kein durch diese Änderungen belegtes Ergebnis.
+
+1. Zustimmung wurde als Forderung behandelt
+In P18 stimmte der Lieferant unserem Paket mit 14 Tagen Zahlung und 24
+Monaten Vertragsdauer zu. Das Modell leitete daraus einschränkende
+Lieferantenpräferenzen ab. Dadurch konnte es spätere Pakete unnötig
+beschränken. Der Zahlen-Prompt unterscheidet nun ausdrücklich zwischen
+Zustimmung und Gegenbedingung. Zusätzlich verwirft der Code Signale mit
+reiner Zustimmung ohne erkennbare Gegenbedingung. Explizite Anforderungen,
+Ablehnung und wiederholte Gegenangebote bleiben berücksichtigt.
+Die Prüfung ist eine schmale sprachliche Heuristik und keine vollständige
+semantische Garantie für jede mögliche Formulierung. Tests verwenden
+synthetische Fälle, mehrere Formulierungen und ausdrückliche Ablehnungen;
+keine Fall-ID oder verborgene Zielpreise steuern das Verhalten.
+
+2. Neue Sonntagsinformationen
+Jonas' Commit be63f4e wurde als cb484c1 übernommen. Er ergänzt Insolvenz
+als Liquiditätssignal und neue Formulierungen zu festen Preislisten und
+bereits abgesicherten Materialpreisen. Dies adressiert die zuvor fehlende
+Erkennung passender Lieferantensituationen. Es beweist noch keinen höheren
+Verhandlungsscore. Die bestehende Strategie von Linus bleibt die Basis.
+
+3. Dokumente und Zeitbudget
+Nach jeder Zustandsabfrage wurden historische Anhänge erneut in Text
+umgewandelt, auch wenn ihre Bytes schon lokal vorlagen. Erfolgreich gelesene
+Texte werden nun innerhalb des laufenden Engine-Prozesses wiederverwendet.
+Der Schlüssel enthält Sitzung, Anhang-ID und Dateiname. Der Cache hält
+maximal 128 Texte mit je höchstens 1 MiB. Fehler werden nicht gespeichert.
+Ein Test verhindert erneutes Parsen derselben Anhänge, ein weiterer prüft
+die Trennung von Sitzungen und Dateinamen. Das spart wiederholte Parserarbeit;
+es ist keine Garantie gegen langsame Arena-Antworten. Im letzten Lauf gab
+es drei Dokument- und zwei Arena-Thread-Timeouts in P05.
+
+4. GitHub aufgeräumt
+Entfernt: codex/evidence-negotiator, der ersetzte Altansatz mit geschlossenem
+PR #5. Vorher vollständige lokale Sicherung des Standes 6b195292 angelegt:
+/Users/leon/Desktop/EHL/backups/evidence-negotiator-20261011.bundle
+Die Sicherung wurde mit Git geprüft; der lokale Archiv-Branch bleibt.
+Gelöscht wurde mit erwarteter Commit-ID, um zwischenzeitliche Änderungen
+anderer Teammitglieder nicht unbemerkt zu entfernen.
+
+Bewusst erhalten:
+- codex/arena-harness: trotz früher gemergtem PR neuere, nicht übernommene
+  README-Änderungen an der Spitze.
+- codex/team-data-guide: geschlossener, nicht gemergter PR mit eigenem Guide.
+- main, next-iter-linus und feature/jonas-linus-enhanced: aktuelle Teamarbeit.
+
+Grenzen
+Die lokalen Tests prüfen konkrete Fehler und Schnittstellen. Sie messen
+keinen neuen Arena-Score und können eine Verbesserung auf 90 % nicht
+belegen. Die Änderungen werden lokal auf codex/sunday-readiness gesichert;
+sie werden in diesem Arbeitsschritt nicht in den gemeinsamen Hauptzweig
+gepusht oder als Finalteilnahme veröffentlicht.
+
+Validierung nach den Änderungen
+- Vollständige lokale Testsammlung: 216 bestanden, 1 ausgelassen, 98,41 s.
+- Der ausgelassene Test ist der ausdrücklich freizuschaltende Hosted-Test;
+  er bleibt aus, weil kein neuer echter Arena-Lauf angefordert wurde.
+- 19 neue Regressionstests prüfen Zustimmung, echte Gegenbedingungen,
+  wiederholte Dokumente und die Trennung verschiedener Sitzungen/Dateinamen.
+- Die ursprünglichen Fehler wurden vor der Korrektur reproduziert.
+- Ruff für die geänderten Python-Dateien und git diff --check erfolgreich.
+- Keine neuen Arena-Sitzungen, keine zusätzlichen Modellaufrufe.

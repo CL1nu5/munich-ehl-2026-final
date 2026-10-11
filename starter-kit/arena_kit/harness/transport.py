@@ -70,8 +70,16 @@ class Transport:
                 error = json.loads(op["response"])
                 raise ArenaError(error["status"], error["detail"])
         headers = {"X-Move-Id": op["id"]} if op else {}
+
+        def reject_late_retry():
+            if op and deadline is not None and time.monotonic() >= deadline - RETRY_MARGIN:
+                self.journal.finish(op["id"], {"status": 409, "detail": "not retried: too late"}, "rejected")
+                raise ArenaError(409, "Retry too close to reply deadline; refresh server state")
+
         for attempt in range(4):
             await self.pace()
+            if attempt:
+                reject_late_retry()
             start = time.monotonic()
             try:
                 response = await self.http.request(
@@ -86,6 +94,7 @@ class Transport:
                     elapsed=time.monotonic() - start,
                     retry=attempt > 0,
                 )
+                reject_late_retry()
                 if attempt == 3:
                     raise UncertainRequest(f"Unresolved {method} {path}; journal retained") from None
                 await asyncio.sleep(0.5 * 2**attempt)

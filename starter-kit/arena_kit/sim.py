@@ -8,8 +8,11 @@ final offer from round 5 and walks away if you push after that. It checks cited 
 whether the ID exists. The simulator teaches the contract; the real suppliers think for themselves.
 
     arena-sim serve [--port 8000] [--data <data package>] [--event-code sim] [--no-clock]
+                    [--final-rehearsal [--rehearsal-wait 60] [--rehearsal-cap 240] [--rehearsal-break 30]]
 
 --no-clock switches the 60-second rule off (threads wait forever) to try the API by hand.
+--final-rehearsal plays the Live Final's mechanics on the demo cases: a wait (403), then two waves
+with a cap and a break between them, as on the arena.
 """
 
 import argparse
@@ -35,6 +38,7 @@ ID_RE = re.compile(r"\b(?:idx|quote|offer|sc|qn|po|cost|fc|news|doc|ctr):[\w.:@#
 LATE = "late: more than 60 s after the supplier's last move, so it counted as a timeout"
 NAMES = {field: label for label, field in LABELS.items()}
 SIGNALS = {"reply_delay_days": 1, "validity_days": 30}
+NOT_STARTED = "the final has not started; its cases appear wave by wave"  # the arena's words
 
 
 def _fmt(v):
@@ -112,6 +116,48 @@ class Sim:
         self.no_clock = no_clock  # no 60-second rule: to try the API by hand
         self.teams, self.sessions, self.replies, self.calls = {}, {}, {}, {}
         self.ids, self.lock = itertools.count(1), threading.Lock()
+        self.final, self.rehearsal = {}, None  # final case_id -> (wave, case); (start, cap, break)
+
+    # -- the Live Final rehearsal --------------------------------------------------------------
+    def rehearse(self, wait=60, cap=240, brk=30):
+        """Two waves of the demo cases as final cases: the first after `wait` seconds, each open
+        for `cap` seconds, `brk` seconds apart. Returns the waves."""
+        self.rehearsal = (self.clock() + wait, cap, brk)
+        for n, (cid, case) in itertools.product((1, 2), self.cases.items()):
+            fid = f"case:R{n}-{cid[5:]}"
+            self.final[fid] = (n, {**case, "case_id": fid, "set": "hidden"})
+        return self.waves()
+
+    def waves(self):
+        if not self.rehearsal:
+            return []
+        (start, cap, brk), now, out = self.rehearsal, self.clock(), []
+        for n in (1, 2):
+            opens = start + (n - 1) * (cap + brk)
+            closes = opens + cap
+            left = max(0, round(closes - now)) if now >= opens else None
+            out.append({"n": n, "theme": f"Rehearsal {n}", "opens": opens, "closes": closes, "started": now >= opens,
+                        "running": opens <= now < closes, "closed": now >= closes, "seconds_left": left})  # fmt: skip
+        return out
+
+    def final_cases(self, team):
+        """GET /v1/cases?set=final: the cases of every started wave, each team in its own order."""
+        started = [w for w in self.waves() if w["started"]]
+        if not started:
+            raise Fail(403, NOT_STARTED)
+        out = []
+        for w in started:
+            mine = sorted((c for c, (n, _) in self.final.items() if n == w["n"]),
+                          key=lambda c: hashlib.sha256(f"{team}|{c}".encode()).hexdigest())  # fmt: skip
+            info = {"wave": w["n"], "theme": w["theme"], "open": w["running"], "seconds_left": w["seconds_left"]}
+            out += [{**self.final[c][1], **info} for c in mine]
+        return out
+
+    def _capped(self, s):
+        """At its wave's cap a final session still open ends without a deal. True once ended."""
+        if s["wave"] and s["status"] == "open" and self.waves()[s["wave"] - 1]["closed"]:
+            self._end(s, "wave_cap", None)
+        return s["status"] != "open"
 
     # -- the scripted supplier -----------------------------------------------------------------
     def _mail(self, s, th, status, stated, text, files=()):
@@ -190,12 +236,21 @@ class Sim:
 
     # -- sessions ------------------------------------------------------------------------------
     def open(self, team, case_id):
-        case = self.cases.get(case_id)
+        case, (wave, final) = self.cases.get(case_id), self.final.get(case_id, (None, None))
+        if wave:
+            w = self.waves()[wave - 1]
+            if not w["started"]:  # a wave not started yet: as unknown as a wrong ID
+                raise Fail(404, "no such case")
+            if not w["running"]:
+                raise Fail(403, f"{case_id} belongs to wave {wave}, which is not running")
+            if old := [s["id"] for s in self._mine(team, "final") if s["case"]["case_id"] == case_id]:
+                raise Fail(409, f"one session per case in the final: {old[0]}")
+            case = final
         if case is None:
             raise Fail(404, "no such case")
-        if sum(s["status"] == "open" for s in self._mine(team)) >= MAX_OPEN:
+        if sum(not self._capped(s) for s in self._mine(team)) >= MAX_OPEN:
             raise Fail(429, f"at most {MAX_OPEN} open sessions per key")
-        if (p := self.practice(team))["left"] == 0:  # no Retry-After: retrying does not help
+        if not wave and (p := self.practice(team))["left"] == 0:  # no Retry-After: retrying does not help
             raise Fail(429, f"practice limit: {PRACTICE_LIMIT} sessions per team in 24 hours; resets_at "
                        f"{p['resets_at']}", {REMAINING: "0"})  # fmt: skip
         sid, current = f"sim{next(self.ids)}", case["buyer"].get("current_unit_price")
@@ -203,6 +258,8 @@ class Sim:
             "id": sid,
             "team": team,
             "case": case,
+            "set": "final" if wave else "practice",
+            "wave": wave,
             "status": "open",
             "end_reason": None,
             "threads": {},
@@ -239,12 +296,12 @@ class Sim:
             "threads": {k: list(th["messages"]) for k, th in s["threads"].items()},
         }
 
-    def _mine(self, team):
-        return [s for s in self.sessions.values() if s["team"] == team]
+    def _mine(self, team, set_=None):
+        return [s for s in self.sessions.values() if s["team"] == team and set_ in (None, s["set"])]
 
     def practice(self, team):
         """The team's practice quota in the rolling 24 hours, as GET /v1/me shows it."""
-        day = sorted(s["created_at"] for s in self._mine(team) if s["created_at"] > self.clock() - DAY_S)
+        day = sorted(s["created_at"] for s in self._mine(team, "practice") if s["created_at"] > self.clock() - DAY_S)
         frees = datetime.datetime.fromtimestamp(day[0] + DAY_S, datetime.UTC).isoformat() if day else None
         return {
             "used": len(day),
@@ -264,7 +321,7 @@ class Sim:
         """The 60-second rule: a supplier left waiting counts a timeout - its offer stands; the
         third in a row (or one after the last round) ends the thread. Returns who just got one."""
         late = set()
-        if self.no_clock:
+        if self._capped(s) or self.no_clock:
             return late
         for sup, th in s["threads"].items():
             while s["status"] == "open" and not th["closed"] and self.clock() > th["last_at"] + MOVE_S:
@@ -333,6 +390,9 @@ class Sim:
 
     def message(self, team, sid, sup, msg):
         s = self.session(team, sid)
+        if s["end_reason"] == "wave_cap":
+            minutes = round(self.rehearsal[1] / 60)
+            raise Fail(409, f"wave {s['wave']} ended at its {minutes}-minute cap: this case closed without a deal")
         if s["status"] != "open":
             raise Fail(409, f"the session has ended: {s['end_reason']}")
         if sup not in s["threads"]:
@@ -409,7 +469,7 @@ class Sim:
         out = {
             "session_id": sid,
             "case_id": s["case"]["case_id"],
-            "set": "practice",
+            "set": s["set"],
             "status": s["status"],
             "end_reason": s["end_reason"],
             "threads": threads,
@@ -437,7 +497,7 @@ class Sim:
     def board(self):
         rows = []
         for team, name in self.teams.items():
-            best, ended = {}, [s for s in self._mine(team) if s["result"]]
+            best, ended = {}, [s for s in self._mine(team, "practice") if s["result"]]
             for s in ended:
                 best[s["case"]["case_id"]] = max(best.get(s["case"]["case_id"], 0), s["result"]["score"])
             total = round(100 * sum(best.values()) / len(self.cases), 1)
@@ -571,20 +631,21 @@ def create_app(sim):
     @app.get("/v1/cases")
     def cases(request: Request, set: str = "practice"):
         if set == "final":
-            raise Fail(403, "the final window is not open")
+            return read(request, sim.final_cases)
         return read(request, lambda t: [{**c, "hosted": True} for c in sim.cases.values()])
 
     @app.post("/v1/sessions")
     def create(request: Request, body: dict, response: Response):
         reply = act(request, body, lambda t: sim.open(t, body.get("case_id")))
-        response.headers[REMAINING] = str(read(request, sim.practice)["left"])
+        if body.get("case_id") not in sim.final:  # practice starts only
+            response.headers[REMAINING] = str(read(request, sim.practice)["left"])
         return reply
 
     @app.get("/v1/me")
     def me(request: Request):
         def fn(t):
             best = {}
-            for x in sim._mine(t):
+            for x in sim._mine(t, "practice"):
                 if x["result"]:
                     best[x["case"]["case_id"]] = max(best.get(x["case"]["case_id"], 0), x["result"]["score"])
             return {"team_name": sim.teams[t], "status": "active", "practice": sim.practice(t), "best": best}
@@ -603,7 +664,7 @@ def create_app(sim):
                     **{k: (s["result"] or {}).get(k) for k in ("deal", "score")},
                     "created_at": s["created_at"],
                 }
-                for s in sim._mine(t)
+                for s in sim._mine(t, "final" if set == "final" else "practice")
             ],
         )
 
@@ -709,6 +770,10 @@ def main(argv=None):
     ap.add_argument("--data", help="data package folder: cited IDs are checked against it")
     ap.add_argument("--event-code", default="sim")
     ap.add_argument("--no-clock", action="store_true", help="no 60-second rule: threads wait forever (by hand)")
+    ap.add_argument("--final-rehearsal", action="store_true", help="rehearse the Live Final: a wait, then 2 waves")
+    ap.add_argument("--rehearsal-wait", type=float, default=60, help="seconds until wave 1 starts")
+    ap.add_argument("--rehearsal-cap", type=float, default=240, help="seconds each wave runs")
+    ap.add_argument("--rehearsal-break", type=float, default=30, help="seconds between the waves")
     a = ap.parse_args(argv)
     facts = {}
     if a.data:
@@ -721,5 +786,14 @@ def main(argv=None):
         print("arena-sim: --no-clock - no 60-second rule, threads wait forever (the arena keeps the rule)", flush=True)
     else:
         print("arena-sim: the 60-second rule is on, as on the arena (--no-clock switches it off)", flush=True)
-    app = create_app(Sim(load_cases(), facts, a.event_code, no_clock=a.no_clock))
-    uvicorn.run(app, host=a.host, port=a.port)
+    sim = Sim(load_cases(), facts, a.event_code, no_clock=a.no_clock)
+    if a.final_rehearsal:
+        at = lambda t: time.strftime("%H:%M:%S", time.localtime(t))  # noqa: E731
+        print("arena-sim: --final-rehearsal - the Live Final's mechanics on the demo cases:", flush=True)
+        for w in sim.rehearse(a.rehearsal_wait, a.rehearsal_cap, a.rehearsal_break):
+            ids = ", ".join(c for c, (n, _) in sim.final.items() if n == w["n"])
+            print(f"  until {at(w['opens'])}  {'403, no wave yet' if w['n'] == 1 else 'break'}", flush=True)
+            print(f'  {at(w["opens"])}  wave {w["n"]} "{w["theme"]}" starts: {ids}', flush=True)
+            print(f"  {at(w['closes'])}  its cap: open sessions end without a deal (wave_cap)", flush=True)
+        print("  then the rehearsal is over: `arena run --set final --waves 2` stops there", flush=True)
+    uvicorn.run(create_app(sim), host=a.host, port=a.port)

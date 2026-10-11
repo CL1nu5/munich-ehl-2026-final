@@ -72,7 +72,7 @@ def main(argv=None):
     a.add_argument("--agent", default="naive", choices=["naive", "llm"])
     a.add_argument("--data", **data)
     a.add_argument("--parallel", type=int, default=8, help="cases at once (at most 10)")
-    a.add_argument("--waves", type=int, default=5, help="final: stop after this many waves have closed")
+    a.add_argument("--waves", type=int, default=5, help="final: stop after this many waves have closed (rehearsal: 2)")
     d = sub.add_parser("data", help="download and unpack the data (package, Sunday release once public)")
     d.add_argument("--out", default="data", help="folder to unpack into")
     sub.add_parser("me", help="your team: practice quota used and left, best score per case")
