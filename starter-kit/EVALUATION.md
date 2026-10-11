@@ -139,6 +139,9 @@ case or supplier.
 | `697cf46d` | RFQ: a cheaper rival bid leads every message it is new in | 0.679 (RFQ 0.67 → 0.82) | yes |
 | `6e1b739c` | index falls cited to hedged suppliers again | 0.670; 0.745 on the nine cases without the price-increase supplier's withdrawal (0.715 before) | yes |
 | `26e559b2` | sold-out suppliers: a day below their lead time costs them 0.3 % of the price (prior 0.1 %) | 0.722 | yes |
+| `376d6bfc` | quote PDFs parsed in-process when the parser process fails | 0.697 | harness fix (see below) |
+| `de4e01f0` | no concession while a bidder announced a further step after checking our data | 0.693 (RFQ 0.71) | no |
+| `21598534` | the same, and the next ask close to its price after that step | 0.691 (RFQ 0.71) | no |
 
 Findings that drove the changes:
 
@@ -179,3 +182,12 @@ Findings that drove the changes:
   42 days against 31.90 at 54). Our prior of 0.1 % made the short lead time look cheap, so we only ever got
   the long one when the supplier offered it. With 0.3 % for such suppliers our first packages already carry
   the longer lead time at a lower price (capacity case 0.58 → 0.66, as in its best earlier runs).
+- **Quote downloads in RFQs.** The arena serves one session's requests one after another; a quote PDF
+  download could time out behind the other bidders' messages. Final offers then counted as undocumented,
+  were pushed instead of accepted, and bidders walked. The latest readable quote of the thread now documents
+  an offer (the standard terms do not change within a thread), and quotes are parsed in-process when the
+  parser process fails.
+- **Announced steps.** A bidder shown a much lower rival quote answers "we will come back to you on price"
+  and next moves to our standing ask or its floor, whichever is higher. Holding our ask in that round made
+  one bidder agree 0.59 lower, but in both runs the cheapest bidder withdrew after its step (asks 4.5 % and
+  1.2 % below its price), against one withdrawal in nine earlier runs. Not kept.
