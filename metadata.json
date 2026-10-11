@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4MYMH996V7E88FCNA68JHM7",
+  "strategy": "manual-commit",
+  "branch": "owl-review-sunday-release",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "README.md",
+    "data/release-sunday/README.md",
+    "data/release-sunday/correspondence/20261001-70510-S5.md",
+    "data/release-sunday/correspondence/20261002-70720-S6.md",
+    "data/release-sunday/correspondence/20261005-70250-S2.md",
+    "data/release-sunday/correspondence/20261008-70650-S10.md",
+    "data/release-sunday/correspondence/20261009-HPW-MEMO.md",
+    "data/release-sunday/data/documents.csv",
+    "data/release-sunday/data/news.csv",
+    "data/release-sunday/facts.json",
+    "starter-kit/agents/_learner/dossier.py",
+    "starter-kit/agents/_learner/priors.py",
+    "starter-kit/tests/test_learner_agent.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 74,
+    "cache_creation_tokens": 84263,
+    "cache_read_tokens": 2956989,
+    "output_tokens": 22129,
+    "api_call_count": 37
+  }
+}
