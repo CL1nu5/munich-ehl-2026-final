@@ -244,6 +244,8 @@ def play_waves(client, new_agent, waves=5, parallel=10, poll=5.0):
                 cases = []
             for case in cases:
                 if not case.get("open"):
+                    if case["wave"] not in closed:
+                        log.warning("wave %s closed (%d of %d)", case["wave"], len(closed) + 1, waves)
                     closed.add(case["wave"])
                     continue
                 if case.get("seconds_left") is not None:  # each wave has its own cap; follow an extension

@@ -143,6 +143,7 @@ def supplier_dossier(pkg, sid, parts):
         for r in _release_rows(pkg, "news")
         if r.get("supplier_id") == sid and r.get("topic") not in ("noise", "market")
     ]
+    news.sort(key=lambda row: (row.get("date") or "", row.get("id") or ""), reverse=True)
     d["news"] = news
     for n in news:
         for name, spec in ARCHETYPES.items():
@@ -161,6 +162,7 @@ def supplier_dossier(pkg, sid, parts):
     for r in _release_rows(pkg, "documents"):
         if r.get("supplier_id") == sid and not str(r.get("id", "")).endswith("-N"):
             docs.append({**{k: r.get(k) for k in ("id", "date", "kind", "subject", "file")}, "base": pkg.release})
+    docs.sort(key=lambda row: (row.get("date") or "", row.get("id") or ""), reverse=True)
     d["documents"] = [{k: doc.get(k) for k in ("id", "date", "kind", "subject")} for doc in docs[:12]]
     for doc in docs:
         text = _read(doc["base"], doc.get("file") or "")

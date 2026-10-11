@@ -12,6 +12,7 @@ import pytest
 
 from arena_kit import ArenaClient, ArenaError, RemoteTable, play, play_all
 from arena_kit.agents import LLMAgent, NaiveAgent
+from arena_kit.cost import score
 from arena_kit.docs import quote_terms
 from arena_kit.play import fetch_documents, play_waves
 
@@ -308,3 +309,71 @@ def test_each_wave_plays_to_its_own_cap(sim, monkeypatch):
     script = [[(*one, True)], [(*one, False), (*two, True)], [(*one, False), (*two, False)]]
     play_waves(Waves(team(url), script, caps={1: 480, 2: 600}), NaiveAgent, waves=2, poll=0)
     assert 470 < seen["case:S01"] <= 480 and 590 < seen["case:S02"] <= 600  # 8 minutes; wave 2 extended by 2
+
+
+def test_the_final_rehearsal_timeline(sim):
+    url, state, clock = sim
+    state.rehearse(wait=60, cap=240, brk=30)  # arena-sim serve --final-rehearsal
+    client = team(url)
+
+    def fails(call, status, detail):
+        with pytest.raises(ArenaError) as e:
+            call()
+        assert e.value.status == status and e.value.detail == detail
+
+    fails(lambda: client.cases("final"), 403, "the final has not started; its cases appear wave by wave")
+    fails(lambda: client.open_session("case:R1-S01"), 404, "no such case")
+    clock.now += 60  # wave 1 starts
+    listing = client.cases("final")
+    assert sorted(c["case_id"] for c in listing) == ["case:R1-S01", "case:R1-S02", "case:R1-S03"]
+    assert all(c["wave"] == 1 and c["theme"] == "Rehearsal 1" and c["open"] for c in listing)
+    assert {c["seconds_left"] for c in listing} == {240}
+    sid = client.open_session("case:R1-S01")["session_id"]
+    fails(lambda: client.open_session("case:R1-S01"), 409, f"one session per case in the final: {sid}")
+    fails(lambda: client.open_session("case:R2-S01"), 404, "no such case")
+    assert [s["session_id"] for s in client.sessions("final")] == [sid] and client.sessions() == []
+    assert client.me()["practice"]["used"] == 0 and client.session(sid)["set"] == "final"
+    clock.now += 100
+    assert {c["seconds_left"] for c in client.cases("final")} == {140}
+    clock.now += 140  # the cap
+    state_ = client.session(sid)
+    assert state_["end_reason"] == "wave_cap" and not state_["result"]["deal"]
+    r = state_["result"]  # no deal: the alternative's score
+    assert r["c_deal"] is None and r["score"] == (score(r["c_open"], r["c_alt"], r["c_best"]) if r["c_alt"] else 0)
+    fails(
+        lambda: client.send_message(sid, "sup:70270", {"term_sheets": []}),
+        409,
+        "wave 1 ended at its 4-minute cap: this case closed without a deal",
+    )
+    fails(lambda: client.open_session("case:R1-S02"), 403, "case:R1-S02 belongs to wave 1, which is not running")
+    assert all(not c["open"] and c["seconds_left"] == 0 for c in client.cases("final"))
+    clock.now += 30  # the break: wave 2 starts
+    listing = client.cases("final")
+    assert len(listing) == 6 and {c["wave"] for c in listing if c["open"]} == {2}
+    sid2 = client.open_session("case:R2-S03")["session_id"]
+    clock.now += 240  # the rehearsal is over
+    assert client.session(sid2)["end_reason"] == "wave_cap"
+    assert not any(c["open"] for c in client.cases("final"))
+
+
+def test_the_runner_plays_both_rehearsal_waves(sim):
+    url, state, _ = sim
+    state.clock = time.time  # a real clock: the runner reads time.time() for each wave's cap
+    state.rehearse(wait=0.3, cap=2, brk=0.3)
+    out = play_waves(team(url), NaiveAgent, waves=2, poll=0.05)  # returns once both waves have closed
+    assert sorted(out) == [f"case:R{n}-S0{i}" for n in (1, 2) for i in (1, 2, 3)]
+    assert all(r["ended"] for r in out.values())
+
+
+def test_serve_prints_the_rehearsal_timeline(monkeypatch, capsys):
+    pytest.importorskip("uvicorn")
+    import uvicorn
+
+    from arena_kit import sim as sim_mod
+
+    built = []
+    monkeypatch.setattr(sim_mod, "create_app", built.append)
+    monkeypatch.setattr(uvicorn, "run", lambda *a, **k: None)
+    sim_mod.main(["serve", "--final-rehearsal", "--rehearsal-cap", "120"])
+    (_, cap, brk), out = built[0].rehearsal, capsys.readouterr().out
+    assert cap == 120 and brk == 30 and 'wave 2 "Rehearsal 2" starts: case:R2-S01' in out and "rehearsal is over" in out

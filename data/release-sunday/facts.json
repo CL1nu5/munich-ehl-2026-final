@@ -1,0 +1,88 @@
+{
+"doc:20261001-70510-S5": {
+"asked_pct": null,
+"asked_price": null,
+"date": "2026-10-01",
+"days": null,
+"effective_date": null,
+"supplier": "sup:70510",
+"title": "Price list 2027",
+"type": "letter"
+},
+"doc:20261002-70720-S6": {
+"asked_pct": null,
+"asked_price": null,
+"date": "2026-10-02",
+"days": null,
+"effective_date": null,
+"supplier": "sup:70720",
+"title": "Bar steel purchasing",
+"type": "letter"
+},
+"doc:20261005-70250-S2": {
+"asked_pct": null,
+"asked_price": null,
+"date": "2026-10-05",
+"days": null,
+"effective_date": null,
+"supplier": "sup:70250",
+"title": "Payment of invoices from November",
+"type": "letter"
+},
+"doc:20261008-70650-S10": {
+"asked_pct": null,
+"asked_price": null,
+"date": "2026-10-08",
+"days": null,
+"effective_date": null,
+"supplier": "sup:70650",
+"title": "Prices and conditions in the Strelvo group",
+"type": "letter"
+},
+"doc:20261009-HPW-MEMO": {
+"asked_pct": null,
+"asked_price": null,
+"date": "2026-10-09",
+"days": null,
+"effective_date": null,
+"supplier": null,
+"title": "Market memo, October 2026",
+"type": "memo"
+},
+"news:20261002-S3": {
+"date": "2026-10-02",
+"headline": "Credit insurer withdraws cover for Oberflächentechnik Weißacher GmbH",
+"supplier": "sup:70350",
+"topic": "credit_downgrade"
+},
+"news:20261006-S1": {
+"date": "2026-10-06",
+"headline": "Odlewnia Kalwisz Sp. z o.o. files for insolvency",
+"supplier": "sup:70140",
+"topic": "insolvency"
+},
+"news:20261006-S9": {
+"date": "2026-10-06",
+"headline": "Strelvo group acquires Verbindungstechnik Mairhofer GmbH",
+"supplier": "sup:70650",
+"topic": "acquisition"
+},
+"news:20261007-S7": {
+"date": "2026-10-07",
+"headline": "Pump makers report stable order intake",
+"supplier": null,
+"topic": "market"
+},
+"news:20261008-S4": {
+"date": "2026-10-08",
+"headline": "Konvertek Antriebselektronik GmbH: semiconductor supply back to normal",
+"supplier": "sup:70540",
+"topic": "supply_normalises"
+},
+"news:20261009-S8": {
+"date": "2026-10-09",
+"headline": "Schraubenhandel Leitner & Sohn GmbH opens a new logistics centre",
+"supplier": "sup:70610",
+"topic": "noise"
+}
+}

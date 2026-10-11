@@ -1,0 +1,24 @@
+Sunday integration – 11 October 2026
+
+Base: Linus next-iter-linus at d711262.
+Official kit source: tacto-ai/negotiation-arena-kit at 273a9bc.
+Official data source: https://arena.tacto.ai/v1/data
+
+Installed both currently published packages. The base package has identical logical SQLite contents; the original database is backed up outside the repository. The additive Sunday release is in data/release-sunday and contains 11 new citable facts, 6 news rows and 5 documents (including the market memo). No base fact IDs are replaced. Market indices remain frozen at September 2026.
+
+The existing DataPackage and Linus dossier readers load the release automatically. Supplier news and documents now sort newest first before prompt truncation, so fresh evidence cannot be hidden behind older rows. No changes to Linus negotiation price/concession strategy.
+
+Ported the official final-rehearsal simulator, CLI help and wave-close logging. Retained the team's explicit --arena-live guard and network-blocking test fixture. No external practice or sandbox sessions were opened.
+
+Local starter: from starter-kit, ../.venv/bin/python run_local.py
+Defaults to a read-only local doctor. Existing OPENAI_API_KEY in ignored .env.local is mapped to LLM_API_KEY in process memory only. Explicit LLM_API_KEY wins. Arena credentials may be passed in the environment; for an explicit hosted command, an absent credential is requested using hidden input and never saved. No new keys were created or printed.
+
+Validation:
+- Full local suite: 181 passed, 1 hosted test intentionally skipped.
+- Data/credential integration file after adding two credential regressions: 5 passed (3 already included in full suite; 2 additional).
+- Targeted data + official simulator suite: 22 passed, 1 hosted test skipped.
+- Ruff check and git diff --check passed.
+- Local doctor reads 24 base tables and the updated data hash, no model call.
+- Database integrity check passed; old/new database logical contents identical.
+
+Not performed: hosted quota/open-session/authentication preflight, OpenAI request, Practice, hosted Sandbox, deployment, push or submission. Therefore no new negotiation performance claim follows from these local tests. Before a real run, check the existing team's quota and open sessions, load its existing Arena key, and explicitly launch the chosen profile/config.
