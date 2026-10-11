@@ -137,6 +137,7 @@ case or supplier.
 | `f9c789a3` | only levers that stay cheap for us at the supplier's own price | 0.678 | yes |
 | `3b8b6cf9` | two arguments in every opening message, insisted values in robust sheets | interrupted (network) | no; the transport fix (no retry close to the deadline) kept |
 | `697cf46d` | RFQ: a cheaper rival bid leads every message it is new in | 0.679 (RFQ 0.67 → 0.82) | yes |
+| `6e1b739c` | index falls cited to hedged suppliers again | 0.670; 0.745 on the nine cases without the price-increase supplier's withdrawal (0.715 before) | yes |
 
 Findings that drove the changes:
 
@@ -167,3 +168,8 @@ Findings that drove the changes:
   the rest of the step"). The three RFQ runs that scored 0.81-0.85 cited the rival in the opening message;
   the later ones (0.66) let the model choose and cited index and delivery data instead. The cheapest rival
   bid now leads every message to a dearer bidder in which it is new.
+- **Hedged suppliers and index falls.** Two stainless-bar suppliers answer an index fall with "not our
+  reality", yet their first counter came lower with it (5.36-5.46 against 5.42-5.69; 5.4-5.6 against
+  5.5-5.9 over 21 runs each). The rule that dropped such claims is gone. In the same run a group supplier
+  withdrew in round 4 after four ordinary counters (one of 22 sessions of that case; it received no index
+  claim either way).

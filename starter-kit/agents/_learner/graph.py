@@ -342,10 +342,9 @@ def menu(ctx):
         if asked is None and case["buyer"].get("current_unit_price") and led.get("price"):
             asked = (led["price"] / case["buyer"]["current_unit_price"] - 1) * 100
         catalog = claims_mod.build_catalog(case, cc["facts"], dossier, sid, led.get("price"), asked)
-        if "hedged_forward" in tags:
-            # Its material is covered forward: an index fall "is not our reality" (practice: four replies)
-            # and only takes one of the three checked argument slots.
-            catalog = [c for c in catalog if c["kind"] != "idx"]
+        # Index falls stay in the catalogue for suppliers hedged forward: they answer "not our reality", yet their
+        # first counter came lower with them (two stainless-bar suppliers, 21 runs each: 5.36-5.46 with,
+        # 5.42-5.69 without; 5.4-5.6 with, 5.5-5.9 without).
         catalog += claims_mod.rival_claims(case, ctx["threads"], sid, leds, len(catalog) + 1)
         seen = used.get(sid, set()) | logged | logged_per_sup.get(sid, set())
         claims[sid] = claims_mod.available(catalog, seen, knobs.get("blocked_claims") or [])
