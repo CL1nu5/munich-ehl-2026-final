@@ -242,6 +242,24 @@ def test_dossier_tags_known_suppliers_quickly():
     assert "hedged_forward" in tags["sup:70190"]
 
 
+def test_newer_news_ends_a_shortage_tag_and_leads_the_prompt():
+    news = [
+        {"id": "news:b", "date": "2026-10-08", "topic": "supply_normalises", "headline": "Supply back to normal"},
+        {"id": "news:a", "date": "2026-03-02", "topic": "chip_shortage", "headline": "Longer delivery times"},
+    ]
+    d = {"tags": ["full_order_book", "committee"], "evidence": {"full_order_book": ["news:a"]}, "notes": []}
+    dossier_mod._clear_outdated(d, news)
+    assert d["tags"] == ["committee"] and "full_order_book" not in d["evidence"]
+    d = {"tags": ["full_order_book"], "evidence": {}, "notes": []}
+    dossier_mod._clear_outdated(d, list(reversed([{**news[0], "date": "2026-01-01"}, news[1]])))
+    assert d["tags"] == ["full_order_book"]  # the shortage is the newer news
+
+    pkg = package(load_params({}))
+    if getattr(pkg, "release", None):  # the Sunday release's newest supplier news comes first
+        sup = dossier_mod.supplier_dossier(pkg, "sup:70540", [])
+        assert sup["news"][0]["topic"] == "supply_normalises" and "full_order_book" not in sup["tags"]
+
+
 def test_critic_strips_leaks_figures_and_stray_ids():
     text, issues = writer.lint(
         "Thank you. We have no alternative supplier. Our price idea is 12.50 EUR. See idx:LCI-C@2026-06.\n"

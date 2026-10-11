@@ -6,6 +6,7 @@ same for every run. What the agent learns lives in the run memory (`memory/`), n
 
 # tag -> detection (lower-case phrases in notes/letters/quote remarks, news topics) and advice.
 # `rate`: what money now is worth to such a supplier per year (cost.supplier_value).
+# `cleared_by`: news topics that, when newer than every news behind the tag, mean it no longer holds.
 # `levers`: {field: "+"|"-"} - moving the field this way is cheap for us to give and valued by it.
 ARCHETYPES = {
     "cash_short": {
@@ -91,6 +92,7 @@ ARCHETYPES = {
     "full_order_book": {
         "phrases": ["order intake is very strong", "binding 12-month commitment"],
         "news": ["full_order_book", "allocation", "big_order", "chip_shortage"],
+        "cleared_by": ["supply_normalises", "free_capacity"],  # newer news that ends the shortage
         "rate": 0.07,
         "levers": {"contract_months": "+"},
         "advice": "Sold out: it has the leverage. Secure supply with a longer binding commitment; avoid "
