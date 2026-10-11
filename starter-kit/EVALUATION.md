@@ -115,3 +115,55 @@ Not changed, but limiting: every supplier issues its final offer at a fairly fix
 2, P08 3, P02 4, P01 5-6 in all four runs, whatever our anchor), while our concession schedule
 assumes up to ten rounds; and we never push a final offer without a safe fallback. No practice
 session was used for this revision; the local simulator still scores 0.787.
+
+## Recursive practice loop (night of 10-11 October)
+
+Each iteration played all ten practice cases once with the full hosted setup (`learner_openai.toml`),
+was compared with the last committed state and either committed or reverted. One run per change is
+noisy: identical asks drew supplier replies whose scores differed by up to 0.25 in a case (P08: 0.47-0.72
+with the same 4.59 first ask). Changes were therefore kept only when a pattern recurred across several
+suppliers or a defect was reproduced offline (journal replay through `decide()`); no rule is keyed to a
+case or supplier.
+
+| Run | Change | Mean | Kept |
+|---|---|---:|---|
+| `99ae196c` | the revision above (falling indices only, volume answers, near-ask acceptance) | 0.675 | yes |
+| `123f3d95` | first ask 25 % below the standing price, smaller steps | 0.648 | no |
+| `44606ca7` | the supplier's cheaper alternative levers carried into our packages; RFQ asks never above a rival's offer | 0.703 | yes |
+| `91ad699b` | sheet-ID and validation fixes, 25 % anchor cap | 0.631 | fixes only (P18 lost to an arena 503, see below) |
+| `41aa4864` | one argument per kind and message | 0.681 | yes |
+| `e4b3ea96` | larger step after two holds; no model call with three suppliers waiting | 0.689 | yes |
+| `bef03321` | 409 resync in the engine, no index claims to hedged suppliers, 25 % anchor cap | 0.672 | resync and hedged rule |
+| `f9c789a3` | only levers that stay cheap for us at the supplier's own price | 0.678 | yes |
+| `3b8b6cf9` | two arguments in every opening message, insisted values in robust sheets | interrupted (network) | no; the transport fix (no retry close to the deadline) kept |
+| `697cf46d` | RFQ: a cheaper rival bid leads every message it is new in | 0.679 (RFQ 0.67 → 0.82) | yes |
+
+Findings that drove the changes:
+
+- **Anchors.** Asks more than 25 % below the supplier's current price drew "your offer is far below any
+  calculation we can make" (five replies, three suppliers, none at 24 % or less) and a third of the usual
+  first concession (6.05 → 5.76 instead of 5.36, 5.74 → 5.61 instead of 5.51, 36.0 → 32.5 instead of 30.5).
+- **Concession timing.** Suppliers concede on their own schedule and issue a final offer after a few rounds
+  (often after two "holds"); the size of our step did not change the size of theirs. After two holds the
+  final offer usually came at the held price, so any agreement below it is a gain.
+- **Levers.** Suppliers mostly answer with their own price on the levers we send. A lower price with 30
+  days' payment came back as 430.01 with 30 days instead of 432.94 with 90 days (dearer for us). Packages
+  are now kept only if their levers are also cheap for us at the supplier's own price.
+- **Alternative packages reveal valuations.** A capacity-constrained supplier offered a longer lead time
+  for 6 % less; we kept asking for the short lead time and its final offer dropped the alternative. Our
+  next packages now carry the alternative's levers (snapped to allowed values) at the same cost for us;
+  P10 rose from 0.57-0.59 in every earlier run to 0.66.
+- **Arguments.** A second argument of the same kind in one message ("duplicate", "already taken into
+  account") wastes one of three checked slots; price history never moved a supplier; index falls meet
+  "not our reality" from suppliers whose material is hedged forward.
+- **Arena timing.** The arena answers one session's messages one after another (replies after 36, 54 and
+  72 s to three simultaneous messages), so the third RFQ bidder's 60 s window could expire. With three
+  suppliers waiting we decide without the model. A 409 on one late thread used to close the whole case
+  (the harness accepted a still-moving bid); the engine now refreshes all threads and continues. In one
+  run an arena 503 was retried after the arena had already recorded our timeout and the supplier's final
+  offer; the retried message read as a push after the final offer and the supplier withdrew.
+- **Rival quotes in RFQs.** Bidders shown a *much lower* rival quote give half the step at once and the
+  rest after checking it (back office: "I give half the step now and check the rest", then "Checked: give
+  the rest of the step"). The three RFQ runs that scored 0.81-0.85 cited the rival in the opening message;
+  the later ones (0.66) let the model choose and cited index and delivery data instead. The cheapest rival
+  bid now leads every message to a dearer bidder in which it is new.

@@ -904,6 +904,12 @@ def critic(ctx):
                 and c["kind"] not in {x["kind"] for x in chosen}
             ):
                 chosen.append(c)
+        rival = next((c for c in ctx["claims"].get(sid) or [] if c["kind"] == "offer"), None)
+        if rival and rival not in chosen:
+            # RFQ: a cheaper rival bid leads every message it is new in. A bidder shown a much lower rival quote
+            # gives half the step at once and the rest after checking it (practice RFQ back office, two bidders
+            # in three runs: 36.00 -> 30.50 -> 27.61 agreed); the model left it out of most opening messages.
+            chosen = [rival] + [c for c in chosen if c["kind"] != "offer"][:2]
         batch.update(i for c in chosen for i in c["ids"] if not i.startswith(claims_mod.PER_SUPPLIER))
         questions = []
         pref = state["sup"][sid].get("preferences") or {}

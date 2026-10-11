@@ -225,7 +225,8 @@ class Engine:
             async def send(action):
                 supplier, message = action["supplier_id"], action["message"]
                 path = f"sessions/{component(sid)}/threads/{component(supplier)}/messages"
-                reply = await self.api.request("POST", path, body={"message": message})
+                deadline = deadlines.get(supplier)
+                reply = await self.api.request("POST", path, body={"message": message}, deadline=deadline)
                 if reply.get("ended") or "result" in reply:
                     return reply
                 deadlines[supplier] = time.monotonic() + 60

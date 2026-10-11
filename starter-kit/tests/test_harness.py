@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 import httpx
 import pytest
@@ -143,6 +144,32 @@ def test_durable_operation_survives_new_client(journal):
 
     execute(scenario())
     assert seen == [op["id"]]
+
+
+@pytest.mark.parametrize("seconds_left, sends", [(5, 1), (55, 2)])
+def test_late_message_is_not_retried_after_a_transient_error(journal, seconds_left, sends):
+    calls = []
+    path = "sessions/s1/threads/sup%3A1/messages"
+
+    def handle(request):
+        calls.append(request)
+        if len(calls) == 1:
+            return httpx.Response(503, json={"detail": "busy"})
+        return httpx.Response(200, json={"status": "open"})
+
+    async def scenario():
+        api = Transport(config(), journal, transport=httpx.MockTransport(handle))
+        deadline = time.monotonic() + seconds_left
+        if sends == 1:
+            with pytest.raises(ArenaError) as e:
+                await api.request("POST", path, body={"message": {"body": "x"}}, deadline=deadline)
+            assert e.value.status == 409
+        else:
+            assert (await api.request("POST", path, body={"message": {"body": "x"}}, deadline=deadline))["status"]
+        await api.close()
+
+    execute(scenario())
+    assert len(calls) == sends and not journal.pending()
 
 
 @pytest.mark.parametrize("status", [401, 403, 409, 422, 429])
