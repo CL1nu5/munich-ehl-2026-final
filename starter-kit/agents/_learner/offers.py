@@ -19,7 +19,7 @@ PER_LEVEL = 8
 # Own-plant should-cost estimates ran about 2 % above the full cost the arena's relationship term implied
 # (practice P01, P02, P03 results: 130.0 vs 132.6, 367.4 vs 375.0, 394.7 vs 403.2).
 SHOULD_COST_BIAS = 0.02
-ANCHOR_FLOOR = 0.65  # never ask below this share of the standing price
+ANCHOR_FLOOR = 0.76  # asks > 25 % below standing price draw insult stonewalling; stay at safe floor
 
 
 def lever_domains(case, std):
@@ -49,7 +49,13 @@ def _prune(domains, base):
             continue
         values = orig[field]  # always spread over the full option list, not an already pruned one
         keep = [base.get(field)] if base.get(field) in values else []
-        spread = [values[0], values[-1], values[len(values) // 2], *values[1:-1]]
+        if field == "index_clause":
+            dict_opts = [v for v in values if isinstance(v, dict)]
+            widest = max(dict_opts, key=lambda o: o.get("deadband_pct") or 0, default=None)
+            spread_opts = [values[0], widest, values[-1], values[len(values) // 2], *values[1:-1]]
+            spread = [v for v in spread_opts if v is not None or v in values]
+        else:
+            spread = [values[0], values[-1], values[len(values) // 2], *values[1:-1]]
         for v in spread:
             if len(keep) >= cap:
                 break
@@ -173,7 +179,7 @@ def anchor_price(case, led, tags, dossier, drop, rivals=None, model=None, std=No
             "hedged_forward": 1.2,
             "open_books": 1.1,
         }.get(t, 1.0)
-    cut = min(0.35, drop * factor)
+    cut = min(0.24, drop * factor)
     target = standing * (1 - cut)
     current = b.get("current_unit_price")
     if current and case.get("type") in ("price_increase", "renewal", "raw_material") and current < standing:

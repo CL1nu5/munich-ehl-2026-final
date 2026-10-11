@@ -25,6 +25,8 @@ ASK_TOL = 0.001  # an offer "meets our ask" only if it also costs us no more tha
 # ask, the cheapest in the RFQ, walked away after our next small step).
 NEAR_ASK = 0.05
 MAX_LATENCY = 120  # a supplier answers within about a minute
+# suppliers issue final offers in rounds 2-5; pacing over 6 rounds avoids missing the deal:
+DEFAULT_PACING_HORIZON = 6
 
 
 class Ctx(TypedDict, total=False):
@@ -284,7 +286,8 @@ def menu(ctx):
             v_asp = v_stand * 0.995
         k = led["rounds"]
         horizon = min(
-            ctx["budget"].horizon(k, led["moves_left"], s.get("lat") or []), (knobs.get("horizon") or {}).get(sid, 99)
+            ctx["budget"].horizon(k, led["moves_left"], s.get("lat") or []),
+            (knobs.get("horizon") or {}).get(sid, DEFAULT_PACING_HORIZON),
         )
         levels = {}
         if v_asp is not None and v_stand is not None:
@@ -301,7 +304,7 @@ def menu(ctx):
         must_beat = must_beat if must_beat is not None else math.inf
         if alt:  # never ask for more than a package it already offers us
             must_beat = min(must_beat, alt["cost"])
-        pref = _with_alt_levers(case, led, s.get("preferences") or {})
+        pref = _with_quoted_index(case, led, _with_alt_levers(case, led, s.get("preferences") or {}))
         full = offers.build_menu(case, led, model, std, v_asp, v_stand, levels, must_beat)
         fulls[sid] = full
         banded = within_band(full, case, std, model, pref, led.get("price"))
@@ -474,6 +477,26 @@ def _with_alt_levers(case, led, pref):
     return {**(pref or {}), "fields": fields}
 
 
+def _with_quoted_index(case, led, pref):
+    """When the supplier's opening terms include an index clause, recognize it immediately so our
+    menu builds and reprices the allowed clause with the widest deadband right from round 0.
+    Practice P08/P18: ignoring the supplier's opening clause in round 0 led to supplier stonewalling
+    and costly 0.0% deadband clauses."""
+    if "index_clause" not in case.get("negotiable", []):
+        return pref
+    clause = (led.get("terms") or {}).get("index_clause")
+    if not clause:
+        return pref
+    fields = dict((pref or {}).get("fields") or {})
+    if "index_clause" not in fields:
+        fields["index_clause"] = {
+            "values": preferences._widen(case, "index_clause", [clause]),
+            "source": led.get("offer_id"),
+            "basis": "quoted by supplier",
+        }
+    return {**(pref or {}), "fields": fields}
+
+
 # RFQ: a bidder is never asked for more than a rival already offers us (practice: we cited a rival's EUR 27.61
 # to another bidder while asking it for EUR 29.40-29.81 - the rival quote only moves a bidder if our ask is
 # below it).
@@ -518,7 +541,10 @@ def _with_fields(case, menu, level, fields, std):
     terms = dict(best["terms"])
     for f, p in fields.items():
         if terms.get(f) not in p["values"]:
-            terms[f] = p["values"][0]
+            if f == "index_clause" and p["values"]:
+                terms[f] = max(p["values"], key=lambda o: (o or {}).get("deadband_pct") or 0)
+            else:
+                terms[f] = p["values"][0]
     if not must_haves_ok(case, terms, std):
         return None
     return {**best, "terms": terms}

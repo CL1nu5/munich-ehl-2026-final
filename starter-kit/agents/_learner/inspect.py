@@ -9,17 +9,18 @@ import json
 import sys
 from pathlib import Path
 
+from arena_kit.harness.cli import DEFAULT_RUNS
+
 from .memory import consolidate, episodes
-from .memory.runlocate import DEFAULT_RUNS
 
 
 def resolve(run, runs_dir=None):
     path = Path(run)
     if (path / "run.sqlite").is_file():
         return path
-    path = Path(runs_dir or DEFAULT_RUNS) / run
-    if (path / "run.sqlite").is_file():
-        return path
+    for base in [Path(runs_dir) if runs_dir else None, Path(".runs"), DEFAULT_RUNS]:
+        if base and (base / run / "run.sqlite").is_file():
+            return base / run
     raise SystemExit(f"No run journal found for {run!r}")
 
 
