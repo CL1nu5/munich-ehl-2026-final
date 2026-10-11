@@ -1,0 +1,68 @@
+Practice auf Jonas-Integration – 11.10.2026
+Run: 20261011T074438Z-8a77a375
+Code: fe28fbc26b86bf8d67ae6243df3b70aacb18bac6
+Modell: GPT-6 Luna, reasoning medium, service tier fast.
+
+Gesamtscore: 71.86 %
+Vorher: 69.76 %; Differenz: +2.10 Prozentpunkte.
+10/10 Fälle ausgewertet, 10/10 Deals, alle Pflichtbedingungen erfüllt.
+Alle zehn Sitzungen nachträglich per API als ended bestätigt.
+Laufzeit laut Journal: 6 Minuten 22 Sekunden.
+
+Fall     Score      vorher      Differenz (Prozentpunkte)
+P01       91.36 %     96.75 %     -5.38
+P02       49.55 %     36.84 %    +12.71
+P03       90.51 %     90.34 %     +0.18
+P04       86.04 %     86.04 %     +0.00
+P05       82.38 %     82.38 %     +0.00
+P07       71.69 %     68.85 %     +2.83
+P08       63.72 %     53.76 %     +9.96
+P10       67.07 %     65.51 %     +1.56
+P11       70.99 %     70.99 %     +0.00
+P18       45.31 %     46.15 %     -0.85
+
+Auswertung
+P02 und P08 verbessern sich am deutlichsten. P01 fällt um 5,38 Punkte,
+P18 um 0,85 Punkte. P18 bleibt mit 45,31 % die größte Leistungslücke.
+P02 erreicht trotz höherem Stückpreis von 371,98 statt 368,05 EUR einen
+besseren Gesamtscore: das neue Paket umfasst 90 statt 30 Tage Zahlungsziel.
+P08 endet bei 5,27 statt 5,36 EUR. P18 erhält nun zwar 90 statt 14 Tage
+Zahlungsziel, bezahlt jedoch 5,40 statt 5,30 EUR; das Gesamtpaket ist damit
+in diesem Lauf geringfügig schlechter. Die Zustimmungskorrektur allein
+garantiert also keine bessere wirtschaftliche Paketwahl.
+Fiktive Einsparung gegenüber Eröffnungsangeboten: 1.133.278,36 EUR.
+
+Technik und Grenzen
+0 Agent-Fallbacks, 0 lokale Entscheidungs-Timeouts; 1 Arena-Thread-Timeout
+und 2 Dokument-Timeouts in P05. P05 wurde trotzdem mit 82,38 % abgeschlossen.
+1 unsicherer API-Vorgang löste Wiederanlauf und Zustandsabgleich aus; alle
+Ergebnisse wurden danach vollständig gespeichert. Bei P11 fehlen im
+lokalen Bericht die Runden-/Endgrund-Metadaten, nicht aber das bestätigte
+Ergebnis. Der anschließende Kontingentabruf scheiterte einmal mit einem
+Verbindungsabbruch; die getrennte lesende Nachprüfung war erfolgreich.
+Entscheidungszeit: Mittel 7,06 s, p95 16,68 s.
+39 Modellaufrufe, 166.941 bestätigte Tokens; 1 Aufruf ohne vollständige
+Nutzungsrückmeldung. Gesamtkosten deshalb nicht belastbar beziffert.
+34 verifizierte Belege, 1 als doppelt bewerteter Beleg.
+Kontingent vorher 280, nachher 270 von 600 frei: genau 10 Sitzungen genutzt.
+
+Alle Fall-Hashes stimmen mit dem vorherigen Lauf überein. Der Datenhash
+unterscheidet sich durch die wiederhergestellte Team-Datenbankdatei; deren
+logischer Inhalt wurde bei der Integration als identisch geprüft. Mehrere
+Änderungen und variable Lieferantenantworten verhindern eine kausale
+Zuordnung der Score-Änderung zu einer einzelnen Korrektur.
+71,86 % ist der Mittelwert dieses einen Runs, kein Best-of-Score und kein
+Finalscore. Das Ziel von 90 % wurde nicht erreicht.
+Kein automatischer weiterer Versuch gestartet.
+
+Replays:
+case:P01: https://arena.tacto.ai/replay/705eaa0a0febf605
+case:P02: https://arena.tacto.ai/replay/43692dee64aafa9c
+case:P03: https://arena.tacto.ai/replay/78c1638560e69414
+case:P04: https://arena.tacto.ai/replay/961f918970cdf20b
+case:P05: https://arena.tacto.ai/replay/36a1190f36abfc77
+case:P07: https://arena.tacto.ai/replay/7f4cad0abfc9e10a
+case:P08: https://arena.tacto.ai/replay/c52939fc89ecf878
+case:P10: https://arena.tacto.ai/replay/391f916b9452a799
+case:P11: https://arena.tacto.ai/replay/46274d9497bed3fc
+case:P18: https://arena.tacto.ai/replay/711fa5d763b5327f
