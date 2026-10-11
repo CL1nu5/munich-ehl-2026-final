@@ -3,7 +3,7 @@
   "checkpoint_id": "01M4N5BQ1GYA2PKNF3WW2F2EJ3",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 8,
   "files_touched": [
     "starter-kit/agents/_learner/graph.py",
     "starter-kit/agents/_learner/inspect.py",
@@ -16,6 +16,12 @@
       "transcript": "/0/full.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ]
 }
