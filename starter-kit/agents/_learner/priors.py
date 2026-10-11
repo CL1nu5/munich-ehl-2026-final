@@ -18,7 +18,7 @@ ARCHETYPES = {
             "shop floor was idle",
             "short hours",
         ],
-        "news": ["credit_watch", "credit_downgrade", "restructuring", "short_time_work"],
+        "news": ["credit_watch", "credit_downgrade", "restructuring", "short_time_work", "insolvency"],
         "rate": 0.18,
         "levers": {"payment_days": "-"},
         "advice": "Short of cash: faster payment is worth more to it than price; trade earlier payment for a "
@@ -62,6 +62,9 @@ ARCHETYPES = {
             "head-office directive",
             "list conditions",
             "prices as per current list",
+            "ruled out individual price reductions",
+            "individual price reductions",
+            "price list 2027 applies to all",
         ],
         "news": [],
         "rate": 0.07,
@@ -70,7 +73,13 @@ ARCHETYPES = {
         "call-off flexibility, contract length and Incoterm instead.",
     },
     "hedged_forward": {
-        "phrases": ["forward until", "not our reality", "material covered until"],
+        "phrases": [
+            "forward until",
+            "not our reality",
+            "material covered until",
+            "forward at fixed prices",
+            "at fixed prices until",
+        ],
         "news": ["energy_contract"],
         "rate": 0.07,
         "levers": {},
