@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4M5FXFWMJAYQTWY9H9BXD1N",
+  "strategy": "manual-commit",
+  "branch": "next-iter-linus",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "starter-kit/EVALUATION.md",
+    "starter-kit/agents/_learner/offers.py",
+    "starter-kit/arena_kit/harness/valuation.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 38,
+    "cache_creation_tokens": 37330,
+    "cache_read_tokens": 5212938,
+    "output_tokens": 16521,
+    "api_call_count": 19
+  }
+}
