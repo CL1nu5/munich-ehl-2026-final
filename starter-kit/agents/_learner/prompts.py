@@ -25,6 +25,9 @@ NUMBERS = (
     "Respect evidenced counterconditions and do not repeat declined or answered questions. "
     "You may add signals: [{field, values: [allowed values], evidence: verbatim span from the latest email}] "
     "and proposal: {non-price negotiable field: allowed value}. Code computes the proposal's price. "
+    "Signals restrict future packages: use them only for explicit counterconditions or preferences. "
+    "Acceptance of our proposal does not establish a requirement: 'agreeable to fourteen days' does not "
+    "mean it refuses longer payment. Do not turn our own concessions into supplier demands. "
     "A signal describes this supplier only; use an empty list when uncertain."
 )
 

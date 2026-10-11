@@ -39,6 +39,7 @@ class Engine:
         self.models = models or Models(cfg, journal, shared=self.resources.models)
         self.reflections = set()
         self.selected_cases = None
+        self.document_text = {}  # immutable attachments, scoped by session/id/name; bounded below
         self.stop = asyncio.Event()
         self.quota_exhausted = False
         self.practice_left = None
@@ -102,6 +103,11 @@ class Engine:
         for att in message.get("attachments") or []:
             if not att.get("attachment_id") or "text" in att or att.get("attempts", 0) >= DOCUMENT_ATTEMPTS:
                 continue
+            cache_key = (sid, att["attachment_id"], att.get("name"))
+            if cache_key in self.document_text:
+                att["text"] = self.document_text[cache_key]
+                att.pop("error", None)
+                continue
             att["attempts"] = att.get("attempts", 0) + 1
             name = hashlib.sha256((sid + ":" + att["attachment_id"]).encode()).hexdigest()
             file = self.journal.folder / "attachments" / name
@@ -153,6 +159,10 @@ class Engine:
                         parser.kill()
                         await parser.wait()
                 att.pop("error", None)
+                if len(att["text"].encode("utf-8")) <= 1024 * 1024:
+                    if len(self.document_text) >= 128:
+                        self.document_text.pop(next(iter(self.document_text)))
+                    self.document_text[cache_key] = att["text"]
             except (ArenaError, ValueError, TimeoutError, OSError) as e:
                 att["error"] = "Document unavailable or unreadable"
                 self.journal.event("document_error", session=sid, attachment=att["attachment_id"], reason=repr(e)[:200])
