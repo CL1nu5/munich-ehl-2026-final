@@ -142,6 +142,9 @@ case or supplier.
 | `376d6bfc` | quote PDFs parsed in-process when the parser process fails | 0.697 | harness fix (see below) |
 | `de4e01f0` | no concession while a bidder announced a further step after checking our data | 0.693 (RFQ 0.71) | no |
 | `21598534` | the same, and the next ask close to its price after that step | 0.691 (RFQ 0.71) | no |
+| `b5a5717d` | opening index probe built on our lead sheet (its payment term, not 14 days) | 0.652 (group supplier withdrew; stainless 0.45) | no |
+| `ecec1e5f` | confirmation of the kept state (`2631678`) | 0.713 | - |
+| `eb4c1217` | a fresh checked argument in every later message | 0.687 | no |
 
 Findings that drove the changes:
 
@@ -191,3 +194,7 @@ Findings that drove the changes:
   and next moves to our standing ask or its floor, whichever is higher. Holding our ask in that round made
   one bidder agree 0.59 lower, but in both runs the cheapest bidder withdrew after its step (asks 4.5 % and
   1.2 % below its price), against one withdrawal in nine earlier runs. Not kept.
+- **Kept state.** Two runs of the kept agent scored 0.722 and 0.713. The loop stopped at the team's 300
+  practice sessions. Ideas tested and dropped: holding the ask while a bidder checks our data, an index probe
+  on our lead sheet's levers, a forced argument in later messages (replies to round-2 messages with an
+  argument had moved 1.08 % against 0.31 % without, but forcing one did not raise the score).
