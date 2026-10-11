@@ -84,6 +84,9 @@ def should_cost_row(parts_dossier, sid):
     return None
 
 
+FULL_BOOK_LEAD_EFFORT = 0.003
+
+
 def supplier_model(case, led, tags, dossier_sup, parts_dossier):
     """Our estimate of the supplier for `supplier_value` / the relationship term."""
     model = {
@@ -92,6 +95,10 @@ def supplier_model(case, led, tags, dossier_sup, parts_dossier):
         "usual_rate": 0.07,
         "ref_price": led.get("price") or 0.0,
     }
+    if "full_order_book" in tags:
+        # Sold out: a shorter lead time than its own means overtime (practice: two such suppliers charged 0.2-0.5 %
+        # of the price per day, "a shorter Lieferzeit means overtime; that is priced in", against our 0.1 % prior).
+        model["lead_effort"] = FULL_BOOK_LEAD_EFFORT
     b = case["buyer"]
     if b.get("category_goal") in RELATIONSHIP_GOALS:
         row = should_cost_row(parts_dossier, led.get("supplier_id"))

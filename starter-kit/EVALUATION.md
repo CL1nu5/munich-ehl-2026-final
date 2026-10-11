@@ -138,6 +138,7 @@ case or supplier.
 | `3b8b6cf9` | two arguments in every opening message, insisted values in robust sheets | interrupted (network) | no; the transport fix (no retry close to the deadline) kept |
 | `697cf46d` | RFQ: a cheaper rival bid leads every message it is new in | 0.679 (RFQ 0.67 → 0.82) | yes |
 | `6e1b739c` | index falls cited to hedged suppliers again | 0.670; 0.745 on the nine cases without the price-increase supplier's withdrawal (0.715 before) | yes |
+| `26e559b2` | sold-out suppliers: a day below their lead time costs them 0.3 % of the price (prior 0.1 %) | 0.722 | yes |
 
 Findings that drove the changes:
 
@@ -173,3 +174,8 @@ Findings that drove the changes:
   5.5-5.9 over 21 runs each). The rule that dropped such claims is gone. In the same run a group supplier
   withdrew in round 4 after four ordinary counters (one of 22 sessions of that case; it received no index
   claim either way).
+- **Lead time with sold-out suppliers.** Both suppliers tagged with a full order book priced a shorter lead
+  time at 0.2-0.5 % of the price per day ("a shorter Lieferzeit means overtime; that is priced in"; 33.80 at
+  42 days against 31.90 at 54). Our prior of 0.1 % made the short lead time look cheap, so we only ever got
+  the long one when the supplier offered it. With 0.3 % for such suppliers our first packages already carry
+  the longer lead time at a lower price (capacity case 0.58 → 0.66, as in its best earlier runs).
