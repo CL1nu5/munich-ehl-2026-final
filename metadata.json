@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M4QQ1H28FMFNQ1BAAA634MJC",
+  "strategy": "manual-commit",
+  "branch": "docs/final-results",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "README.md",
+    "docs/notes/JONAS_INTEGRATION.txt",
+    "docs/notes/LUNA_TIMING.md",
+    "docs/notes/POST_PRACTICE_REVIEW.txt",
+    "docs/notes/PRACTICE_JONAS_RESULT.txt",
+    "docs/notes/PRE_PRACTICE_REVIEW.txt",
+    "docs/notes/SUNDAY_READINESS.txt",
+    "starter-kit/JONAS_INTEGRATION.txt",
+    "starter-kit/LUNA_TIMING.md",
+    "starter-kit/POST_PRACTICE_REVIEW.txt",
+    "starter-kit/PRACTICE_JONAS_RESULT.txt",
+    "starter-kit/PRE_PRACTICE_REVIEW.txt",
+    "starter-kit/SUNDAY_READINESS.txt"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 32,
+    "cache_creation_tokens": 23142,
+    "cache_read_tokens": 984528,
+    "output_tokens": 8677,
+    "api_call_count": 16
+  }
+}
