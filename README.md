@@ -9,6 +9,13 @@ from offers and arguments that code has already priced and checked.
 > **Final commit:** the full SHA is in our ehl.gg submission. The final runs exactly that commit, and
 > `--commit` refuses to start if the checkout differs.
 
+## Final result: 3rd place
+
+We finished **3rd of 22 teams** in the Live Final, with 341.5 points over five waves and 29 of 29 deals
+closed. We also saved the most money of any team: €3,126,249 against the opening offers.
+
+![Final standings on arena.tacto.ai/results: Fake It Till You Make It in 3rd place](docs/final-results.png)
+
 ## Run it
 
 You need Python 3.12 and [uv](https://docs.astral.sh/uv/). Every command runs from `starter-kit/`.
