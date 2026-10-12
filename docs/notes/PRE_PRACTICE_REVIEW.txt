@@ -10,7 +10,7 @@ Confirmed and fixed:
 Validation after all fixes:
 197 tests passed; 1 hosted test deliberately skipped because --arena-live was not enabled. External network is blocked in default tests.
 Changed Python files pass Ruff; git diff --check passed.
-Report XML: /Users/leon/Documents/Codex/2026-10-10/hab/outputs/prepractice-reviewed-tests.xml
+Report XML: kept locally (prepractice-reviewed-tests.xml).
 
 The work reduces reproduced operational failure modes. It does not establish a higher real negotiation score or prove that no other defects exist. No supplier-specific pricing rules or model changes were introduced. Existing Sunday facts and official rehearsal integration remain in place.
 Before a real Practice run: read-only credential/quota/open-session preflight, then separately authorized execution with the current configuration.

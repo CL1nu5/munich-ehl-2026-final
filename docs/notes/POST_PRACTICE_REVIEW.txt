@@ -41,7 +41,7 @@ es drei Dokument- und zwei Arena-Thread-Timeouts in P05.
 4. GitHub aufgeräumt
 Entfernt: codex/evidence-negotiator, der ersetzte Altansatz mit geschlossenem
 PR #5. Vorher vollständige lokale Sicherung des Standes 6b195292 angelegt:
-/Users/leon/Desktop/EHL/backups/evidence-negotiator-20261011.bundle
+(Git-Bundle evidence-negotiator-20261011, lokal gesichert)
 Die Sicherung wurde mit Git geprüft; der lokale Archiv-Branch bleibt.
 Gelöscht wurde mit erwarteter Commit-ID, um zwischenzeitliche Änderungen
 anderer Teammitglieder nicht unbemerkt zu entfernen.
