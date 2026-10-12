@@ -6,7 +6,7 @@ Hollerau Pumpenwerke. It negotiates with several suppliers at once by e-mail and
 walk away. A language model reads the suppliers' replies and writes our e-mails, and it can only choose
 from offers and arguments that code has already priced and checked.
 
-> **Final commit:** the full SHA is in our ehl.gg submission. The final runs exactly that commit, and
+> **Final commit:** the full SHA is in our ehl.gg submission. The final ran exactly that commit:
 > `--commit` refuses to start if the checkout differs.
 
 ## Final result: 3rd place
@@ -84,7 +84,8 @@ decide   read replies -> value every sheet -> close? (accept / walk)
 
 [`starter-kit/agents/_learner/README.md`](starter-kit/agents/_learner/README.md) has the design
 detail. [`starter-kit/EVALUATION.md`](starter-kit/EVALUATION.md) records what we tried against the
-practice suppliers, what we kept and why.
+practice suppliers, what we kept and why. [`docs/notes/`](docs/notes/) holds our working notes from the
+final weekend (reviews, practice results, timing audit), partly in German.
 
 ## Repository map
 
