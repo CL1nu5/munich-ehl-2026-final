@@ -1,0 +1,5 @@
+Die challenge ist jetzt over, mache einen screenshot der result seit https://arena.tacto.ai/results auf dem man sehen kann, das wir (Team fake it till you make it) auf platz 3 gelandet sind und pack das dann in die Readme rein
+
+---
+
+/login
