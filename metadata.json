@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4TNAB1BN2YP06CJC2WSNNY6",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "README.md",
+    "docs/NEGOTIATION_FRAMEWORK.md",
+    "starter-kit/README.md",
+    "starter-kit/agents/_learner/priors.py",
+    "starter-kit/agents/strategies/__init__.py",
+    "starter-kit/agents/strategies/carnegie.py",
+    "starter-kit/agents/strategies/fact_mining.py",
+    "starter-kit/agents/strategies/greene_48_laws.py",
+    "starter-kit/agents/strategies/harvard.py",
+    "starter-kit/agents/strategies/procurement_tactics.py",
+    "starter-kit/agents/strategies/voss.py",
+    "starter-kit/agents/tactician.py",
+    "starter-kit/arena_kit/harness/engine.py",
+    "starter-kit/arena_kit/harness/transport.py",
+    "starter-kit/configs/final.toml",
+    "starter-kit/configs/tactician.toml",
+    "starter-kit/configs/tactician_4o.toml",
+    "starter-kit/configs/tactician_luna_6.toml",
+    "starter-kit/tests/evaluate_offline.py",
+    "starter-kit/tests/test_tactician.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}

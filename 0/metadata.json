@@ -1,0 +1,59 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4TNAB1BN2YP06CJC2WSNNY6",
+  "session_id": "11dfb9cb-73c3-44a4-8be2-fe3083585af0",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-13T12:55:36.953365Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "README.md",
+    "docs/NEGOTIATION_FRAMEWORK.md",
+    "starter-kit/README.md",
+    "starter-kit/agents/_learner/priors.py",
+    "starter-kit/agents/strategies/__init__.py",
+    "starter-kit/agents/strategies/carnegie.py",
+    "starter-kit/agents/strategies/fact_mining.py",
+    "starter-kit/agents/strategies/greene_48_laws.py",
+    "starter-kit/agents/strategies/harvard.py",
+    "starter-kit/agents/strategies/procurement_tactics.py",
+    "starter-kit/agents/strategies/voss.py",
+    "starter-kit/agents/tactician.py",
+    "starter-kit/arena_kit/harness/engine.py",
+    "starter-kit/arena_kit/harness/transport.py",
+    "starter-kit/configs/final.toml",
+    "starter-kit/configs/tactician.toml",
+    "starter-kit/configs/tactician_4o.toml",
+    "starter-kit/configs/tactician_luna_6.toml",
+    "starter-kit/tests/evaluate_offline.py",
+    "starter-kit/tests/test_tactician.py"
+  ],
+  "agent": "Antigravity",
+  "model": "",
+  "turn_id": "bba0226bc744",
+  "session_metrics": {
+    "turn_count": 8
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-13T12:55:36.861364Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 0,
+    "total_lines_changed": 0,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
